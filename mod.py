@@ -32,8 +32,8 @@ class ModLoader:
         Load a mod from a class that is a child of 'Mod'
         '''
         # Error if the mod is not valid
-        if not isinstance(modClass, Mod):
-            raise Exception('Illegal Class type of \'{}\'. Expected child of \'Mod\''.format(modClass.__class__.__name__))
+        if not issubclass(modClass, Mod):
+            raise Exception('Illegal Class type of \'{}\'. Expected child of \'Mod\''.format(modClass.__name__))
         self.modsToLoad.append(modClass)
 
     def loadRegisteredMods(self):
@@ -65,6 +65,13 @@ class GameRegistry:
         self.eventFunctions = {}
         self.properties = {}
 
+    def getWorld(self):
+        '''
+        Return a world object that contains all of the data of the world
+        It contains a list of players, a list of entities and the tile data of the world
+        '''
+        return self.dimensions[0].getWorldObj()
+
     def registerItem(self, itemClass):
         '''
         Register an item
@@ -72,7 +79,7 @@ class GameRegistry:
         if self.items.get(itemClass.getRegistryName()) == None:
             self.items[itemClass.getRegistryName()] = itemClass
             return
-        raise KeyError('Registry name {} already in use by another item!'.format(itemClass.getRegistryName()))
+        raise KeyError('[ERROR] Registry name {} already in use by another item!'.format(itemClass.getRegistryName()))
 
     def registerBiome(self, biomeClass):
         '''
@@ -82,7 +89,7 @@ class GameRegistry:
         if self.biomes.get(biomeClass.getRegistryName()) == None:
             self.biomes[biomeClass.getRegistryName()] = biomeClass
             return
-        raise KeyError('Registry name {} already in use by another biome!'.format(biomeClass.getRegistryName()))
+        raise KeyError('[ERROR] Registry name {} already in use by another biome!'.format(biomeClass.getRegistryName()))
 
     def registerEntity(self, entityClass):
         '''
@@ -91,7 +98,7 @@ class GameRegistry:
         if self.entities.get(entityClass.getRegistryName()) == None:
             self.entities[entityClass.getRegistryName()] = entityClass
             return
-        raise KeyError('Registry name {} already in use by another entity!'.format(entityClass.getRegistryName()))
+        raise KeyError('[ERROR] Registry name {} already in use by another entity!'.format(entityClass.getRegistryName()))
 
     def registerGUI(self, guiClass):
         '''
@@ -107,7 +114,7 @@ class GameRegistry:
         if self.vehicles.get(vehicleClass.getRegistryName()) == None:
             self.vehicles[vehicleClass.getRegistryName()] = vehicleClass
             return
-        raise KeyError('Registry name {} already in use by another vehicle!'.format(vehicleClass.getRegistryName()))
+        raise KeyError('[ERROR] Registry name {} already in use by another vehicle!'.format(vehicleClass.getRegistryName()))
 
     def registerCommand(self, commandClass):
         '''
@@ -135,7 +142,7 @@ class GameRegistry:
         if self.audioEffects.get(audioClass.getRegistryName()) == None:
             self.audioEffects[audioClass.getRegistryName()] = audioClass
             return
-        raise KeyError('Registry name {} already in use by another audio effect!'.format(audioClass.getRegistryName()))
+        raise KeyError('[ERROR] Registry name {} already in use by another audio effect!'.format(audioClass.getRegistryName()))
 
 
     def registerPacketHandler(self, packetHandler):
@@ -145,31 +152,11 @@ class GameRegistry:
         self.packetPipelines[len(self.packetPipelines)] = packetHandler
         return len(self.packetPipelines)-1
 
-    def registerProperties(self, propertyClass):
+    def registerProperties(self, propertyObj):
         '''
         Register object properties
         '''
-        self.properties[propertyClass.objectType] = self.properties.get(propertyClass.objectType, [])+[propertyClass]
-
-    def register(self, registerObj):
-        '''
-        Register an object without regard for its type, except events
-        '''
-        registryTypes = {'AudioFX' : self.registerAudioEffect,
-                        'Command' : self.registerCommand,
-                        'PacketHandler' : self.registerPacketHandler,
-                        'Entity' : self.registerEntity,
-                        'Item' : self.registerItem,
-                        'Biome' : self.registerBiome,
-                        'Vehicle' : self.registerVehicle,
-                        'GUI' : self.registerGUI,
-                        'DimensionHandler' : self.registerDimension,
-                        'Properties' : self.registerProperties
-                        }
-        register = registryTypes.get(registerObj.__class__.__name__)
-        if register is None:
-            raise TypeError('Object being registered is of an invalid type \'{}\''.format(registerObj.__class__.__name__))
-        register(registerObj)
+        self.properties[propertyObj.objectType] = self.properties.get(propertyObj.objectType, [])+[propertyObj]
 
 class Mod:
     def __init__(self, gameRegistry):
@@ -181,22 +168,22 @@ class Mod:
         Initialise the properties of the mod. Currently:
         self.modName
         '''
-        raise NotImplementedError('A mod hasn\'t initialised its properties correctly.')
+        raise NotImplementedError('[ERROR] A mod hasn\'t initialised its properties correctly.')
 
     def preLoad(self):
         '''
         Run the preload registers
         '''
-        raise NotImplementedError('PreLoad function not overridden in mod '+self.modName)
+        raise NotImplementedError('[ERROR] PreLoad function not overridden in mod '+self.modName)
 
     def load(self):
         '''
         Run the load registers
         '''
-        raise NotImplementedError('Load function not overridden in mod '+self.modName)
+        raise NotImplementedError('[ERROR] Load function not overridden in mod '+self.modName)
 
     def postLoad(self):
         '''
         Run the postload registers
         '''
-        raise NotImplementedError('PostLoad function not overridden in mod '+self.modName)
+        raise NotImplementedError('[ERROR] PostLoad function not overridden in mod '+self.modName)
