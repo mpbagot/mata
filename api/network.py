@@ -10,6 +10,7 @@ import socket
 
 class PacketHandler:
     def __init__(self, side):
+        self.nextSize = 37
         self.side = side
         self.connections = []
         self.safePackets = []
@@ -26,6 +27,12 @@ class PacketHandler:
         '''
         return any([isinstance(packet, a) for a in self.safePackets])
 
+    def setNextPacketSize(self, size):
+        '''
+        Set the size of the next packet to be recieved
+        '''
+        self.nextSize = size
+
     def sendToAll(self, packet):
         '''
         Send a packet to all Clients
@@ -37,7 +44,24 @@ class PacketHandler:
         if self.side == util.CLIENT:
             print('[WARNING] Cannot send a packet to clients from a client runtime!')
             return
-        pass
+        for conn in self.connections:
+            self.sendToPlayer(packet, conn.username)
+
+    def sendToPlayer(self, packet, username):
+        '''
+        Send a packet to a client with the given username
+        '''
+        if not isPacketSafe(packet):
+            # Reject the packet
+            print('[ERROR] Packet was not sent to clients because it was not registered.')
+            return
+        if self.side == util.CLIENT:
+            print('[WARNING] Cannot send a packet to clients from a client runtime!')
+            return
+        # TODO send the packet
+        for conn in self.connections:
+            if conn.username == username:
+                pass
 
     def sendToServer(self, packet):
         '''
@@ -50,7 +74,12 @@ class PacketHandler:
         if self.side == util.SERVER:
             print('[WARNING] Cannot send a packet to server from a server runtime!')
             return
+        # TODO send the packet
         pass
+
+class Connection:
+    def __init__(self):
+        self.username = ''
 
 class Packet:
     def toBytes(self, buffer):
