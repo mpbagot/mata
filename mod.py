@@ -41,14 +41,17 @@ class ModLoader:
         Load all of the registered mods
         '''
         # Instantiate the mods
-        mods = [mod(self.gameRegistry) for mod in self.modsToLoad]
+        self.mods = {mod.modName : mod(self.gameRegistry) for mod in self.modsToLoad}
 
         # Run the Preload, Load, and PostLoad on each instance
-        for modInstance in mods:
+        for modName in self.mods:
+            modInstance = self.mods[modName]
             modInstance.preLoad()
-        for modInstance in mods:
+        for modName in self.mods:
+            modInstance = self.mods[modName]
             modInstance.load()
-        for modInstance in mods:
+        for modName in self.mods:
+            modInstance = self.mods[modName]
             modInstance.postLoad()
 
 class GameRegistry:
@@ -59,7 +62,7 @@ class GameRegistry:
         self.dimensions = {}
         self.biomes = {}
         self.vehicles = {}
-        self.commands = []
+        self.commands = {}
         self.packetPipelines = {}
         self.audioEffects = {}
         self.eventFunctions = {}
@@ -116,11 +119,11 @@ class GameRegistry:
             return
         raise KeyError('[ERROR] Registry name {} already in use by another vehicle!'.format(vehicleClass.getRegistryName()))
 
-    def registerCommand(self, commandClass):
+    def registerCommand(self, commandText, commandClass):
         '''
         Register a console command (for admins and moderators)
         '''
-        self.commands.append(commandClass)
+        self.commands[commandText] = commandClass
 
     def registerDimension(self, dimensionClass):
         '''
@@ -161,14 +164,6 @@ class GameRegistry:
 class Mod:
     def __init__(self, gameRegistry):
         self.gameRegistry = gameRegistry
-        self.initialiseProperties()
-
-    def initialiseProperties(self):
-        '''
-        Initialise the properties of the mod. Currently:
-        self.modName
-        '''
-        raise NotImplementedError('[ERROR] A mod hasn\'t initialised its properties correctly.')
 
     def preLoad(self):
         '''
