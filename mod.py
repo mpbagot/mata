@@ -2,6 +2,9 @@
 mod.py
 Module containing the Mod loading and Mod API code for the game
 '''
+# Import the Python3 standard libraries
+import os
+
 class ModLoader:
     def __init__(self):
         self.modsToLoad = []
@@ -11,12 +14,24 @@ class ModLoader:
         '''
         Search the mod folder for a mod with the given mod name, and load it
         '''
-        pass
+        # Traverse the python files in the mod folder
+        for f in os.listdir('mods'):
+            if f.endswith('.py'):
+                exec('import mods.'+f[:-3]+' as module')
+                # Check if the mod class is in the file
+                if name in dir(module):
+                    modClass = eval('module.'+name)
+                    # Register it normally if it is
+                    self.registerMod(modClass)
+                    return
+        # Error if the mod doesn't exist
+        raise FileNotFoundError('Mod File not Found in \'mods\' folder')
 
     def registerMod(self, modClass):
         '''
         Load a mod from a class that is a child of 'Mod'
         '''
+        # Error if the mod is not valid
         if not isinstance(modClass, Mod):
             raise Exception('Illegal Class type of \'{}\'. Expected child of \'Mod\''.format(modClass.__class__.__name__))
         self.modsToLoad.append(modClass)
@@ -25,7 +40,10 @@ class ModLoader:
         '''
         Load all of the registered mods
         '''
+        # Instantiate the mods
         mods = [mod(self.gameRegistry) for mod in self.modsToLoad]
+
+        # Run the Preload, Load, and PostLoad on each instance
         for modInstance in mods:
             modInstance.preLoad()
         for modInstance in mods:
