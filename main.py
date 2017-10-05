@@ -5,7 +5,6 @@
 - Integrated or Dedicated Server
 '''
 # Import the game submodules
-import network
 import mod
 import util
 import game
@@ -15,8 +14,6 @@ import sys
 
 # Initialise the ModLoader
 modLoader = mod.ModLoader()
-# TODO allow mods to add custom packet pipelines/handlers
-# packetHandler = network.PacketHandler()
 
 # Collect and handle the command line arguments
 arguments = sys.argv[1:]
