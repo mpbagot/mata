@@ -59,71 +59,97 @@ class GameRegistry:
         self.dimensions = {}
         self.biomes = {}
         self.vehicles = {}
-        self.commands = {}
+        self.commands = []
         self.packetPipelines = {}
         self.audioEffects = {}
         self.eventFunctions = {}
+        self.properties = {}
 
     def registerItem(self, itemClass):
         '''
         Register an item
         '''
-        pass
+        if self.items.get(itemClass.getRegistryName()) == None:
+            self.items[itemClass.getRegistryName()] = itemClass
+            return
+        raise KeyError('Registry name {} already in use by another item!'.format(itemClass.getRegistryName()))
 
     def registerBiome(self, biomeClass):
         '''
         Register a biome, for the default dimension
         To register a biome with another dimension, use the DimensionHandler class
         '''
-        pass
+        if self.biomes.get(biomeClass.getRegistryName()) == None:
+            self.biomes[biomeClass.getRegistryName()] = biomeClass
+            return
+        raise KeyError('Registry name {} already in use by another biome!'.format(biomeClass.getRegistryName()))
 
     def registerEntity(self, entityClass):
         '''
         Register an entity
         '''
-        pass
+        if self.entities.get(entityClass.getRegistryName()) == None:
+            self.entities[entityClass.getRegistryName()] = entityClass
+            return
+        raise KeyError('Registry name {} already in use by another entity!'.format(entityClass.getRegistryName()))
 
     def registerGUI(self, guiClass):
         '''
         Register a GUI screen
         '''
-        pass
+        self.guis[len(self.guis)] = guiClass
+        return len(self.guis)-1
 
     def registerVehicle(self, vehicleClass):
         '''
         Register a rideable vehicle
         '''
-        pass
+        if self.vehicles.get(vehicleClass.getRegistryName()) == None:
+            self.vehicles[vehicleClass.getRegistryName()] = vehicleClass
+            return
+        raise KeyError('Registry name {} already in use by another vehicle!'.format(vehicleClass.getRegistryName()))
 
     def registerCommand(self, commandClass):
         '''
         Register a console command (for admins and moderators)
         '''
-        pass
+        self.commands.append(commandClass)
 
     def registerDimension(self, dimensionClass):
         '''
         Register a dimension
         '''
-        pass
+        self.dimensions[len(self.dimensions)] = dimensionClass
+        return len(self.dimensions)-1
 
     def registerEventHandler(self, eventFunction, eventType):
         '''
         Register an event handling function
         '''
-        pass
+        self.eventFunctions[eventType] = self.eventFunctions.get(eventType, [])+[eventFunction]
 
     def registerAudioEffect(self, audioClass):
         '''
         Register an audio effect
         '''
-        pass
+        if self.audioEffects.get(audioClass.getRegistryName()) == None:
+            self.audioEffects[audioClass.getRegistryName()] = audioClass
+            return
+        raise KeyError('Registry name {} already in use by another audio effect!'.format(audioClass.getRegistryName()))
+
 
     def registerPacketHandler(self, packetHandler):
         '''
         Register a packet handler and any assosciated packets
         '''
-        pass
+        self.packetPipelines[len(self.packetPipelines)] = packetHandler
+        return len(self.packetPipelines)-1
+
+    def registerProperties(self, propertyClass):
+        '''
+        Register object properties
+        '''
+        self.properties[propertyClass.objectType] = self.properties.get(propertyClass.objectType, [])+[propertyClass]
 
     def register(self, registerObj):
         '''
@@ -137,7 +163,8 @@ class GameRegistry:
                         'Biome' : self.registerBiome,
                         'Vehicle' : self.registerVehicle,
                         'GUI' : self.registerGUI,
-                        'DimensionHandler' : self.registerDimension
+                        'DimensionHandler' : self.registerDimension,
+                        'Properties' : self.registerProperties
                         }
         register = registryTypes.get(registerObj.__class__.__name__)
         if register is None:
