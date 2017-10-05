@@ -42,7 +42,7 @@ class ArgumentHandler:
 
             # Print a warning message if an unknown argument is given
             else:
-                print('Unknown argument: {}'.format(arg))
+                print('[WARNING] Unknown argument: {}'.format(arg))
             del self.args[i]
 
     def getRuntimeType(self):
