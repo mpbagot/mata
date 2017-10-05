@@ -1,4 +1,5 @@
-from mod import *
+from mod import Mod
+from api import *
 
 class NNetAIMod(Mod):
     def initialiseProperties(self):
