@@ -2,7 +2,7 @@ class DimensionHandler:
     def __init__(self, biomes, biomeSize):
         self.biomes = biomes
         self.biomeSize = biomeSize
-        self.worldObj = WorldMP(self, self.entities, self.items, self.vehicles)
+        self.worldObj = WorldMP(self)
 
     def saveToFile(self):
         '''
@@ -23,12 +23,37 @@ class DimensionHandler:
         return self.worldObj
 
 class WorldMP:
-    def __init__(self, dimensionHandler, entityList, itemList, vehicleList):
+    def __init__(self, dimensionHandler):
         self.entities = []
         self.vehicles = []
         self.players = []
 
         width, height = (10000, 10000)
-        self.world = [[0 for column in width] for row in height]
+        self.world = [[0 for column in range(width)] for row in range(height)]
+        print('finished')
 
-        # TODO generate the tile map of the world based on the four parameters
+        # TODO generate the tile map of the world based on the dimensionhandler
+
+    def tickUpdate(self, gameRegistry):
+        '''
+        Run one tick of updates on the world and everything in it
+        '''
+        pass
+
+    def getUpdateData(self):
+        '''
+        Collate the update data into a bytes object
+        '''
+        return b''
+
+    def handleUpdate(self, updateBytes):
+        '''
+        Use the binary blob data to update the world
+        '''
+        pass
+
+    def addPlayer(self, player):
+        '''
+        Add a player to the world
+        '''
+        self.players.append(player)
