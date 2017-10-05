@@ -7,11 +7,7 @@ import pygame
 pygame.init()
 
 class ClientMod(Mod):
-    def initialiseProperties(self):
-        '''
-        Initialise the name of the mod
-        '''
-        self.modName = 'ClientMod'
+    modName = 'ClientMod'
 
     def preLoad(self):
         # Initialise the display and throw a loading image on it for now
@@ -33,6 +29,4 @@ class ClientMod(Mod):
         self.gameRegistry.registerPacketHandler(self.packetPipeline)
 
     def postLoad(self):
-        self.gameRegistry.registerEventHandler(onTick, 'onTick')
-
-def onTick(game):
+        pass

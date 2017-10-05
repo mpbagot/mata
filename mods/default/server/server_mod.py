@@ -6,16 +6,9 @@ from mods.default.packets import *
 import util
 
 class ServerMod(Mod):
-    def initialiseProperties(self):
-        '''
-        Initialise the name of the mod
-        '''
-        self.modName = 'ServerMod'
+    modName = 'ServerMod'
 
     def preLoad(self):
-        # Register the biomes
-        dimensionHandler = dimension.DimensionHandler(self.biomes, 30)
-        self.gameRegistry.registerDimension(dimensionHandler)
         pass
 
     def load(self):
@@ -32,15 +25,26 @@ class ServerMod(Mod):
 
     def postLoad(self):
         # Register the commands
-        self.commands = [KickPlayerCommand('/kick', self.worldProperties)]
+        self.commands = [('/kick', KickPlayerCommand)]
         for comm in self.commands:
-            self.gameRegistry.registerCommand(comm)
+            self.gameRegistry.registerCommand(*comm)
+
+        # Register the biomes
+        self.biomes = []
+        dimensionHandler = dimension.DimensionHandler(self.biomes, 30)
+        self.gameRegistry.registerDimension(dimensionHandler)
+
+        self.gameRegistry.registerEventHandler(onTick, 'onTick')
+
+def onTick(game):
+    # Send server updates to all of the connected clients
+    game.modLoader.mods.get('ServerMod').sendToAll(WorldUpdatePacket(game.world))
 
 class KickPlayerCommand(cmd.Command):
     def run(self, *args):
         for player in args:
             # Loop the players, and kick them by deleting the PacketHandler
-            worldPlayers = self.world.properties['players']
-            for p in worldPlayers:
-                # TODO kick the player if they match
-                pass
+            for p in self.game.world.players:
+                # kick the player if they match
+                if player.username == p:
+                    self.game.modLoader.mods.get('ServerMod').packetPipeline.sendToPlayer(DisconnectPacket(), p.username)
