@@ -8,6 +8,7 @@ import os
 class ModLoader:
     def __init__(self):
         self.modsToLoad = []
+        self.mods = {}
         self.gameRegistry = GameRegistry()
 
     def registerModByName(self, name):
@@ -15,9 +16,9 @@ class ModLoader:
         Search the mod folder for a mod with the given mod name, and load it
         '''
         # Traverse the python files in the mod folder
-        for f in os.listdir('mods'):
-            if f.endswith('.py'):
-                exec('import mods.'+f[:-3]+' as module')
+        for filename in os.listdir('mods'):
+            if filename.endswith('.py'):
+                exec('import mods.'+filename[:-3]+' as module')
                 # Check if the mod class is in the file
                 if name in dir(module):
                     modClass = eval('module.'+name)
@@ -79,7 +80,7 @@ class GameRegistry:
         '''
         Register an item
         '''
-        if self.items.get(itemClass.getRegistryName()) == None:
+        if self.items.get(itemClass.getRegistryName()) is None:
             self.items[itemClass.getRegistryName()] = itemClass
             return
         raise KeyError('[ERROR] Registry name {} already in use by another item!'.format(itemClass.getRegistryName()))
@@ -89,7 +90,7 @@ class GameRegistry:
         Register a biome, for the default dimension
         To register a biome with another dimension, use the DimensionHandler class
         '''
-        if self.biomes.get(biomeClass.getRegistryName()) == None:
+        if self.biomes.get(biomeClass.getRegistryName()) is None:
             self.biomes[biomeClass.getRegistryName()] = biomeClass
             return
         raise KeyError('[ERROR] Registry name {} already in use by another biome!'.format(biomeClass.getRegistryName()))
@@ -98,7 +99,7 @@ class GameRegistry:
         '''
         Register an entity
         '''
-        if self.entities.get(entityClass.getRegistryName()) == None:
+        if self.entities.get(entityClass.getRegistryName()) is None:
             self.entities[entityClass.getRegistryName()] = entityClass
             return
         raise KeyError('[ERROR] Registry name {} already in use by another entity!'.format(entityClass.getRegistryName()))
@@ -114,7 +115,7 @@ class GameRegistry:
         '''
         Register a rideable vehicle
         '''
-        if self.vehicles.get(vehicleClass.getRegistryName()) == None:
+        if self.vehicles.get(vehicleClass.getRegistryName()) is None:
             self.vehicles[vehicleClass.getRegistryName()] = vehicleClass
             return
         raise KeyError('[ERROR] Registry name {} already in use by another vehicle!'.format(vehicleClass.getRegistryName()))
@@ -142,7 +143,7 @@ class GameRegistry:
         '''
         Register an audio effect
         '''
-        if self.audioEffects.get(audioClass.getRegistryName()) == None:
+        if self.audioEffects.get(audioClass.getRegistryName()) is None:
             self.audioEffects[audioClass.getRegistryName()] = audioClass
             return
         raise KeyError('[ERROR] Registry name {} already in use by another audio effect!'.format(audioClass.getRegistryName()))
@@ -162,6 +163,8 @@ class GameRegistry:
         self.properties[propertyObj.objectType] = self.properties.get(propertyObj.objectType, [])+[propertyObj]
 
 class Mod:
+    modName = 'Mod'
+
     def __init__(self, gameRegistry):
         self.gameRegistry = gameRegistry
 
@@ -169,16 +172,16 @@ class Mod:
         '''
         Run the preload registers
         '''
-        raise NotImplementedError('[ERROR] PreLoad function not overridden in mod '+self.modName)
+        raise NotImplementedError('[ERROR] PreLoad function not overridden in mod '+self.__class__.modName)
 
     def load(self):
         '''
         Run the load registers
         '''
-        raise NotImplementedError('[ERROR] Load function not overridden in mod '+self.modName)
+        raise NotImplementedError('[ERROR] Load function not overridden in mod '+self.__class__.modName)
 
     def postLoad(self):
         '''
         Run the postload registers
         '''
-        raise NotImplementedError('[ERROR] PostLoad function not overridden in mod '+self.modName)
+        raise NotImplementedError('[ERROR] PostLoad function not overridden in mod '+self.__class__.modName)
