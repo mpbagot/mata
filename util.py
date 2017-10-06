@@ -1,8 +1,15 @@
+'''
+Util module
+This module contains miscellaneous classes and constants that are used by the game engine
+'''
 SERVER = 0
 CLIENT = 1
 COMBINED = 2
 
 class ArgumentHandler:
+    '''
+    An object to store and handle the command line arguments passed into the game at runtime
+    '''
     def __init__(self, arguments):
         self.results = {}
         self.args = arguments
@@ -23,9 +30,9 @@ class ArgumentHandler:
             # Handle the runtime type argument, defaulting to server if invalid
             elif arg == '--type' and i != len(self.args)-1:
                 self.results['runtimeType'] = {'SERVER' : SERVER,
-                                                'CLIENT' : CLIENT,
-                                                'COMBINED' : COMBINED
-                                                }.get(self.args[i+1], SERVER)
+                                               'CLIENT' : CLIENT,
+                                               'COMBINED' : COMBINED
+                                              }.get(self.args[i+1], SERVER)
                 del self.args[i+1]
 
             # Handle the address and port arguments
