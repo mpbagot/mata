@@ -22,6 +22,7 @@ class ClientMod(Mod):
         # Register the valid packet classes
         self.packetPipeline.registerPacket(ByteSizePacket)
         self.packetPipeline.registerPacket(LoginPacket)
+        self.packetPipeline.registerPacket(SendWorldPacket)
         self.packetPipeline.registerPacket(WorldUpdatePacket)
         self.packetPipeline.registerPacket(ConfirmPacket)
         self.packetPipeline.registerPacket(DisconnectPacket)
@@ -29,6 +30,7 @@ class ClientMod(Mod):
         self.gameRegistry.registerPacketHandler(self.packetPipeline)
 
     def postLoad(self):
+        self.gameGui = self.gameRegistry.registerGUI(GameScreen)
         self.loadingGui = self.gameRegistry.registerGUI(LoadingScreen)
         self.mainMenuGui = self.gameRegistry.registerGUI(MainMenu)
         self.disconnectMessageGui = self.gameRegistry.registerGUI(DisconnectMessage)

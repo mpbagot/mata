@@ -19,6 +19,7 @@ class ServerMod(Mod):
         # Register the valid packet classes
         self.packetPipeline.registerPacket(ByteSizePacket)
         self.packetPipeline.registerPacket(LoginPacket)
+        self.packetPipeline.registerPacket(SendWorldPacket)
         self.packetPipeline.registerPacket(WorldUpdatePacket)
         self.packetPipeline.registerPacket(ConfirmPacket)
         self.packetPipeline.registerPacket(DisconnectPacket)
@@ -40,7 +41,9 @@ class ServerMod(Mod):
 
 def onTick(game):
     # Send server updates to all of the connected clients
-    game.getModInstance('ServerMod').packetPipeline.sendToAll(WorldUpdatePacket(game.world))
+    if not game.world.isGenerating:
+        # game.getModInstance('ServerMod').packetPipeline.sendToAll(WorldUpdatePacket(game.world))
+        pass
 
 class KickPlayerCommand(cmd.Command):
     def run(self, *args):
