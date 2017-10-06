@@ -6,6 +6,8 @@ A module containing the main game object/class
 # Import the standard libraries
 import time
 import multiprocessing
+import socket
+import sys
 import pygame
 
 # Import the game's modules
@@ -14,6 +16,7 @@ import mod
 import mods.default.client.client_mod as client
 import mods.default.server.server_mod as server
 import mods.default.neural_net as nn
+from api.entity import Player
 
 class Game:
     '''
@@ -31,14 +34,22 @@ class Game:
         self.modLoader.loadRegisteredMods()
 
         # Load into the main menu or loading screen gui on startup
-        if self.args.getRuntimeType() == util.CLIENT:
+        if self.args.getRuntimeType() != util.SERVER:
+            self.player = Player()
             self.openGui(self.getModInstance('ClientMod').mainMenuGui)
-        elif self.args.getRuntimeType() == util.COMBINED:
-            self.openGui(self.getModInstance('ClientMod').loadingGui)
+        # Fill in the address to connect to automatically
+        if self.args.getRuntimeType() == util.COMBINED:
+            self.openGUI[1].textboxes[-1].text = self.args.getConnectingAddress()
 
         # Set the world up
         if self.args.getRuntimeType() == util.SERVER:
             self.world = self.modLoader.gameRegistry.getWorld()
+
+    def quit(self):
+        '''
+        Safely disconnect all players, unload the mods and quit the game
+        '''
+        sys.exit()
 
     def run(self):
         '''
@@ -176,6 +187,7 @@ class Game:
                 serverProcess = multiprocessing.Process(target=forkServer)
                 serverProcess.daemon = True
                 serverProcess.start()
+                argHandler.results['address'] = socket.getfqdn()
             # Schedule the Client side mods to be loaded here
             self.modLoader.registerMod(client.ClientMod)
 
