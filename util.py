@@ -42,9 +42,6 @@ class ArgumentHandler:
             elif arg == '--address' and i != len(self.args)-1:
                 self.results['address'] = self.args[i+1]
                 del self.args[i+1]
-            elif arg == '--port' and i != len(self.args)-1:
-                self.results['port'] = self.args[i+1]
-                del self.args[i+1]
 
             # Handle the AI argument
             elif arg == '--enableSpecialAI':
@@ -75,9 +72,9 @@ class ArgumentHandler:
 
     def getConnectingAddress(self):
         '''
-        Return the address and port that this client is going to connect to
+        Return the address that this client is going to connect to
         '''
         try:
-            return (self.results['address'], self.results['port'])
+            return self.results['address']
         except KeyError:
             return None
