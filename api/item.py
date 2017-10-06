@@ -12,3 +12,9 @@ class Inventory:
 
     def encode(self):
         return b''
+
+class Item:
+    pass
+
+class ItemStack:
+    pass
