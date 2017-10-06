@@ -65,7 +65,7 @@ class Button:
         '''
         label = self.label
         text = self.font.render(label, True, (0, 0, 0))
-        while text.get_rect().width+20 > self.rect[2]:
+        while text.get_rect().width+10 > self.rect[2]:
             label = label[1:]
             text = self.font.render(label, True, (0, 0, 0))
         return text
@@ -93,14 +93,51 @@ class Button:
         pass
 
 class TextBox(Button):
-    def __init__(self, rect):
-        super().__init__(rect, '')
+    def __init__(self, rect, label):
+        super().__init__(rect, label)
+        self.text = ''
+
+    def getLabelObject(self):
+        '''
+        Return a cropped version of the label if no input text has been entered
+        '''
+        if not self.text:
+            label = self.label
+        else:
+            label = ''
+        text = self.font.render(label, True, (64, 64, 64))
+        while text.get_rect().width+10 > self.rect[2]:
+            label = label[1:]
+            text = self.font.render(label, True, (64, 64, 64))
+        return text
+
+    def getTextObject(self):
+        '''
+        Return a cropped version of the current input text
+        '''
+        label = self.text
+        text = self.font.render(label, True, (0, 0, 0))
+        while text.get_rect().width+10 > self.rect[2]:
+            label = label[1:]
+            text = self.font.render(label, True, (0, 0, 0))
+        return text
+
+    def draw(self, screen, mousePos):
+        '''
+        Draw the button to the given surface
+        '''
+        super().draw(screen, mousePos)
+
+        # Draw the input text on the button
+        label = self.getTextObject()
+        screen.blit(label, self.getLabelPos(label))
+
 
     def doKeyPress(self, event):
         '''
         Handle a key press event on this textbox
         '''
         if event.key == pygame.K_BACKSPACE:
-            self.label = self.label[:-1]
+            self.text = self.text[:-1]
         elif event.key != pygame.K_RETURN:
-            self.label += event.unicode
+            self.text += event.unicode
