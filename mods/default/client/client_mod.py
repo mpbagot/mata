@@ -1,5 +1,6 @@
 from mod import Mod
 from api import audio, network, biome, cmd, dimension, entity, gui, item, properties, vehicle
+from api.packets import *
 
 from mods.default.packets import *
 from mods.default.client.client_gui import *
@@ -12,15 +13,12 @@ class ClientMod(Mod):
     modName = 'ClientMod'
 
     def preLoad(self):
-        # Initialise the display and throw a loading image on it for now
+        # Initialise the display
         pygame.display.set_mode((1024, 768))
-        img = pygame.image.load('resources/textures/load.png').convert()
-        pygame.display.get_surface().blit(img, [0, 0])
-        pygame.display.flip()
 
     def load(self):
         # Initialise the packet pipeline
-        self.packetPipeline = network.PacketHandler(util.CLIENT)
+        self.packetPipeline = network.PacketHandler(self.game, util.CLIENT)
         # Register the valid packet classes
         self.packetPipeline.registerPacket(ByteSizePacket)
         self.packetPipeline.registerPacket(LoginPacket)
@@ -31,5 +29,6 @@ class ClientMod(Mod):
         self.gameRegistry.registerPacketHandler(self.packetPipeline)
 
     def postLoad(self):
+        self.loadingGui = self.gameRegistry.registerGUI(LoadingScreen)
+        self.mainMenuGui = self.gameRegistry.registerGUI(MainMenu)
         self.disconnectMessageGui = self.gameRegistry.registerGUI(DisconnectMessage)
-        pass
