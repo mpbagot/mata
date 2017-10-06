@@ -1,4 +1,8 @@
-from mods.default.packets import DisconnectPacket
+# Impor the Python Standard Libraries
+from threading import Thread
+
+# Import the mod files
+from api.packets import *
 
 class DimensionHandler:
     def __init__(self, biomes, biomeSize):
@@ -30,11 +34,24 @@ class WorldMP:
         self.vehicles = []
         self.players = []
 
+        self.dimHandler = dimensionHandler
+
+        self.world = None
+
+        t = Thread(target=self.generate)
+        t.daemon = True
+        t.start()
+
+        self.isGenerating = True
+
+    def generate(self):
+        '''
+        Generate the tile map of the world based on the dimensionHandler
+        '''
+        # TODO generate the tile map of the world based on the dimensionhandler
         width, height = (10000, 10000)
         self.world = [[0 for column in range(width)] for row in range(height)]
-        print('finished')
-
-        # TODO generate the tile map of the world based on the dimensionhandler
+        self.isGenerating = False
 
     def tickUpdate(self, game):
         '''
@@ -84,8 +101,23 @@ class WorldMP:
         '''
         pass
 
+    def toBytes(self):
+        '''
+        Return the entire world object as a bytestring representation
+        '''
+        return b'this is world data fsdlfaslkdf'
+
+    @staticmethod
+    def fromBytes(byteString):
+        '''
+        Get a world object from a byteString
+        '''
+        return WorldMP(None)
+
     def addPlayer(self, player):
         '''
         Add a player to the world
         '''
+        while self.isGenerating:
+            pass
         self.players.append(player)
