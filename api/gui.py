@@ -1,4 +1,9 @@
+import pygame
+
 class Gui:
+    def __init__(self):
+        self.screen = pygame.display.get_surface()
+
     def drawBackgroundLayer(self):
         '''
         Draw the background layer of the GUI screen
@@ -16,3 +21,6 @@ class Gui:
         Draw the foreground layer of the GUI screen
         '''
         pass
+
+class Overlay(Gui):
+    pass
