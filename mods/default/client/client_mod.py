@@ -1,6 +1,8 @@
 from mod import Mod
 from api import audio, network, biome, cmd, dimension, entity, gui, item, properties, vehicle
+
 from mods.default.packets import *
+from mods.default.client.client_gui import *
 import util
 
 import pygame
@@ -29,4 +31,5 @@ class ClientMod(Mod):
         self.gameRegistry.registerPacketHandler(self.packetPipeline)
 
     def postLoad(self):
+        self.disconnectMessageGui = self.gameRegistry.registerGUI(DisconnectMessage)
         pass
