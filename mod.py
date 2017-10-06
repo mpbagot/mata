@@ -6,9 +6,10 @@ Module containing the Mod loading and Mod API code for the game
 import os
 
 class ModLoader:
-    def __init__(self):
+    def __init__(self, game):
         self.modsToLoad = []
         self.mods = {}
+        self.game = game
         self.gameRegistry = GameRegistry()
 
     def registerModByName(self, name):
@@ -42,7 +43,7 @@ class ModLoader:
         Load all of the registered mods
         '''
         # Instantiate the mods
-        self.mods = {mod.modName : mod(self.gameRegistry) for mod in self.modsToLoad}
+        self.mods = {mod.modName : mod(self.gameRegistry, self.game) for mod in self.modsToLoad}
 
         # Run the Preload, Load, and PostLoad on each instance
         for modName in self.mods:
@@ -66,7 +67,7 @@ class GameRegistry:
         self.commands = {}
         self.packetPipelines = {}
         self.audioEffects = {}
-        self.eventFunctions = {}
+        self.EVENT_BUS = {}
         self.properties = {}
 
     def getWorld(self):
@@ -137,7 +138,7 @@ class GameRegistry:
         '''
         Register an event handling function
         '''
-        self.eventFunctions[eventType] = self.eventFunctions.get(eventType, [])+[eventFunction]
+        self.EVENT_BUS[eventType] = self.EVENT_BUS.get(eventType, [])+[eventFunction]
 
     def registerAudioEffect(self, audioClass):
         '''
@@ -165,8 +166,9 @@ class GameRegistry:
 class Mod:
     modName = 'Mod'
 
-    def __init__(self, gameRegistry):
+    def __init__(self, gameRegistry, game):
         self.gameRegistry = gameRegistry
+        self.game = game
 
     def preLoad(self):
         '''
