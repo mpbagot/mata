@@ -6,10 +6,11 @@ A module containing the main game object/class
 # Import the standard libraries
 import time
 import multiprocessing
-import pygame.mouse
+import pygame
 
 # Import the game's modules
 import util
+import mod
 import mods.default.client.client_mod as client
 import mods.default.server.server_mod as server
 import mods.default.neural_net as nn
@@ -18,8 +19,8 @@ class Game:
     '''
     A class to hold all of the elements of the game together
     '''
-    def __init__(self, modLoader, argHandler):
-        self.modLoader = modLoader
+    def __init__(self, argHandler):
+        self.modLoader = mod.ModLoader(self)
         self.processCommandLineArgs(argHandler)
         self.args = argHandler
         self.world = None
@@ -29,9 +30,11 @@ class Game:
         # Load all of the registered mods
         self.modLoader.loadRegisteredMods()
 
-        # Check if this works
-        if self.args.getRuntimeType() != util.SERVER:
-            self.openGui(0, 'You have been disconnected!')
+        # Load into the main menu or loading screen gui on startup
+        if self.args.getRuntimeType() == util.CLIENT:
+            self.openGui(self.getModInstance('ClientMod').mainMenuGui)
+        elif self.args.getRuntimeType() == util.COMBINED:
+            self.openGui(self.getModInstance('ClientMod').loadingGui)
 
         # Set the world up
         if self.args.getRuntimeType() == util.SERVER:
@@ -49,12 +52,44 @@ class Game:
             if self.world and self.args.getRuntimeType() == util.SERVER:
                 self.world.tickUpdate(self)
             # Trigger all of the onTick events
-            for func in self.modLoader.gameRegistry.eventFunctions.get('onTick', []):
-                func(self)
+            self.fireEvent('onTick')
 
-            # Draw the client game
+            # If running a client side game then do some extra things
             if self.args.getRuntimeType() != util.SERVER:
-                self.drawClientGame()
+                # Get the mouse position
+                pos = pygame.mouse.get_pos()
+
+                # Draw the client game
+                self.drawClientGame(pos)
+
+                # Handle the pygame events
+                for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN:
+                        # Handle a keypress on the gui
+                        if self.openGUI[1].currentTextBox is not None:
+                            self.openGUI[1].textboxes[self.openGUI[1].currentTextBox].doKeyPress(event)
+                        else:
+                            # If the keypress is not applicable to the gui, revert to the overlays
+                            for i, overlay in enumerate(self.openOverlays):
+                                self.openOverlays[i][1].doKeyPress(event)
+
+                        # Finally, trigger any registered event functions
+                        self.fireEvent('onKeyPress', event)
+
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        # Handle a mouse click on buttons
+                        for button in self.openGUI[1].buttons:
+                            if button.isHovered(pos):
+                                button.onClick(self)
+
+                        # Then, handle a mouse click on a text box
+                        self.openGUI[1].currentTextBox = None
+                        for t, textbox in enumerate(self.openGUI[1].textboxes):
+                            if textbox.isHovered(pos):
+                                self.openGUI[1].currentTextBox = t
+
+                        # Finally, trigger any registered event functions
+                        self.fireEvent('onMouseClick', event)
 
             # Get the time that the tick took to run
             deltaTime = time.time()-startTickTime
@@ -62,14 +97,12 @@ class Game:
             if deltaTime < 1/30:
                 time.sleep((1/30)-deltaTime)
 
-    def drawClientGame(self):
+    def drawClientGame(self, pos):
         '''
         Draw the game to the pygame display
         '''
         pygame.display.get_surface().fill((255, 255, 255))
 
-        # Grab the mouse position
-        pos = pygame.mouse.get_pos()
         # Draw the current gui
         if self.openGUI is not None:
             self.openGUI[1].drawBackgroundLayer()
@@ -86,6 +119,19 @@ class Game:
 
         # Draw the graphics to the screen
         pygame.display.flip()
+
+    def getModInstance(self, modName):
+        '''
+        Return an instance of a mod with the given name
+        '''
+        return self.modLoader.mods.get(modName)
+
+    def fireEvent(self, eventType, *args):
+        '''
+        Fire an event on the event bus
+        '''
+        for func in self.modLoader.gameRegistry.EVENT_BUS.get(eventType, []):
+            func(self, *args)
 
     def openGui(self, guiID, *args):
         '''
@@ -154,5 +200,5 @@ def forkServer():
     Fork a new process to run the server in the background
     '''
     import mod
-    serverRuntime = Game(mod.ModLoader(), util.ArgumentHandler(['--type', 'SERVER']))
+    serverRuntime = Game(util.ArgumentHandler(['--type', 'SERVER']))
     serverRuntime.run()
