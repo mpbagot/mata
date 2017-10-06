@@ -4,10 +4,11 @@ A module for all packet handling between the server and client.
 '''
 # Import the game's modules
 import util
-from api.packets import ConfirmPacket, ByteSizePacket
+from api.packets import *
 
 # Import the Python standard libraries
 import socket
+import time
 import io
 from threading import Thread
 from multiprocessing import Process
@@ -37,6 +38,8 @@ class PacketHandler:
         t = Thread(target=self.handleConn, args=(len(self.connections)-1,))
         t.daemon = True
         t.start()
+        # Send a login packet
+        self.sendToServer(LoginPacket(self.game.player))
 
     def pollForConnections(self):
         '''
@@ -57,24 +60,43 @@ class PacketHandler:
         conn = self.connections[connIndex].connObj
         while True:
             # Recieve the packet data
-            data = conn.recv(self.connections[connIndex].nextSize).decode()[1:-1]
+            try:
+                data = conn.recv(self.connections[connIndex].nextSize).decode()[1:-1]
+                if not data:
+                    raise ConnectionResetError
+            except ConnectionResetError:
+                del self.connections[connIndex]
+                if self.side == util.SERVER:
+                    print('A Client has disconnected')
+                if self.side != util.SERVER:
+                    self.game.openGui(self.game.getModInstance('ClientMod').disconnectMessageGui, 'Server Connection Reset')
+                return
             dataDictionary = {a.split(':')[0][1:-1] : a.split(':')[1][1:-1] for a in data.split(',')}
+            
             # Loop through the registered packets and handle the recieved data accordingly
             for packet in self.safePackets:
+                try:
+                    dataDictionary['type']
+                except KeyError:
+                    print(dataDictionary)
+                    print(data, self.connections[connIndex].nextSize)
                 if packet.__name__ == dataDictionary['type']:
                     # Initialise the packet, and handle it accordingly
                     p = packet()
                     p.fromBytes(dataDictionary['data'])
-                    # TODO get the game instance
                     response = p.onRecieve(self.connections[connIndex], self.game)
-                    if packet.__name__ not in ['ConfirmPacket', 'ByteSizePacket'] and response is None:
+                    if packet.__name__ != 'ByteSizePacket' and response is None:
                         response = ConfirmPacket()
                     if response:
                         # If the packet is not a bytesize or confirmation packet,
                         # then send a response and reset the receive size
-                        self.connections[connIndex].sendPacket(response)
+                        if not isinstance(p, ConfirmPacket):
+                            self.connections[connIndex].sendPacket(response)
+                        print(packet.__name__)
                         self.connections[connIndex].setNextPacketSize(37)
                     break
+            if packet.__name__ == 'DisconnectPacket':
+                return
 
     def registerPacket(self, packetClass):
         '''
@@ -143,7 +165,8 @@ class Connection:
         '''
         # Prepare the packet buffer
         buf = io.BytesIO()
-        buf.write('{"type":"{}","data":"'.format(packet.__class__.__name__).encode())
+        buf.write('{'.encode())
+        buf.write('"type":"{}","data":"'.format(packet.__class__.__name__).encode())
         packet.toBytes(buf)
         buf.write('"}'.encode())
 
@@ -155,7 +178,8 @@ class Connection:
         sizePacket = ByteSizePacket(byteSize)
 
         # Write the packet data to the buffer
-        byteBuf.write('{"type":"{}","data":"'.format(sizePacket.__class__.__name__).encode())
+        byteBuf.write('{'.encode())
+        byteBuf.write('"type":"{}","data":"'.format(sizePacket.__class__.__name__).encode())
         sizePacket.toBytes(byteBuf)
         byteBuf.write('"}'.encode())
 
@@ -167,4 +191,5 @@ class Connection:
         '''
         Set the size of the next packet to be recieved
         '''
+        print('setting packet size to', size)
         self.nextSize = size
