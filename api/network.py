@@ -37,7 +37,7 @@ class PacketHandler:
         '''
         Send a packet to all Clients
         '''
-        if not isPacketSafe(packet):
+        if not self.isPacketSafe(packet):
             # Reject the packet
             print('[ERROR] Packet was not sent to clients because it was not registered.')
             return
@@ -51,7 +51,7 @@ class PacketHandler:
         '''
         Send a packet to a client with the given username
         '''
-        if not isPacketSafe(packet):
+        if not self.isPacketSafe(packet):
             # Reject the packet
             print('[ERROR] Packet was not sent to clients because it was not registered.')
             return
@@ -67,7 +67,7 @@ class PacketHandler:
         '''
         Send a Packet to the server
         '''
-        if not isPacketSafe(packet):
+        if not self.isPacketSafe(packet):
             # Reject the packet
             print('[ERROR] Packet was not sent to server because it was not registered.')
             return
@@ -82,19 +82,19 @@ class Connection:
         self.username = ''
 
 class Packet:
-    def toBytes(self, buffer):
+    def toBytes(self, buf):
         '''
         Convert the data to a bytestring and write it to a buffer
         '''
         raise NotImplementedError('toBytes method is empty in a packet class!')
 
-    def fromBytes(self, buffer):
+    def fromBytes(self, data):
         '''
         Read the data from the binary buffer, and convert it to a usable form
         '''
         raise NotImplementedError('fromBytes method is empty in a packet class!')
 
-    def onRecieve(self):
+    def onRecieve(self, packetHandler, game):
         '''
         Run any required logic upon receiving the packet
         '''
