@@ -6,6 +6,9 @@ SERVER = 0
 CLIENT = 1
 COMBINED = 2
 
+DEFAULT_PORT = 6543
+MAX_PLAYERS = 100
+
 class ArgumentHandler:
     '''
     An object to store and handle the command line arguments passed into the game at runtime
