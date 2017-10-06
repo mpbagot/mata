@@ -1,3 +1,5 @@
+from mods.default.packets import DisconnectPacket
+
 class DimensionHandler:
     def __init__(self, biomes, biomeSize):
         self.biomes = biomes
@@ -34,11 +36,41 @@ class WorldMP:
 
         # TODO generate the tile map of the world based on the dimensionhandler
 
-    def tickUpdate(self, gameRegistry):
+    def tickUpdate(self, game):
         '''
         Run one tick of updates on the world and everything in it
         '''
-        pass
+        # Separate the Game Registry
+        gameRegistry = game.modLoader.gameRegistry
+        # Loop through the entities and update them
+        for e in range(len(self.entities)):
+            self.entities[e].onLivingUpdate(game)
+            # If they die, delete them, and trigger events
+            if self.entities[e].isDead:
+                entityBackup = self.entities[e]
+                del self.entities[e]
+                # Trigger on Entity Death events
+                for func in gameRegistry.eventFunctions.get('onEntityDeath'):
+                    func(game, entityBackup)
+
+        # Loop through the vehicles and update them
+        for v in range(len(self.vehicles)):
+            self.vehicles[v].onVehicleUpdate(game)
+            # If they get destroyed, delete them, and trigger events
+            if self.vehicles[v].isDestroyed:
+                vehicleBackup = self.vehicles[v]
+                del self.vehicles[v]
+                # Trigger on Entity Death events
+                for func in gameRegistry.eventFunctions.get('onVehicleDestroyed'):
+                    func(game, entityBackup)
+
+        # Loop through the players and disconnect them if they died
+        for p in range(len(self.players)):
+            if self.players[p].isDead:
+                # If the player has died, disconnect them (because of permadeath)
+                game.modLoader.mods['ServerMod'].packetPipeline.sendToPlayer(
+                                                    DisconnectPacket('You have died'),
+                                                    self.players[p].username)
 
     def getUpdateData(self):
         '''
