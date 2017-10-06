@@ -1,3 +1,5 @@
+from api.entity import Player
+from api.dimension import WorldMP
 
 class Packet:
     def toBytes(self, buf):
@@ -41,3 +43,48 @@ class ConfirmPacket(Packet):
 
     def onRecieve(self, connection, game):
         pass
+
+class LoginPacket(Packet):
+    def __init__(self, player=None):
+        self.player = player
+
+    def toBytes(self, buf):
+        buf.write(self.player.toBytes())
+
+    def fromBytes(self, data):
+        self.player = Player.fromBytes(data)
+
+    def onRecieve(self, connection, game):
+        connection.username = self.player.username
+        game.world.addPlayer(self.player)
+        print(self.player.username, 'joined the server!')
+        return SendWorldPacket(game.world)
+
+class SendWorldPacket(Packet):
+    def __init__(self, world=None):
+        self.world = world
+
+    def toBytes(self, buf):
+        buf.write(self.world.toBytes())
+
+    def fromBytes(self, data):
+        self.world = WorldMP.fromBytes(data)
+
+    def onRecieve(self, connection, game):
+        game.world = self.world
+        game.openGui(game.getModInstance('ClientMod').gameGui, game)
+
+class DisconnectPacket(Packet):
+    def __init__(self, message=''):
+        self.message = message
+
+    def toBytes(self, buf):
+        buf.write(self.message.encode())
+
+    def fromBytes(self, data):
+        self.message = data.decode()
+
+    def onRecieve(self, connection, game):
+        # Open a GUI that displays the message, and disconnect them
+        game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, self.message)
+        del connection
