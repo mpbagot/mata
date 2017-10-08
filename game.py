@@ -36,7 +36,6 @@ class Game:
         # Load into the main menu or loading screen gui on startup
         if self.args.getRuntimeType() != util.SERVER:
             self.player = Player()
-            self.openGui(self.getModInstance('ClientMod').mainMenuGui)
         # Fill in the address to connect to automatically
         if self.args.getRuntimeType() == util.COMBINED:
             self.openGUI[1].textboxes[-1].text = self.args.getConnectingAddress()
@@ -55,6 +54,7 @@ class Game:
         '''
         Run the game after initialising all of the mods
         '''
+        self.fireEvent('onGameLaunch')
         # Run at 30 ticks per second
         while True:
             # Get the start time of the tick
