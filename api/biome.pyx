@@ -17,7 +17,6 @@ class Biome:
         self.tileType = None
         self.plantType = None
 
-
 class BiomeMap:
     def __init__(self, width, height):
         self.map = [[0 for column in range(width)] for row in range(height)]
@@ -85,7 +84,8 @@ class BiomeMap:
         '''
         return b''
 
-    def fromBytes(self, data):
+    @staticmethod
+    def fromBytes(data):
         '''
         Return a biomemap based on the given byte data
         '''

@@ -75,7 +75,7 @@ class WorldMP:
         biomeMap.finalPass()
         self.world = biomeMap
 
-        print('Time taken:', time.time()-start,'seconds')
+        print('Time taken: '+str(time.time()-start)+' seconds')
 
         self.isGenerating = False
 
