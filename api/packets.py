@@ -60,18 +60,35 @@ class LoginPacket(Packet):
         print(self.player.username, 'joined the server!')
         return SendWorldPacket(game.world)
 
-class SendWorldPacket(Packet):
-    def __init__(self, world=None):
-        self.world = world
+class RequestWorldPacket(Packet):
+    def __init__(self, pos=None):
+        self.pos = pos
 
     def toBytes(self, buf):
-        buf.write(self.world.toBytes())
+        buf.write(str(self.pos).encode())
+
+    def fromBytes(self, data):
+        self.pos = eval(data.decode())
+
+    def onRecieve(self, connection, game):
+        return SendWorldPacket(game.world, self.pos)
+
+class SendWorldPacket(Packet):
+    def __init__(self, world=None, pos=None):
+        self.world = world
+        self.pos = pos
+
+    def toBytes(self, buf):
+        buf.write(self.world.toBytes(self.pos))
 
     def fromBytes(self, data):
         self.world = WorldMP.fromBytes(data)
 
     def onRecieve(self, connection, game):
-        game.world = self.world
+        if game.world is None:
+            game.world = self.world
+        else:
+            game.world.world = self.world.world
         game.openGui(game.getModInstance('ClientMod').gameGui, game)
 
 class DisconnectPacket(Packet):
