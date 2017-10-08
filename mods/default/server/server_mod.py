@@ -5,6 +5,7 @@ from api.packets import *
 
 # Import the extra mod data
 from mods.default.packets import *
+from mods.default.biomes import *
 import util
 
 class ServerMod(Mod):
@@ -20,6 +21,7 @@ class ServerMod(Mod):
         self.packetPipeline.registerPacket(ByteSizePacket)
         self.packetPipeline.registerPacket(LoginPacket)
         self.packetPipeline.registerPacket(SendWorldPacket)
+        self.packetPipeline.registerPacket(RequestWorldPacket)
         self.packetPipeline.registerPacket(WorldUpdatePacket)
         self.packetPipeline.registerPacket(ConfirmPacket)
         self.packetPipeline.registerPacket(DisconnectPacket)
@@ -32,11 +34,13 @@ class ServerMod(Mod):
         for comm in self.commands:
             self.gameRegistry.registerCommand(*comm)
 
-        # Register the biomes
-        self.biomes = []
-        dimensionHandler = dimension.DimensionHandler(self.biomes, 30)
+        # Initialise the biomes
+        self.biomes = [Forest, Desert, Ocean, City]
+        # Initialise and register the DimensionHandler accordingly
+        dimensionHandler = dimension.DimensionHandler(self.biomes, 4)
         self.gameRegistry.registerDimension(dimensionHandler)
 
+        # Register the events
         self.gameRegistry.registerEventHandler(onTick, 'onTick')
 
 def onTick(game):
