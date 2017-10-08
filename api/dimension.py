@@ -5,7 +5,7 @@ import time
 
 # Import the mod files
 from api.packets import *
-from api.biome_c import *
+from api.biome import *
 
 class DimensionHandler:
     def __init__(self, biomes, biomeSize):
