@@ -62,7 +62,6 @@ class GameRegistry:
         self.items = {}
         self.guis = {}
         self.dimensions = {}
-        self.biomes = {}
         self.vehicles = {}
         self.commands = {}
         self.packetPipelines = {}
@@ -85,16 +84,6 @@ class GameRegistry:
             self.items[itemClass.getRegistryName()] = itemClass
             return
         raise KeyError('[ERROR] Registry name {} already in use by another item!'.format(itemClass.getRegistryName()))
-
-    def registerBiome(self, biomeClass):
-        '''
-        Register a biome, for the default dimension
-        To register a biome with another dimension, use the DimensionHandler class
-        '''
-        if self.biomes.get(biomeClass.getRegistryName()) is None:
-            self.biomes[biomeClass.getRegistryName()] = biomeClass
-            return
-        raise KeyError('[ERROR] Registry name {} already in use by another biome!'.format(biomeClass.getRegistryName()))
 
     def registerEntity(self, entityClass):
         '''
