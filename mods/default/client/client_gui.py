@@ -38,6 +38,7 @@ class MainMenu(Gui):
 
 class GameScreen(Gui):
     def __init__(self, game):
+        super().__init__()
         self.game = game
 
     def drawBackgroundLayer(self):
@@ -48,7 +49,7 @@ class GameScreen(Gui):
         # Draw the trees, entities, vehicles, dropped items, buildings
         pass
 
-    def drawForegroundLayer(self, mousPos):
+    def drawForegroundLayer(self, mousePos):
         super().drawForegroundLayer(mousePos)
         # Draw the player
         pass
