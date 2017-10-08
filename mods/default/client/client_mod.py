@@ -15,6 +15,8 @@ class ClientMod(Mod):
     def preLoad(self):
         # Initialise the display
         pygame.display.set_mode((1024, 768))
+        pygame.display.set_caption('A Game')
+        # pygame.display.set_icon(pygame.image.load('resources/textures/icon.png').convert_alpha())
 
     def load(self):
         # Initialise the packet pipeline
@@ -23,6 +25,7 @@ class ClientMod(Mod):
         self.packetPipeline.registerPacket(ByteSizePacket)
         self.packetPipeline.registerPacket(LoginPacket)
         self.packetPipeline.registerPacket(SendWorldPacket)
+        self.packetPipeline.registerPacket(RequestWorldPacket)
         self.packetPipeline.registerPacket(WorldUpdatePacket)
         self.packetPipeline.registerPacket(ConfirmPacket)
         self.packetPipeline.registerPacket(DisconnectPacket)
@@ -34,3 +37,5 @@ class ClientMod(Mod):
         self.loadingGui = self.gameRegistry.registerGUI(LoadingScreen)
         self.mainMenuGui = self.gameRegistry.registerGUI(MainMenu)
         self.disconnectMessageGui = self.gameRegistry.registerGUI(DisconnectMessage)
+
+        self.game.openGui(self.mainMenuGui)
