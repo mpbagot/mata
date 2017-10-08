@@ -6,6 +6,7 @@ class Player:
         self.pos = [0, 0]
         self.inventory = Inventory()
         self.isDead = False
+        self.tickDamage = None
 
     def setUsername(self, name):
         '''
@@ -22,4 +23,10 @@ class Player:
 
 class Entity:
     def __init__(self):
-        pass
+        self.isDead = False
+        self.tickDamage = None
+
+class Damage:
+    def __init__(self, amount, source):
+        self.amount = amount
+        self.source = source
