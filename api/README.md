@@ -7,13 +7,13 @@ Objects should be registered accordingly:
 PreLoad:
  - Properties
  - Music/Sounds
+ - Items
+ - Vehicles
 
 Load:
- - Items
  - Entities
  - GUI
  - Packets
- - Vehicles
 
 PostLoad:
  - Events
