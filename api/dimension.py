@@ -1,8 +1,11 @@
 # Impor the Python Standard Libraries
 from threading import Thread
+import random
+import time
 
 # Import the mod files
 from api.packets import *
+from api.biome_c import *
 
 class DimensionHandler:
     def __init__(self, biomes, biomeSize):
@@ -29,7 +32,7 @@ class DimensionHandler:
         return self.worldObj
 
 class WorldMP:
-    def __init__(self, dimensionHandler):
+    def __init__(self, dimensionHandler, generate=True):
         self.entities = []
         self.vehicles = []
         self.players = []
@@ -38,19 +41,42 @@ class WorldMP:
 
         self.world = None
 
-        t = Thread(target=self.generate)
-        t.daemon = True
-        t.start()
+        if generate:
+            t = Thread(target=self.generate)
+            t.daemon = True
+            t.start()
 
-        self.isGenerating = True
+            self.isGenerating = True
 
     def generate(self):
         '''
         Generate the tile map of the world based on the dimensionHandler
         '''
-        # TODO generate the tile map of the world based on the dimensionhandler
-        width, height = (10000, 10000)
-        self.world = [[0 for column in range(width)] for row in range(height)]
+        start = time.time()
+        biomes = self.dimHandler.biomes
+        biomeSize = self.dimHandler.biomeSize
+
+        # Generate a small starting biome map
+        width, height = (50, 50)
+        biomeMap = BiomeMap(width, height)
+
+        # Scatter some biomes in
+        for y, row in enumerate(biomeMap.map):
+            for x, tile in enumerate(row):
+                biomeMap.map[y][x] = random.choice(biomes)
+
+        # Zoom the biomes to a bigger size
+        for i in range(biomeSize):
+            biomeMap.zoom()
+
+        print('\n'.join(['.'.join([a.__name__[0] for a in row[:50]]) for row in biomeMap.map[:50]]))
+
+        # Choose tile types and generate entities, houses, trees, etc in the biomes
+        biomeMap.finalPass()
+        self.world = biomeMap
+
+        print('Time taken:', time.time()-start,'seconds')
+
         self.isGenerating = False
 
     def tickUpdate(self, game):
@@ -68,7 +94,11 @@ class WorldMP:
                 del self.entities[e]
                 # Trigger on Entity Death events
                 for func in gameRegistry.eventFunctions.get('onEntityDeath'):
-                    func(game, entityBackup)
+                    func(game, entityBackup, entityBackup.tickDamage)
+            elif self.entities[e].tickDamage:
+                # Trigger on Entity Damaged events
+                for func in gameRegistry.eventFunctions.get('onEntityDamage'):
+                    func(game, self.entities[e], self.entities[e].tickDamage)
 
         # Loop through the vehicles and update them
         for v in range(len(self.vehicles)):
@@ -77,9 +107,9 @@ class WorldMP:
             if self.vehicles[v].isDestroyed:
                 vehicleBackup = self.vehicles[v]
                 del self.vehicles[v]
-                # Trigger on Entity Death events
+                # Trigger on Vehicle Destruction events
                 for func in gameRegistry.eventFunctions.get('onVehicleDestroyed'):
-                    func(game, entityBackup)
+                    func(game, vehicleBackup)
 
         # Loop through the players and disconnect them if they died
         for p in range(len(self.players)):
@@ -88,6 +118,11 @@ class WorldMP:
                 game.modLoader.mods['ServerMod'].packetPipeline.sendToPlayer(
                                                     DisconnectPacket('You have died'),
                                                     self.players[p].username)
+            elif self.players[p].tickDamage:
+                # Trigger on Player Damaged events
+                for func in gameRegistry.eventFunctions.get('onPlayerDamage'):
+                    func(game, self.players[p], self.players[p].tickDamage)
+
 
     def getUpdateData(self):
         '''
@@ -101,18 +136,21 @@ class WorldMP:
         '''
         pass
 
-    def toBytes(self):
+    def toBytes(self, pos):
         '''
-        Return the entire world object as a bytestring representation
+        Return the world tilemap object as a bytestring representation
         '''
-        return b'this is world data fsdlfaslkdf'
+        return self.world.toBytes(pos)
 
     @staticmethod
     def fromBytes(byteString):
         '''
         Get a world object from a byteString
         '''
-        return WorldMP(None)
+        world = WorldMP(None, False)
+        # Get the biomemap from the string
+        world.world = BiomeMap.fromBytes(byteString)
+        return world
 
     def addPlayer(self, player):
         '''
