@@ -8,6 +8,7 @@ from api.packets import *
 
 # Import the Python standard libraries
 import socket
+import re
 import time
 import io
 from threading import Thread
@@ -16,10 +17,15 @@ from multiprocessing import Process
 class PacketHandler:
     def __init__(self, game, side):
         self.nextSize = 37
+        print(game)
         self.game = game
+        print(self.game)
         self.side = side
         self.connections = []
-        self.safePackets = []
+        self.safePackets = [ByteSizePacket, LoginPacket, RequestWorldPacket,
+                            SendWorldPacket, DisconnectPacket, SyncPlayerPacketClient,
+                            SyncPlayerPacketServer
+                           ]
 
         self.socket = socket.socket()
 
@@ -71,28 +77,29 @@ class PacketHandler:
                 if self.side != util.SERVER:
                     self.game.openGui(self.game.getModInstance('ClientMod').disconnectMessageGui, 'Server Connection Reset')
                 return
-            dataDictionary = {a.split(':')[0][1:-1] : a.split(':')[1][1:-1] for a in data.split(',')}
-            
+            try:
+                dataDictionary = {a.split(':')[0][1:-1] : a.split(':')[1][1:-1] for a in re.findall('".*?":".*?"', data)}
+            except IndexError:
+                print('errored', data)
+
+            try:
+                print('Recieved '+dataDictionary['type'])
+            except KeyError:
+                print(dataDictionary)
+                print(data, self.connections[connIndex].nextSize)
+
             # Loop through the registered packets and handle the recieved data accordingly
             for packet in self.safePackets:
-                try:
-                    dataDictionary['type']
-                except KeyError:
-                    print(dataDictionary)
-                    print(data, self.connections[connIndex].nextSize)
                 if packet.__name__ == dataDictionary['type']:
                     # Initialise the packet, and handle it accordingly
                     p = packet()
-                    p.fromBytes(dataDictionary['data'])
-                    response = p.onRecieve(self.connections[connIndex], self.game)
-                    if packet.__name__ != 'ByteSizePacket' and response is None:
-                        response = ConfirmPacket()
+                    p.fromBytes(dataDictionary['data'].encode())
+                    response = p.onReceive(self.connections[connIndex], self.game)
                     if response:
                         # If the packet is not a bytesize or confirmation packet,
                         # then send a response and reset the receive size
-                        if not isinstance(p, ConfirmPacket):
-                            self.connections[connIndex].sendPacket(response)
-                        print(packet.__name__)
+                        print('sending packet {} in response to {}'.format(response.__class__.__name__, packet.__name__))
+                        self.connections[connIndex].sendPacket(response)
                         self.connections[connIndex].setNextPacketSize(37)
                     break
             if packet.__name__ == 'DisconnectPacket':
@@ -163,11 +170,15 @@ class Connection:
         '''
         Send a packet on this connection
         '''
+        print('Sending packet: '+packet.__class__.__name__)
         # Prepare the packet buffer
         buf = io.BytesIO()
         buf.write('{'.encode())
         buf.write('"type":"{}","data":"'.format(packet.__class__.__name__).encode())
-        packet.toBytes(buf)
+        buf2 = io.BytesIO()
+        packet.toBytes(buf2)
+        packetString = buf2.getvalue().decode().replace('"', '\"').encode()
+        buf.write(packetString)
         buf.write('"}'.encode())
 
         # Get the packet length to send first
@@ -183,7 +194,7 @@ class Connection:
         sizePacket.toBytes(byteBuf)
         byteBuf.write('"}'.encode())
 
-        # Send the two packets one after the other
+        # Sanitise and send the two packets one after the other
         self.connObj.send(byteBuf.getvalue())
         self.connObj.send(buf.getvalue())
 
