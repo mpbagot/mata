@@ -8,7 +8,6 @@
 import sys
 
 # Import the game submodules
-import mod
 import util
 import game
 
