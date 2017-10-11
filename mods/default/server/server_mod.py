@@ -18,13 +18,7 @@ class ServerMod(Mod):
         # Initialise the packet pipeline
         self.packetPipeline = network.PacketHandler(self.game, util.SERVER)
         # Register the valid packet classes
-        self.packetPipeline.registerPacket(ByteSizePacket)
-        self.packetPipeline.registerPacket(LoginPacket)
-        self.packetPipeline.registerPacket(SendWorldPacket)
-        self.packetPipeline.registerPacket(RequestWorldPacket)
         self.packetPipeline.registerPacket(WorldUpdatePacket)
-        self.packetPipeline.registerPacket(ConfirmPacket)
-        self.packetPipeline.registerPacket(DisconnectPacket)
         # Register the packet handler with the game
         self.gameRegistry.registerPacketHandler(self.packetPipeline)
 
@@ -37,7 +31,7 @@ class ServerMod(Mod):
         # Initialise the biomes
         self.biomes = [Forest, Desert, Ocean, City]
         # Initialise and register the DimensionHandler accordingly
-        dimensionHandler = dimension.DimensionHandler(self.biomes, 4)
+        dimensionHandler = dimension.DimensionHandler(self.biomes, 1)
         self.gameRegistry.registerDimension(dimensionHandler)
 
         # Register the events

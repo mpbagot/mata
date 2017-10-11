@@ -22,13 +22,7 @@ class ClientMod(Mod):
         # Initialise the packet pipeline
         self.packetPipeline = network.PacketHandler(self.game, util.CLIENT)
         # Register the valid packet classes
-        self.packetPipeline.registerPacket(ByteSizePacket)
-        self.packetPipeline.registerPacket(LoginPacket)
-        self.packetPipeline.registerPacket(SendWorldPacket)
-        self.packetPipeline.registerPacket(RequestWorldPacket)
         self.packetPipeline.registerPacket(WorldUpdatePacket)
-        self.packetPipeline.registerPacket(ConfirmPacket)
-        self.packetPipeline.registerPacket(DisconnectPacket)
         # Register the packet handler with the game
         self.gameRegistry.registerPacketHandler(self.packetPipeline)
 
