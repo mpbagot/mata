@@ -146,11 +146,11 @@ class GameRegistry:
         self.packetPipelines[len(self.packetPipelines)] = packetHandler
         return len(self.packetPipelines)-1
 
-    def registerProperties(self, propertyObj):
+    def registerProperties(self, propertyObj, objectType):
         '''
         Register object properties
         '''
-        self.properties[propertyObj.objectType] = self.properties.get(propertyObj.objectType, [])+[propertyObj]
+        self.properties[objectType] = self.properties.get(objectType, [])+[propertyObj]
 
 class Mod:
     modName = 'Mod'
