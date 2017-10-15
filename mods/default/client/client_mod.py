@@ -24,6 +24,11 @@ class ClientMod(Mod):
         pygame.display.set_caption('A Game')
         # pygame.display.set_icon(pygame.image.load('resources/textures/icon.png').convert_alpha())
 
+        images = ['gravel', 'grass', 'dirt', 'road', 'sand', 'water']
+        for i in images:
+            img = pygame.image.load('resources/textures/mods/tiles/'+i+'.png')
+            self.gameRegistry.registerResource('tile_'+i, img)
+
     def load(self):
         # Initialise the packet pipeline
         self.packetPipeline = network.PacketHandler(self.game, util.CLIENT)
@@ -113,24 +118,27 @@ def onTick(game):
         # If the player has moved more than a certain distance, generate the world
         absRelPos = [abs(a) for a in game.player.relPos]
         if (game.player.synced and not game.world.world) or max(absRelPos) > 26:
+            # Set the second relative position to start iterating
+            props = game.player.getProperty('relPos2')
+
             # Generate the world on the client
             t = Thread(target=genWorld, args=(game, props))
             t.daemon = True
             t.start()
 
-            # Set the second relative position to start iterating
-            props = game.player.getProperty('relPos2')
-            props.props['ready'] = True
-            game.player.setProperty('relPos2', props)
 
 def genWorld(game, props):
     if props.props['ready'] == True:
         return
     # Set the abs pos of the player
     preGenPos = game.player.getAbsPos()
+    print('genning world')
+    props.props['ready'] = True
+    game.player.setProperty('relPos2', props)
+
     # Generate the world
     world = game.modLoader.gameRegistry.dimensions[game.player.dimension].getWorldObj()
-    worldData = world.generate(preGenPos).world.map
+    worldData = world.generate(preGenPos, game.modLoader.gameRegistry).world.map
     game.world.world.map = worldData
     print('world gen done')
 

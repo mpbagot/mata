@@ -35,12 +35,13 @@ class MainMenu(Gui):
     '''
     def __init__(self):
         super().__init__()
+        self.backImg = pygame.image.load('resources/textures/background.png').convert()
         self.error = ''
         self.buttons = [PlayButton([400, 350, 224, 50], 'Play'), ExitButton([400, 450, 224, 50], 'Exit')]
         self.textboxes = [TextBox([375, 180, 274, 40], 'Username'), TextBox([375, 250, 274, 40], 'Server Address')]
 
     def drawBackgroundLayer(self):
-        self.screen.blit(pygame.image.load('resources/textures/background.png').convert(), [0, 0])
+        self.screen.blit(self.backImg, [0, 0])
 
     def drawMiddleLayer(self, mousePos):
         font = pygame.font.Font('resources/font/main.ttf', 40)
@@ -93,9 +94,10 @@ class MessageScreen(Gui):
     def __init__(self, message):
         super().__init__()
         self.message = message
+        self.backImg = pygame.image.load('resources/textures/background.png').convert()
 
     def drawBackgroundLayer(self):
-        self.screen.blit(pygame.image.load('resources/textures/background.png').convert(), [0, 0])
+        self.screen.blit(self.backImg, [0, 0])
 
     def drawMiddleLayer(self, mousePos):
         font = pygame.font.Font('resources/font/main.ttf', 40)

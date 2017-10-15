@@ -10,8 +10,12 @@ import pygame
 pygame.init()
 
 class Tile:
-    def __init__(self):
-        self.img = pygame.image.load(self.getResourceLocation())
+    def __init__(self, resources):
+        try:
+            self.img = resources['tile_'+self.getTileName()]
+        except Exception:
+            raise Exception('Selected Resource has not been registered!')
+        # self.img = pygame.image.load(self.getResourceLocation())
 
     def setTileName(self, name):
         '''
@@ -19,11 +23,14 @@ class Tile:
         '''
         self.name = name
 
+    def getTileName(self):
+        return self.name
+
     def getResourceLocation(self):
         '''
         Return the tile image location
         '''
-        return 'resources/textures/mods/tiles/{}.png'.format(self.name)
+        return 'resources/textures/mods/tiles/{}.png'.format(self.getTileName())
 
 class Biome:
     def __init__(self):
@@ -42,7 +49,7 @@ class TileMap:
     def __init__(self, width, height):
         self.map = [[0 for column in range(width)] for row in range(height)]
 
-    def finalPass(self, tileNoise, detailNoise):
+    def finalPass(self, tileNoise, detailNoise, resources):
         '''
         Generate the tile type of each square,
         and generate extra details like trees
@@ -55,7 +62,10 @@ class TileMap:
                 if tile.tileTypes:
                     i = int(tileNoise[r][t]*len(tile.tileTypes))
                     tile.tileIndex = i
-                    tile.tileTypes[i] = tile.tileTypes[i]()
+                    try:
+                        tile.tileTypes[i] = tile.tileTypes[i](resources)
+                    except TypeError:
+                        print(tile.tileTypes[i])
 
                 # Set a plant
                 if random.random() > 0.8 and tile.plantTypes:

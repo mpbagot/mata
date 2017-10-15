@@ -42,7 +42,7 @@ class WorldMP:
 
         self.world = None
 
-    def generate(self, pos):
+    def generate(self, pos, gameRegistry):
         '''
         Generate the tile map of the world based on the dimensionHandler and position
         '''
@@ -69,7 +69,7 @@ class WorldMP:
                 biomeMap.map[y][x] = biomes[round(biomeNoise[y][x]*(len(biomes)-1))]
 
         # Choose tile types and generate entities, houses, trees, etc in the biomes
-        biomeMap.finalPass(noiseMap, detailNoise)
+        biomeMap.finalPass(noiseMap, detailNoise, gameRegistry.resources)
         self.world = biomeMap
 
         print('Time taken: '+str(time.time()-start)+' seconds')
