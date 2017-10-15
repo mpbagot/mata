@@ -43,7 +43,24 @@ class GameScreen(Gui):
 
     def drawBackgroundLayer(self):
         # Draw the tile map in the area around the player
-        pass
+        x, y = self.game.player.relPos
+        xPos = int(x+75)
+        yPos = int(y+45)
+        # If the world is loaded into memory
+        if self.game.world and self.game.world.world:
+            xPos1 = xPos-20 if xPos >= 20 else 0
+            yPos1 = yPos-14 if yPos >= 14 else 0
+            # Pad the top of the map if applicable
+            tileMap = [[0] for a in range(abs(yPos-14))] if yPos < 14 else []
+            for row in self.game.world.world.map[yPos1:yPos+14]:
+                # Generate the cropped tilemap of the world
+                padding = [0 for a in range(abs(xPos-20))] if xPos < 20 else []
+                tileMap.append(padding+row[xPos1:xPos+20])
+            # Iterate and blit the tiles to screen
+            for r, row in enumerate(tileMap):
+                for t, tile in enumerate(row):
+                    if tile:
+                        self.screen.blit(tile.tileTypes[tile.tileIndex].img, [int(39.5*(t-x%1)), 40*(r-y%1)])
 
     def drawMiddleLayer(self, mousePos):
         # Draw the trees, entities, vehicles, dropped items, buildings
