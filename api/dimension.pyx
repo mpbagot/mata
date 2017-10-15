@@ -40,6 +40,8 @@ class WorldMP:
 
         self.dimHandler = dimensionHandler
 
+        self.world = None
+
     def generate(self, pos):
         '''
         Generate the tile map of the world based on the dimensionHandler and position
@@ -58,7 +60,7 @@ class WorldMP:
         biomes = self.dimHandler.biomes
 
         # Generate an empty starting biome map
-        width, height = (150, 90)
+        width, height = (120, 84)
         biomeMap = TileMap(width, height)
 
         # Scatter some biomes in
@@ -131,26 +133,13 @@ class WorldMP:
         '''
         pass
 
-    def toBytes(self, pos):
-        '''
-        Return the world tilemap object as a bytestring representation
-        '''
-        return self.world.toBytes(self.dimHandler.biomes)
-
-    @staticmethod
-    def fromBytes(byteString):
-        '''
-        Get a world object from a byteString
-        '''
-        world = WorldMP(None, False)
-        # Get the biomemap from the string
-        world.world = TileMap.fromBytes(byteString, self.dimHandler.biomes)
-        return world
-
     def addPlayer(self, player):
         '''
         Add a player to the world
         '''
+        for p in self.players:
+            if p.username == player.username:
+                return p
         player.pos = [0, 0]
         self.players.append(player)
         return player

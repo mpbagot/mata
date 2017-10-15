@@ -28,7 +28,6 @@ class ByteSizePacket(Packet):
         self.size = size
 
     def toBytes(self, buf):
-        print(self.size)
         buf.write(self.size.to_bytes(2, 'big'))
 
     def fromBytes(self, data):
@@ -56,66 +55,6 @@ class LoginPacket(Packet):
         # Sync the player back to the Client
         return SyncPlayerPacketClient(self.player)
 
-class RequestWorldPacket(Packet):
-    def __init__(self, dimId=None, pos=None):
-        self.pos = pos
-        self.id = dimId
-
-    def toBytes(self, buf):
-        buf.write(str(self.pos).encode())
-        buf.write('|'.encode())
-        buf.write(self.id.to_bytes(2, 'big'))
-
-    def fromBytes(self, data):
-        pos, id = data.split('|'.encode())
-        self.pos = eval(pos.decode())
-        self.id = int.from_bytes(id, 'big')
-
-    def onReceive(self, connection, game):
-        worldData = game.modLoader.gameRegistry.dimensions[self.id].getWorldObj().generate(self.pos).world.map
-        tileMaps = [TileMap.createFromTiles(worldData[a:a+30]) for a in range(0, len(worldData), 30)]
-
-        return [SendWorldPacket(tileMap, self.pos, game, self.id, index+1, len(tileMaps)) for index, tileMap in enumerate(tileMaps)]
-
-
-class SendWorldPacket(Packet):
-    def __init__(self, tiles=None, pos=None, game=None, dimId=None, part=1, length=None):
-        self.length = length
-        self.tiles = tiles
-        self.part = part
-        self.pos = pos
-        self.id = dimId
-        self.game = game
-
-    def toBytes(self, buf):
-        buf.write(self.length.to_bytes(1, 'big')+b'|')
-        buf.write(self.part.to_bytes(1, 'big'))
-        buf.write('|'.encode())
-        buf.write(self.id.to_bytes(1, 'big'))
-        buf.write('|'.encode())
-        # Get the biome list
-        biomes = self.game.modLoader.gameRegistry.dimensions[self.id].biomes
-        buf.write(self.tiles.toBytes(biomes))
-
-    def fromBytes(self, data):
-        length, part, id, *tiles = data.split('|'.encode())
-        self.length = int.from_bytes(length, 'big')
-        self.part = int.from_bytes(part, 'big')
-        self.id = int.from_bytes(id, 'big')
-        self.tiles = '|'.encode().join(tiles)
-
-    def onReceive(self, connection, game):
-        biomes = game.modLoader.gameRegistry.dimensions[self.id].biomes
-        start = time.time()
-        self.tiles = TileMap.fromBytes(self.tiles, biomes)
-        print('took', time.time()-start, 'to get world from bytes')
-        if game.world is None:
-            # Handle the screen change if necessary
-            game.fireEvent('onGameLoad')
-            game.world = game.modLoader.gameRegistry.dimensions[self.id].getWorldObj()
-            game.world.world = self.tiles
-        game.player.relPos = [0, 0]
-
 class SyncPlayerPacketClient(Packet):
     def __init__(self, player=''):
         self.player = player
@@ -125,6 +64,7 @@ class SyncPlayerPacketClient(Packet):
 
     def fromBytes(self, data):
         print('recieved a player sync packet')
+        print(data)
         self.player = Player.fromBytes(data)
 
     def onReceive(self, connection, game):
@@ -132,11 +72,7 @@ class SyncPlayerPacketClient(Packet):
         game.player.pos = self.player.pos
         game.player.health = self.player.health
         print('player set by player sync packet')
-        dimId = 0
-        for dim in game.modLoader.gameRegistry.dimensions:
-            if dim == game.player.dimension:
-                dimId = dim
-        return RequestWorldPacket(dimId, self.player.pos)
+        game.player.relPos = [0, 0]
 
 class SyncPlayerPacketServer(Packet):
     def __init__(self, player=''):

@@ -41,8 +41,7 @@ class Game:
             self.openGUI[1].textboxes[-1].text = self.args.getConnectingAddress()
 
         # Set the world up
-        if self.args.getRuntimeType() == util.SERVER:
-            self.world = self.modLoader.gameRegistry.getWorld()
+        self.world = self.modLoader.gameRegistry.getWorld()
 
     def quit(self):
         '''

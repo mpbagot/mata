@@ -20,8 +20,8 @@ class PacketHandler:
         self.game = game
         self.side = side
         self.connections = []
-        self.safePackets = [ByteSizePacket, LoginPacket, RequestWorldPacket,
-                            SendWorldPacket, DisconnectPacket, SyncPlayerPacketClient,
+        self.safePackets = [ByteSizePacket, LoginPacket,
+                            DisconnectPacket, SyncPlayerPacketClient,
                             SyncPlayerPacketServer
                            ]
 
@@ -37,7 +37,12 @@ class PacketHandler:
         '''
         A client-side method to connect to a chosen server
         '''
-        self.socket.connect((address, util.DEFAULT_PORT))
+        try:
+            self.socket.connect((address, util.DEFAULT_PORT))
+        except socket.gaierror:
+            return 'Invalid Hostname or IP Address'
+        except ConnectionRefusedError:
+            return 'Connection Refused By Server'
         self.connections.append(Connection(self.socket, address))
         # Fork a connection handling thread
         t = Thread(target=self.handleConn, args=(len(self.connections)-1,))
@@ -74,11 +79,11 @@ class PacketHandler:
                 if not data:
                     raise ConnectionResetError
             except ConnectionResetError:
-                del self.connections[connIndex]
                 if self.side == util.SERVER:
                     print('A Client has disconnected')
                 if self.side != util.SERVER:
                     self.game.fireEvent('onDisconnect')
+                del self.connections[connIndex]
                 return
             except UnicodeDecodeError:
                 print(data)
@@ -110,15 +115,9 @@ class PacketHandler:
             if packet.__name__ == dataDictionary['type']:
                 # Initialise the packet, and handle it accordingly
                 p = packet()
-                # try:
                 p.fromBytes(dataDictionary['data'].encode())
                 response = p.onReceive(self.connections[connIndex], self.game)
                 self.game.fireEvent('onPacketReceived', p)
-                # except Exception as e:
-                #     # They have a modded client, or are sending invalid packets
-                #     # Either way, it's safer to kick them
-                #     print(e)
-                #     self.connections[connIndex].sendPacket(DisconnectPacket())
                 if response:
                     # Send any required response and reset the receive size
                     if isinstance(response, list):
@@ -128,8 +127,6 @@ class PacketHandler:
                     else:
                         print('sending packet {} in response to {}'.format(response.__class__.__name__, packet.__name__))
                         self.connections[connIndex].sendPacket(response)
-                # if packet.__name__ != 'ByteSizePacket':
-                #     self.connections[connIndex].setNextPacketSize(37)
                 if packet.__name__ == 'DisconnectPacket':
                     self.connections[connIndex].connObj.close()
                     return

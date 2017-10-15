@@ -7,9 +7,19 @@ from api.gui import *
 
 class PlayButton(Button):
     def onClick(self, game):
-        game.player.setUsername(game.openGUI[1].textboxes[0].text)
-        game.getModInstance('ClientMod').packetPipeline.connectToServer(game.openGUI[1].textboxes[1].text)
+        # Grab the variables from the textboxes
+        username = game.openGUI[1].textboxes[0].text
+        address = game.openGUI[1].textboxes[1].text
+        # Set the player username
+        game.player.setUsername(username)
         game.openGui(game.getModInstance('ClientMod').loadingGui)
+        # Try to connect
+        error = game.getModInstance('ClientMod').packetPipeline.connectToServer(address)
+        # Display an error if it fails for any reason
+        if error:
+            game.openGui(game.getModInstance('ClientMod').mainMenuGui)
+            game.openGUI[1].error = error
+            game.openGUI[1].textboxes[0].text = username
 
 class ExitButton(Button):
     def onClick(self, game):
@@ -25,6 +35,7 @@ class MainMenu(Gui):
     '''
     def __init__(self):
         super().__init__()
+        self.error = ''
         self.buttons = [PlayButton([400, 350, 224, 50], 'Play'), ExitButton([400, 450, 224, 50], 'Exit')]
         self.textboxes = [TextBox([375, 180, 274, 40], 'Username'), TextBox([375, 250, 274, 40], 'Server Address')]
 
@@ -33,8 +44,12 @@ class MainMenu(Gui):
 
     def drawMiddleLayer(self, mousePos):
         font = pygame.font.Font('resources/font/main.ttf', 40)
+        # Draw the title
         text = font.render('Game\'s Main Menu', True, (0, 0, 0))
         self.screen.blit(text, [512-text.get_rect().width//2, 60])
+        # Draw the error message
+        text = font.render(self.error, True, (255, 0, 0))
+        self.screen.blit(text, [512-text.get_rect().width//2, 110])
 
 class GameScreen(Gui):
     def __init__(self, game):
@@ -44,9 +59,12 @@ class GameScreen(Gui):
     def drawBackgroundLayer(self):
         # Draw the tile map in the area around the player
         x, y = self.game.player.relPos
-        xPos = int(x+75)
-        yPos = int(y+45)
-        # If the world is loaded into memory
+        xPos = int(x)+75
+        yPos = int(y)+45
+        x -= int(x)
+        y -= int(y)
+        # x, y = round(x%1, 1), round(y%1, 1)
+        # Check if the world is loaded into memory
         if self.game.world and self.game.world.world:
             xPos1 = xPos-20 if xPos >= 20 else 0
             yPos1 = yPos-14 if yPos >= 14 else 0
@@ -60,7 +78,7 @@ class GameScreen(Gui):
             for r, row in enumerate(tileMap):
                 for t, tile in enumerate(row):
                     if tile:
-                        self.screen.blit(tile.tileTypes[tile.tileIndex].img, [int(39.5*(t-x%1)), 40*(r-y%1)])
+                        self.screen.blit(tile.tileTypes[tile.tileIndex].img, [round(40*(-1+t-x)), round(40*(-1+r-y))])
 
     def drawMiddleLayer(self, mousePos):
         # Draw the trees, entities, vehicles, dropped items, buildings

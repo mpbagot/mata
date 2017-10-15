@@ -11,6 +11,7 @@ class Player:
         self.tickDamage = None
         self.dimension = 0
         self.properties = {}
+        self.synced = False
 
     def setProperty(self, propName, propVal):
         self.properties[propName] = propVal
