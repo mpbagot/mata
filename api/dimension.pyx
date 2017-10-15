@@ -2,6 +2,7 @@
 from threading import Thread
 import random
 import time
+import noise
 
 # Import the mod files
 from api.packets import *
@@ -32,52 +33,46 @@ class DimensionHandler:
         return self.worldObj
 
 class WorldMP:
-    def __init__(self, dimensionHandler, generate=True):
+    def __init__(self, dimensionHandler):
         self.entities = []
         self.vehicles = []
         self.players = []
 
         self.dimHandler = dimensionHandler
 
-        self.world = None
-
-        if generate:
-            t = Thread(target=self.generate)
-            t.daemon = True
-            t.start()
-
-            self.isGenerating = True
-
-    def generate(self):
+    def generate(self, pos):
         '''
-        Generate the tile map of the world based on the dimensionHandler
+        Generate the tile map of the world based on the dimensionHandler and position
         '''
         start = time.time()
-        biomes = self.dimHandler.biomes
-        biomeSize = self.dimHandler.biomeSize
+        xPos, yPos = pos
+        xPos = round(xPos)
+        yPos = round(yPos)
 
-        # Generate a small starting biome map
-        width, height = (50, 50)
-        biomeMap = BiomeMap(width, height)
+        # Generate Simplex Noise for the world
+        noiseMap = [[noise.snoise2(x, y, 8, 1.4, 0.45)/2+0.5 for x in range(xPos-150, xPos+151)] for y in range(yPos-105, yPos+106)]
+        biomeSize = self.dimHandler.biomeSize
+        biomeNoise = [[noise.snoise2(x, y, 7, 3, 0.6-(biomeSize*0.1))/2+0.5 for x in range(xPos-150, xPos+151)] for y in range(yPos-105, yPos+106)]
+        detailNoise = []
+
+        biomes = self.dimHandler.biomes
+
+        # Generate an empty starting biome map
+        width, height = (150, 90)
+        biomeMap = TileMap(width, height)
 
         # Scatter some biomes in
         for y, row in enumerate(biomeMap.map):
             for x, tile in enumerate(row):
-                biomeMap.map[y][x] = random.choice(biomes)
-
-        # Zoom the biomes to a bigger size
-        for i in range(biomeSize):
-            biomeMap.zoom()
-
-        print('\n'.join(['.'.join([a.__name__[0] for a in row[:50]]) for row in biomeMap.map[:50]]))
+                biomeMap.map[y][x] = biomes[round(biomeNoise[y][x]*(len(biomes)-1))]
 
         # Choose tile types and generate entities, houses, trees, etc in the biomes
-        biomeMap.finalPass()
+        biomeMap.finalPass(noiseMap, detailNoise)
         self.world = biomeMap
 
         print('Time taken: '+str(time.time()-start)+' seconds')
 
-        self.isGenerating = False
+        return self
 
     def tickUpdate(self, game):
         '''
@@ -93,11 +88,11 @@ class WorldMP:
                 entityBackup = self.entities[e]
                 del self.entities[e]
                 # Trigger on Entity Death events
-                for func in gameRegistry.eventFunctions.get('onEntityDeath'):
+                for func in gameRegistry.EVENT_BUS.get('onEntityDeath', []):
                     func(game, entityBackup, entityBackup.tickDamage)
             elif self.entities[e].tickDamage:
                 # Trigger on Entity Damaged events
-                for func in gameRegistry.eventFunctions.get('onEntityDamage'):
+                for func in gameRegistry.EVENT_BUS.get('onEntityDamage', []):
                     func(game, self.entities[e], self.entities[e].tickDamage)
 
         # Loop through the vehicles and update them
@@ -108,7 +103,7 @@ class WorldMP:
                 vehicleBackup = self.vehicles[v]
                 del self.vehicles[v]
                 # Trigger on Vehicle Destruction events
-                for func in gameRegistry.eventFunctions.get('onVehicleDestroyed'):
+                for func in gameRegistry.EVENT_BUS.get('onVehicleDestroyed', []):
                     func(game, vehicleBackup)
 
         # Loop through the players and disconnect them if they died
@@ -120,7 +115,7 @@ class WorldMP:
                                                     self.players[p].username)
             elif self.players[p].tickDamage:
                 # Trigger on Player Damaged events
-                for func in gameRegistry.eventFunctions.get('onPlayerDamage'):
+                for func in gameRegistry.EVENT_BUS.get('onPlayerDamage', []):
                     func(game, self.players[p], self.players[p].tickDamage)
 
 
@@ -140,7 +135,7 @@ class WorldMP:
         '''
         Return the world tilemap object as a bytestring representation
         '''
-        return self.world.toBytes(pos)
+        return self.world.toBytes(self.dimHandler.biomes)
 
     @staticmethod
     def fromBytes(byteString):
@@ -149,13 +144,13 @@ class WorldMP:
         '''
         world = WorldMP(None, False)
         # Get the biomemap from the string
-        world.world = BiomeMap.fromBytes(byteString)
+        world.world = TileMap.fromBytes(byteString, self.dimHandler.biomes)
         return world
 
     def addPlayer(self, player):
         '''
         Add a player to the world
         '''
-        while self.isGenerating:
-            pass
+        player.pos = [0, 0]
         self.players.append(player)
+        return player

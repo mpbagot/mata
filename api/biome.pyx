@@ -5,6 +5,25 @@ biome objects contain tile type data, spawnable entity, item and vehicle lists
 '''
 import random
 import math
+import pygame
+
+pygame.init()
+
+class Tile:
+    def __init__(self):
+        self.img = pygame.image.load(self.getResourceLocation())
+
+    def setTileName(self, name):
+        '''
+        Set the tile name
+        '''
+        self.name = name
+
+    def getResourceLocation(self):
+        '''
+        Return the tile image location
+        '''
+        return 'resources/textures/mods/tiles/{}.png'.format(self.name)
 
 class Biome:
     def __init__(self):
@@ -14,79 +33,86 @@ class Biome:
         self.vehicleTypes = []
         self.plantTypes = []
 
-        self.tileType = None
-        self.plantType = None
+        self.tileIndex = -1
+        self.plantIndex = -1
 
-class BiomeMap:
+        self.setTiles()
+
+    def toBytes(self, biomes):
+        biomeId = biomes.index(self.__class__).to_bytes(1, 'big')
+        return biomeId+(self.tileIndex+1).to_bytes(1, 'big')+(self.plantIndex+1).to_bytes(1, 'big')
+
+    @staticmethod
+    def fromBytes(data, biomes):
+        biomeId, tileIndex, plantIndex = list(data)
+        tile = biomes[biomeId]()
+        tile.tileIndex = tileIndex - 1
+        tile.plantIndex = plantIndex - 1
+        tile.tileTypes[tile.tileIndex] = tile.tileTypes[tile.tileIndex]()
+        return tile
+
+class TileMap:
     def __init__(self, width, height):
         self.map = [[0 for column in range(width)] for row in range(height)]
 
-    def zoom(self):
+    @staticmethod
+    def createFromTiles(tiles):
         '''
-        Zoom the biomes to about 10x their current size
+        Create a TileMap from a tile array
         '''
-        # Expand out the map, filling extra spots with 0
-        tileMap = []
-        for r, row in enumerate(self.map):
-            tileMap.append([])
-            for a in row:
-                tileMap[-1] += [a, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        tileMap = TileMap(5, 5)
+        print(len(tiles))
+        tileMap.map = tiles
+        return tileMap
 
-        print('zooming')
-
-        cdef int y, x, dy, dx = 0
-        # Loop until the map has been completely filled
-        while not all([all(i) for i in tileMap]):
-            for y, row in enumerate(tileMap):
-                for x, tile in enumerate(row):
-                    # If the tile is a biome
-                    if tile and not isinstance(tile, list):
-                        # Loop a 5x5 square around the tile
-                        for dy in range(y-2, y+3):
-                            for dx in range(x-2, x+3):
-                                # If the tile we're looking at is not right near
-                                # the initial tile, skip it
-                                if abs(y-dy)+abs(x-dx) > 2:
-                                    continue
-
-                                # If any of the dx or dy values overflow the list indexes
-                                # Loop back around to the other side of the map
-                                if dy >= len(tileMap):
-                                    dy -= len(tileMap)
-                                if dx >= len(row):
-                                    dx -= len(row)
-
-                                # Replace the blank tile with a list of
-                                # possible biome types for that tile.
-                                if tileMap[dy][dx] == 0:
-                                    tileMap[dy][dx] = [tile]
-                                elif isinstance(tileMap[dy][dx], list):
-                                    tileMap[dy][dx].append(tile)
-
-            # Finally, loop through each tile, and pick a possible biome type for it
-            for y in range(len(tileMap)):
-                for x in range(len(tileMap[y])):
-                    if isinstance(tileMap[y][x], list):
-                        tileMap[y][x] = random.choice(tileMap[y][x])
-
-        self.map = tileMap
-
-    def finalPass(self):
+    def finalPass(self, tileNoise, detailNoise):
         '''
         Generate the tile type of each square,
         and generate extra details like trees
         '''
-        pass
+        for r, row in enumerate(self.map):
+            for t, tile in enumerate(row):
+                tile = tile()
+                self.map[r][t] = tile
+                if len(tile.tileTypes):
+                    self.map[r][t].tileIndex = round(tileNoise[r][t]*(len(tile.tileTypes)-1))
+                else:
+                    self.map[r][t].tileIndex = -1
 
-    def toBytes(self, pos):
+                if random.random() > 0.8 and len(tile.plantTypes):
+                    self.map[r][t].plantIndex = random.randint(0, len(tile.plantTypes)-1)
+                else:
+                    self.map[r][t].plantIndex = -1
+
+    def toBytes(self, biomes):
         '''
-        Return a bytestring represenation of this BiomeMap
+        Return a bytestring representation of this TileMap
         '''
-        return b''
+        # Generate the byte string and return it
+        byteString = b''
+        for row in self.map:
+            for tile in row:
+                # Append biome id, tile index, plant index
+                byteString += tile.toBytes(biomes)
+            byteString += '|'.encode()
+        return byteString
 
     @staticmethod
-    def fromBytes(data):
+    def fromBytes(data, biomes):
         '''
         Return a biomemap based on the given byte data
         '''
-        return BiomeMap(5, 5)
+        world = TileMap(1, 1)
+        # Split the data up into a 2D array
+        # rows = [a for a in data.split('|'.encode()) if a]
+        # tiles = [[row[a:a+3] for a in range(0, len(row), 3)] for row in rows]
+
+        # Generate a tileMap from the bytes
+        tileMap = []
+        for row in [a for a in data.split('|'.encode()) if a]:
+            tileMap.append([])
+            for a in range(0, len(row), 3):
+                tileMap[-1].append(Biome.fromBytes(row[a:a+3], biomes))
+
+        world.map = tileMap
+        return world
