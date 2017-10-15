@@ -29,9 +29,9 @@ class ServerMod(Mod):
             self.gameRegistry.registerCommand(*comm)
 
         # Initialise the biomes
-        self.biomes = [Forest, Desert, Ocean, City]
+        self.biomes = [Ocean, Forest, City, Desert]
         # Initialise and register the DimensionHandler accordingly
-        dimensionHandler = dimension.DimensionHandler(self.biomes, 1)
+        dimensionHandler = dimension.DimensionHandler(self.biomes, 3)
         self.gameRegistry.registerDimension(dimensionHandler)
 
         # Register the events
@@ -39,9 +39,8 @@ class ServerMod(Mod):
 
 def onTick(game):
     # Send server updates to all of the connected clients
-    if not game.world.isGenerating:
-        # game.getModInstance('ServerMod').packetPipeline.sendToAll(WorldUpdatePacket(game.world))
-        pass
+    # game.getModInstance('ServerMod').packetPipeline.sendToAll(WorldUpdatePacket(game.world))
+    pass
 
 class KickPlayerCommand(cmd.Command):
     def run(self, *args):
