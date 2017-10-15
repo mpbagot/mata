@@ -66,6 +66,7 @@ class GameRegistry:
         self.commands = {}
         self.packetPipelines = {}
         self.audioEffects = {}
+        self.resources = {}
         self.EVENT_BUS = {}
         self.properties = {}
 
@@ -128,6 +129,12 @@ class GameRegistry:
         Register an event handling function
         '''
         self.EVENT_BUS[eventType] = self.EVENT_BUS.get(eventType, [])+[eventFunction]
+
+    def registerResource(self, resourceId, resource):
+        '''
+        Register a non-audio resource
+        '''
+        self.resources[resourceId] = resource
 
     def registerAudioEffect(self, audioClass):
         '''
