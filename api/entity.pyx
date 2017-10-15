@@ -4,10 +4,25 @@ class Player:
     def __init__(self):
         self.username = ''
         self.pos = [0, 0]
+        self.relPos = [0, 0]
         self.health = 100
         self.inventory = Inventory()
         self.isDead = False
         self.tickDamage = None
+        self.dimension = 0
+        self.properties = {}
+
+    def setProperty(self, propName, propVal):
+        self.properties[propName] = propVal
+
+    def getProperty(self, propName):
+        return self.properties.get(propName)
+
+    def getAbsPos(self):
+        '''
+        Get the absolute position of the player
+        '''
+        return [round(self.relPos[0]+self.pos[0]), round(self.relPos[1]+self.pos[1])]
 
     def setUsername(self, name):
         '''

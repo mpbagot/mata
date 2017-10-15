@@ -1,10 +1,3 @@
-class Properties:
-    def __init__(self, objectType, **kwargs):
-        self.properties = kwargs
-        self.objectType = objectType
-
-    def saveToFile(self):
-        pass
-
-    def readFromFile(self):
-        pass
+class Property:
+    def __init__(self, **kwargs):
+        self.props = kwargs
