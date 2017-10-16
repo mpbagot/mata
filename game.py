@@ -148,6 +148,7 @@ class Game:
         Open the GUI with the given id for this client
         '''
         self.openGUI = [guiID, self.modLoader.gameRegistry.guis[guiID](*args)]
+        self.openOverlays = []
 
     def openOverlay(self, guiID, *args):
         '''
