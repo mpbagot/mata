@@ -10,17 +10,19 @@ class HUD(Overlay):
         super().__init__()
         self.game = game
         self.bars = [
-                        Bar([744, 698], 260, 20, (255, 0, 0), self.game.player.health),
-                        Bar([744, 728], 260, 20, (0, 102, 255), self.game.player.exp)
+                        Bar([744, 698], 260, 20, (255, 0, 0), self.game.player.health, 'Health'),
+                        Bar([744, 728], 260, 20, (0, 102, 255), self.game.player.exp, 'Experience')
                     ]
+        equippedItems = self.game.player.inventory.getEquipped()
+        self.itemSlots = [
+                            ItemSlot(equippedItems[0], [664, 630], 60),
+                            ItemSlot(equippedItems[1], [664, 700], 60)
+                         ]
 
     def drawBackgroundLayer(self):
         # Draw the background rectangle
-        pygame.draw.rect(self.screen, (173, 144, 106), [644, 620, 400, 150])
-        pygame.draw.rect(self.screen, (65, 55, 40), [644, 620, 400, 150], 4)
-
-    def drawMiddleLayer(self, mousePos):
-        pass
+        pygame.draw.rect(self.screen, (173, 144, 106), [654, 620, 400, 150])
+        pygame.draw.rect(self.screen, (65, 55, 40), [654, 620, 400, 150], 4)
 
     def drawForegroundLayer(self, mousePos):
         super().drawForegroundLayer(mousePos)

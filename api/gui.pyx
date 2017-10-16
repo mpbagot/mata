@@ -6,6 +6,7 @@ class Gui:
         self.buttons = []
         self.textboxes = []
         self.bars = []
+        self.itemSlots = []
         self.currentTextBox = None
 
     def drawBackgroundLayer(self):
@@ -18,7 +19,8 @@ class Gui:
         '''
         Draw the middleground layer of the GUI screen
         '''
-        pass
+        for slot in self.itemSlots:
+            slot.draw(self.screen, mousePos)
 
     def drawForegroundLayer(self, mousePos):
         '''
@@ -38,8 +40,25 @@ class Overlay(Gui):
         '''
         pass
 
+class ItemSlot:
+    def __init__(self, item, pos, size):
+        self.pos = [a+3 for a in pos]
+        self.item = item
+        self.item.img = pygame.transform.scale(self.item.img, [size-5, size-5])
+        self.button = Button(pos+[size, size], '')
+
+    def draw(self, screen, mousePos):
+        self.button.draw(screen, [0, 0])
+        imgRect = screen.blit(self.item.img, self.pos)
+        if self.button.isHovered(mousePos):
+            # Draw a semi transparent square over the itemslot
+            square = pygame.Surface([self.button.rect[2]+1 for a in range(2)])
+            square.set_alpha(128)
+            square.fill((0, 0, 0))
+            screen.blit(square, [a-3 for a in self.pos])
+
 class Bar:
-    def __init__(self, topLeftPos, width, height, colour, percentage=100):
+    def __init__(self, topLeftPos, width, height, colour, percentage=100, label=''):
         self.pos = topLeftPos
         self.width = width
         self.height = height+height%2
@@ -47,11 +66,12 @@ class Bar:
             raise Exception('Invalid Gui Bar Dimensions!')
         self.percentage = percentage
         self.colour = colour
+        self.label = label
 
     def draw(self, screen, mousePos):
         lineLength = self.width-self.height
 
-        # Get the left and right end points of the bar
+        # Get the left and right points of the bar's circles
         leftPos = [self.pos[0]+self.height//2, self.pos[1]+self.height//2]
         rightPos = [leftPos[0]+lineLength, leftPos[1]]
         # Get the end points of the line
@@ -71,6 +91,13 @@ class Bar:
         scaledRightPos = [scaledRightPos[0], scaledRightPos[1]+1]
         pygame.draw.circle(screen, self.colour, leftPos, self.height//2)
         pygame.draw.circle(screen, self.colour, scaledRightPos, self.height//2)
+
+        # Draw the label
+        if self.label:
+            font = pygame.font.Font('resources/font/main.ttf', self.height-4)
+            text = font.render(self.label, True, (255, 255, 255))
+            pos = [self.pos[0]+8, self.pos[1]]
+            screen.blit(text, pos)
 
 class Button:
     def __init__(self, rect, label):
