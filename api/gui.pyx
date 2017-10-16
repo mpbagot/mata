@@ -5,6 +5,7 @@ class Gui:
         self.screen = pygame.display.get_surface()
         self.buttons = []
         self.textboxes = []
+        self.bars = []
         self.currentTextBox = None
 
     def drawBackgroundLayer(self):
@@ -27,6 +28,8 @@ class Gui:
             button.draw(self.screen, mousePos)
         for box in self.textboxes:
             box.draw(self.screen, mousePos)
+        for bar in self.bars:
+            bar.draw(self.screen, mousePos)
 
 class Overlay(Gui):
     def doKeyPress(self, event):
@@ -34,6 +37,40 @@ class Overlay(Gui):
         Handle a key press event
         '''
         pass
+
+class Bar:
+    def __init__(self, topLeftPos, width, height, colour, percentage=100):
+        self.pos = topLeftPos
+        self.width = width
+        self.height = height+height%2
+        if width < height:
+            raise Exception('Invalid Gui Bar Dimensions!')
+        self.percentage = percentage
+        self.colour = colour
+
+    def draw(self, screen, mousePos):
+        lineLength = self.width-self.height
+
+        # Get the left and right end points of the bar
+        leftPos = [self.pos[0]+self.height//2, self.pos[1]+self.height//2]
+        rightPos = [leftPos[0]+lineLength, leftPos[1]]
+        # Get the end points of the line
+        leftLinePos = [leftPos[0], leftPos[1]-1]
+        rightLinePos = [rightPos[0], rightPos[1]-1]
+
+        # Draw the grey underbar
+        pygame.draw.line(screen, (192, 192, 192), leftLinePos, rightLinePos, self.height)
+        pygame.draw.circle(screen, (192, 192, 192), leftPos, self.height//2)
+        pygame.draw.circle(screen, (192, 192, 192), rightPos, self.height//2)
+
+        # Draw the bar over the top
+        # Get the scaled position of the end of the bar
+        scaledRightPos = [leftPos[0] + round(lineLength * self.percentage/100), rightLinePos[1]]
+        pygame.draw.line(screen, self.colour, leftLinePos, scaledRightPos, self.height)
+        # Draw the end circles of the bar
+        scaledRightPos = [scaledRightPos[0], scaledRightPos[1]+1]
+        pygame.draw.circle(screen, self.colour, leftPos, self.height//2)
+        pygame.draw.circle(screen, self.colour, scaledRightPos, self.height//2)
 
 class Button:
     def __init__(self, rect, label):
