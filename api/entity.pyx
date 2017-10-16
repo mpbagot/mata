@@ -6,6 +6,8 @@ class Player:
         self.pos = [0, 0]
         self.relPos = [0, 0]
         self.health = 100
+        self.level = 1
+        self.exp = 0
         self.inventory = Inventory()
         self.isDead = False
         self.tickDamage = None
