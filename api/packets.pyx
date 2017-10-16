@@ -53,9 +53,9 @@ class LoginPacket(Packet):
         self.player = game.world.addPlayer(self.player)
         print(self.player.username + ' joined the server!')
         # Sync the player back to the Client
-        return SyncPlayerPacketClient(self.player)
+        return ResetPlayerPacket(self.player)
 
-class SyncPlayerPacketClient(Packet):
+class ResetPlayerPacket(Packet):
     def __init__(self, player=''):
         self.player = player
 
@@ -74,7 +74,7 @@ class SyncPlayerPacketClient(Packet):
         print('player set by player sync packet')
         game.player.relPos = [0, 0]
 
-class SyncPlayerPacketServer(Packet):
+class SyncPlayerPacket(Packet):
     def __init__(self, player=''):
         self.player = player
 
@@ -91,12 +91,12 @@ class SyncPlayerPacketServer(Packet):
         playerList = game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj().players
         serverPlayer = playerList[game.getPlayerIndex(self.player)]
         if abs(self.player.pos[0]-serverPlayer.pos[0]) > 25 or abs(self.player.pos[1]-serverPlayer.pos[1]) > 25:
-            return SyncPlayerPacketClient(serverPlayer)
+            return ResetPlayerPacket(serverPlayer)
         # If the player has clipped into a plant, reset their position
         world = game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj()
 
         # if world.world.map[self.player.pos[1]][self.player.pos[0]].plantIndex != -1:
-        #     return SyncPlayerPacketClient(serverPlayer)
+        #     return ResetPlayerPacket(serverPlayer)
 
         # Sync the player object on the server
         playerIndex = game.getPlayerIndex(self.player)

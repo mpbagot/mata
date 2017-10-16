@@ -91,7 +91,7 @@ def onTick(game):
                 # Store the current relative position in the mod instance for later comparison
                 game.getModInstance('ClientMod').oldPlayerPos = list(game.player.relPos)
                 # Send the copy of the player object in the packet
-                game.getModInstance('ClientMod').packetPipeline.sendToServer(SyncPlayerPacketServer(playerCopy))
+                game.getModInstance('ClientMod').packetPipeline.sendToServer(SyncPlayerPacket(playerCopy))
 
         # Handle player movement
         keys = pygame.key.get_pressed()
