@@ -5,6 +5,35 @@ A module containing the GUI screens of the default client game
 # Import the Modding API
 from api.gui import *
 
+class HUD(Overlay):
+    def __init__(self, game):
+        super().__init__()
+        self.game = game
+        self.bars = [
+                        Bar([744, 698], 260, 20, (255, 0, 0), self.game.player.health),
+                        Bar([744, 728], 260, 20, (0, 102, 255), self.game.player.exp)
+                    ]
+
+    def drawBackgroundLayer(self):
+        # Draw the background rectangle
+        pygame.draw.rect(self.screen, (173, 144, 106), [644, 620, 400, 150])
+        pygame.draw.rect(self.screen, (65, 55, 40), [644, 620, 400, 150], 4)
+
+    def drawMiddleLayer(self, mousePos):
+        pass
+
+    def drawForegroundLayer(self, mousePos):
+        super().drawForegroundLayer(mousePos)
+        # Generate a font object
+        font = pygame.font.Font('resources/font/main.ttf', 20)
+        text = font.render('Username: '+self.game.player.username, True, (255, 255, 255))
+        self.screen.blit(text, [744, 640])
+        # Generate a smaller font object
+        font = pygame.font.Font('resources/font/main.ttf', 12)
+        text = font.render('Level: '+str(self.game.player.level), True, (255, 255, 255))
+        self.screen.blit(text, [744, 670])
+
+
 class PlayButton(Button):
     def onClick(self, game):
         # Grab the variables from the textboxes

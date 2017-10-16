@@ -44,6 +44,9 @@ class ClientMod(Mod):
         self.mainMenuGui = self.gameRegistry.registerGUI(MainMenu)
         self.disconnectMessageGui = self.gameRegistry.registerGUI(DisconnectMessage)
 
+        # Initialise the Overlays
+        self.hudOverlay = self.gameRegistry.registerGUI(HUD)
+
         # Open the main menu on startup
         self.game.openGui(self.mainMenuGui)
 
@@ -154,3 +157,4 @@ def genWorld(game, props):
 
     # Show the game screen
     game.openGui(game.getModInstance('ClientMod').gameGui, game)
+    game.openOverlay(game.getModInstance('ClientMod').hudOverlay, game)
