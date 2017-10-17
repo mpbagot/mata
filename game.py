@@ -27,8 +27,9 @@ class Game:
         self.processCommandLineArgs(argHandler)
         self.args = argHandler
         self.world = None
-        self.openGUI = None
+        self.openGUI = self.prevGUI = None
         self.openOverlays = []
+        self.prevOverlays = []
 
         # Load all of the registered mods
         self.modLoader.loadRegisteredMods()
@@ -147,8 +148,20 @@ class Game:
         '''
         Open the GUI with the given id for this client
         '''
+        self.prevGUI = self.openGUI
+        self.prevOverlays = list(self.openOverlays)
+
         self.openGUI = [guiID, self.modLoader.gameRegistry.guis[guiID](*args)]
         self.openOverlays = []
+
+    def restoreGui(self):
+        '''
+        Restore the previous GUI state for the client
+        '''
+        self.openGUI = list(self.prevGUI)
+        self.openOverlays = list(self.prevOverlays)
+        self.prevGUI = None
+        self.prevOverlays = []
 
     def openOverlay(self, guiID, *args):
         '''
@@ -160,7 +173,8 @@ class Game:
         '''
         Close the currently open gui
         '''
-        self.openGui = None
+        self.prevGUI = self.openGUI
+        self.openGUI = None
 
     def closeOverlay(self, guiID):
         '''
