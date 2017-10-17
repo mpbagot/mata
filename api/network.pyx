@@ -21,8 +21,8 @@ class PacketHandler:
         self.side = side
         self.connections = []
         self.safePackets = [ByteSizePacket, LoginPacket,
-                            DisconnectPacket, SyncPlayerPacketClient,
-                            SyncPlayerPacketServer
+                            DisconnectPacket, SyncPlayerPacket,
+                            ResetPlayerPacket
                            ]
 
         self.socket = socket.socket()
