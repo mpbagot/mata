@@ -29,7 +29,7 @@ class FetchInventoryPacket(Packet):
     def onReceive(self, connection, game):
         # Fetch the inventory of the required player, and send it back
         players = game.world.players
-        inventory = players[[p.username for p in players].index(self.playername)].getInventory()
+        inventory = players[game.getPlayerIndex(self.playername)].getInventory()
         return SendInventoryPacket(inventory)
 
 class SendInventoryPacket(Packet):
@@ -37,10 +37,10 @@ class SendInventoryPacket(Packet):
         self.inventory = inventory
 
     def toBytes(self, buf):
-        buf.write(self.inventory.encode())
+        buf.write(self.inventory.toBytes())
 
     def fromBytes(self, data):
-        self.inventory = Inventory.getFromBytes(data)
+        self.inventory = Inventory.fromBytes(data)
 
     def onReceive(self, connection, game):
         # TODO Do something with the inventory here
