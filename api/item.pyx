@@ -6,7 +6,7 @@ import pygame
 
 class Inventory:
     def __init__(self):
-        self.items = {'left' : None, 'right' : None, 'hotbar' : [], 'main' : []}
+        self.items = {'left' : Item(), 'right' : Item(), 'hotbar' : [], 'main' : []}
 
     def getEquipped(self):
         return [self.items['left'], self.items['right']]

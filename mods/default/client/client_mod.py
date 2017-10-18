@@ -66,7 +66,7 @@ def onPacketReceived(game, packet):
     if packet.__class__.__name__ == 'DisconnectPacket':
         # Open a GUI that displays the message, and disconnect them
         game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, packet.message)
-    elif packet.__class__.__name__ == 'SyncPlayerPacketClient':
+    elif packet.__class__.__name__ == 'ResetPlayerPacket':
         # Tell the game that the player is synced
         game.player.synced = True
 

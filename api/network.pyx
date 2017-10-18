@@ -28,7 +28,7 @@ class PacketHandler:
         self.socket = socket.socket()
 
         if side == util.SERVER:
-            self.socket.bind((socket.gethostname(), util.DEFAULT_PORT))
+            self.socket.bind(('0.0.0.0', util.DEFAULT_PORT))
             connPoll = Thread(target=self.pollForConnections)
             connPoll.daemon = True
             connPoll.start()
