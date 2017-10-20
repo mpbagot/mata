@@ -43,6 +43,9 @@ class PacketHandler:
             return 'Invalid Hostname or IP Address'
         except ConnectionRefusedError:
             return 'Connection Refused By Server'
+        except OSError:
+            pass
+
         self.connections.append(Connection(self.socket, address))
         # Fork a connection handling thread
         t = Thread(target=self.handleConn, args=(len(self.connections)-1,))
@@ -77,7 +80,7 @@ class PacketHandler:
                 data = conn.recv(self.connections[connIndex].nextSize)
                 data = data.decode()[1:-1]
                 if not data:
-                    raise ConnectionResetError
+                    continue
             except ConnectionResetError:
                 if self.side == util.SERVER:
                     print('A Client has disconnected')
