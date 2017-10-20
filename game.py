@@ -35,6 +35,7 @@ class Game:
 
         # Load into the main menu or loading screen gui on startup
         if self.args.getRuntimeType() != util.SERVER:
+            import pygame
             self.player = Player()
         # Fill in the address to connect to automatically
         if self.args.getRuntimeType() == util.COMBINED:
