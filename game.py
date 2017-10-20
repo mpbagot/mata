@@ -8,14 +8,10 @@ import time
 import multiprocessing
 import socket
 import sys
-import pygame
 
 # Import the game's modules
 import util
 import mod
-import mods.default.client.client_mod as client
-import mods.default.server.server_mod as server
-import mods.default.neural_net as nn
 from api.entity import Player
 
 class Game:
@@ -36,6 +32,7 @@ class Game:
 
         # Load into the main menu or loading screen gui on startup
         if self.args.getRuntimeType() != util.SERVER:
+            import pygame
             self.player = Player()
         # Fill in the address to connect to automatically
         if self.args.getRuntimeType() == util.COMBINED:
@@ -199,11 +196,14 @@ class Game:
         '''
         Process the Command Line Arguments for the game
         '''
+        import mods.default.server.server_mod as server
+        import mods.default.neural_net as nn
         if argHandler.getRuntimeType() == util.SERVER:
             # Schedule the Server side mods to be loaded here
             self.modLoader.registerMod(server.ServerMod)
 
         elif argHandler.getRuntimeType() in [util.CLIENT, util.COMBINED]:
+            import mods.default.client.client_mod as client
             if argHandler.getRuntimeType() == util.COMBINED:
                 # Fork a new Server process, then set to connect to it immediately
                 serverProcess = multiprocessing.Process(target=forkServer)
