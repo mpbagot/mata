@@ -5,9 +5,9 @@ biome objects contain tile type data, spawnable entity, item and vehicle lists
 '''
 import random
 import math
-import pygame
+#import pygame
 
-pygame.init()
+#pygame.init()
 
 class Tile:
     def __init__(self, resources):

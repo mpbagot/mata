@@ -2,7 +2,7 @@
 item.py
 A module to hold all the api stuff related to items
 '''
-import pygame
+#import pygame
 
 class Inventory:
     def __init__(self):
@@ -19,8 +19,12 @@ class Inventory:
         return b''
 
 class Item:
-    def __init__(self):
-        self.img = pygame.image.load('resources/textures/mods/tiles/dirt.png')
+    def __init__(self, resources):
+        try:
+            self.img = resources['item_'+self.getItemName()]
+        except KeyError:
+            raise Exception('Item Image has not been Registered!')
+#        self.img = pygame.image.load('resources/textures/mods/tiles/dirt.png')
 
 class ItemStack:
     pass
