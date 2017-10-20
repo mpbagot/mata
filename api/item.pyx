@@ -26,5 +26,8 @@ class Item:
             self.img = pygame.image.load('resources/textures/mods/tiles/dirt.png')
             #raise Exception('Item Image has not been Registered!')
 
+    def getItemName(self):
+        return 'null_item'
+
 class ItemStack:
     pass
