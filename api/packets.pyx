@@ -51,21 +51,29 @@ class LoginPacket(Packet):
         connection.username = self.player.username
         # Add the player
         self.player = game.world.addPlayer(self.player)
+        # Fire a login event
+        game.fireEvent('onPlayerLogin', self.player)
         print(self.player.username + ' joined the server!')
         # Sync the player back to the Client
-        return ResetPlayerPacket(self.player)
+        return ResetPlayerPacket(self.player, True)
 
 class ResetPlayerPacket(Packet):
-    def __init__(self, player=''):
+    def __init__(self, player='', firstTime=False):
         self.player = player
+        self.firstTime = firstTime
 
     def toBytes(self, buf):
         buf.write(self.player.toBytes())
+        buf.write(b'|')
+        buf.write(int(self.firstTime).to_bytes(1, 'big'))
+        print(buf.getvalue())
 
     def fromBytes(self, data):
-        print('recieved a player sync packet')
+        print('received a player sync packet')
         print(data)
-        self.player = Player.fromBytes(data)
+        playerData, firstTime = data.split(b'|')
+        self.player = Player.fromBytes(playerData)
+        self.firstTime = int.from_bytes(firstTime, 'big')
 
     def onReceive(self, connection, game):
         # Sync the player object on the client
@@ -73,6 +81,9 @@ class ResetPlayerPacket(Packet):
         game.player.health = self.player.health
         print('player set by player sync packet')
         game.player.relPos = [0, 0]
+        # Fire a login event if the player has just been synced for the first time
+        if self.firstTime:
+            game.fireEvent('onPlayerLogin', game.player)
 
 class SyncPlayerPacket(Packet):
     def __init__(self, player=''):
@@ -90,7 +101,7 @@ class SyncPlayerPacket(Packet):
         # Reset them if it's not
         playerList = game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj().players
         serverPlayer = playerList[game.getPlayerIndex(self.player)]
-        if abs(self.player.pos[0]-serverPlayer.pos[0]) > 25 or abs(self.player.pos[1]-serverPlayer.pos[1]) > 25:
+        if abs(self.player.pos[0]-serverPlayer.pos[0]) > 5 or abs(self.player.pos[1]-serverPlayer.pos[1]) > 5:
             return ResetPlayerPacket(serverPlayer)
         # If the player has clipped into a plant, reset their position
         world = game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj()
