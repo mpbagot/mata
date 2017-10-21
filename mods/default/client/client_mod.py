@@ -37,9 +37,9 @@ class ClientMod(Mod):
         # Register the packet handler with the game
         self.gameRegistry.registerPacketHandler(self.packetPipeline)
 
-    def postLoad(self):
         # Initialise the GUI's
         self.gameGui = self.gameRegistry.registerGUI(GameScreen)
+        self.playerDrawGui = self.gameRegistry.registerGUI(PlayerDrawScreen)
         self.loadingGui = self.gameRegistry.registerGUI(LoadingScreen)
         self.mainMenuGui = self.gameRegistry.registerGUI(MainMenu)
         self.disconnectMessageGui = self.gameRegistry.registerGUI(DisconnectMessage)
@@ -47,6 +47,7 @@ class ClientMod(Mod):
         # Initialise the Overlays
         self.hudOverlay = self.gameRegistry.registerGUI(HUD)
 
+    def postLoad(self):
         # Open the main menu on startup
         self.game.openGui(self.mainMenuGui)
 
@@ -79,6 +80,8 @@ def onClientConnected(game):
     game.player.setProperty('relPos2', game.getModInstance('ClientMod').relPos2Property)
 
 def onPlayerLogin(game, player):
+    # TODO Show the player customisation screen
+    # game.openGui(game.getModInstance('ClientMod').playerDrawGui)
     # Show the game screen
     game.openGui(game.getModInstance('ClientMod').gameGui, game)
 
