@@ -37,7 +37,7 @@ class ServerMod(Mod):
         # Register the events
         self.gameRegistry.registerEventHandler(onTick, 'onTick')
 
-def onTick(game):
+def onTick(game, tick):
     # Send server updates to all of the connected clients
     # game.getModInstance('ServerMod').packetPipeline.sendToAll(WorldUpdatePacket(game.world))
     pass

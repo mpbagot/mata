@@ -58,6 +58,7 @@ class ClientMod(Mod):
 
         # Register the events
         self.gameRegistry.registerEventHandler(onTick, 'onTick')
+        self.gameRegistry.registerEventHandler(onClientConnected, 'onClientConnected')
         self.gameRegistry.registerEventHandler(onPlayerLogin, 'onPlayerLogin')
         self.gameRegistry.registerEventHandler(onPacketReceived, 'onPacketReceived')
         self.gameRegistry.registerEventHandler(onDisconnect, 'onDisconnect')
@@ -73,15 +74,19 @@ def onPacketReceived(game, packet):
 def onDisconnect(game):
     game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, 'Server Connection Reset')
 
-def onPlayerLogin(game, player):
-    print('player logged in')
-    player.setProperty('relPos2', game.getModInstance('ClientMod').relPos2Property)
+def onClientConnected(game):
+    print('connection to server established')
+    game.player.setProperty('relPos2', game.getModInstance('ClientMod').relPos2Property)
 
-def onTick(game):
-    # Check if the main game is running
+def onPlayerLogin(game, player):
+    # Show the game screen
+    game.openGui(game.getModInstance('ClientMod').gameGui, game)
+
+def onTick(game, tick):
+    # Check if this client has connected to a server
     if game.getModInstance('ClientMod').packetPipeline.connections:
-        # Sync player data back to the server
-        if pygame.time.get_ticks()%100 < 20:
+        # Sync player data back to the server periodically
+        if tick%3 == 0:
             # Check if the player has moved
             if game.player.relPos != game.getModInstance('ClientMod').oldPlayerPos:
                 game.player.synced = False
@@ -97,6 +102,7 @@ def onTick(game):
         keys = pygame.key.get_pressed()
         speed = 0.2
 
+        # Update the secondary relative position
         props = game.player.getProperty('relPos2')
         if props.props['ready']:
             if keys[pygame.K_UP]:
@@ -109,6 +115,7 @@ def onTick(game):
                 props.props['pos'][0] += speed
             game.player.setProperty('relPos2', props)
 
+        # Update the relative position
         if keys[pygame.K_UP]:
             game.player.relPos[1] -= speed
         if keys[pygame.K_DOWN]:
@@ -129,7 +136,6 @@ def onTick(game):
             t.daemon = True
             t.start()
 
-
 def genWorld(game, props):
     if props.props['ready'] == True:
         return
@@ -145,16 +151,16 @@ def genWorld(game, props):
     game.world.world.map = worldData
     print('world gen done')
 
+    # Fetch the player property
+    props = game.player.getProperty('relPos2')
+
     # Move the player
-    # print(game.player.getAbsPos())
     game.player.pos = preGenPos
     game.player.relPos = list(props.props['pos'])
 
-    props = game.player.getProperty('relPos2')
+    # Update the player property
     props.props['ready'] = False
     props.props['pos'] = [0, 0]
-    game.player.setProperty('relPos2', props)
 
-    # Show the game screen
-    game.openGui(game.getModInstance('ClientMod').gameGui, game)
-    game.openOverlay(game.getModInstance('ClientMod').hudOverlay, game)
+    # Set the property back into the player
+    game.player.setProperty('relPos2', props)
