@@ -60,6 +60,25 @@ class MenuButton(Button):
     def onClick(self, game):
         game.openGui(game.getModInstance('ClientMod').mainMenuGui)
 
+class PlayerDrawScreen(Gui):
+    '''
+    Player customisation screen
+    '''
+    def __init__(self):
+        super().__init__()
+        self.backImg = pygame.image.load('resources/textures/background.png').convert()
+        self.buttons = []
+        self.textboxes = []
+
+    def drawBackgroundLayer(self):
+        self.screen.blit(self.backImg, [0, 0])
+
+    def drawMiddleLayer(self, mousePos):
+        font = pygame.font.Font('resources/font/main.ttf', 40)
+        # Draw the title
+        text = font.render('Customise your Character', True, (0, 0, 0))
+        self.screen.blit(text, [512-text.get_rect().width//2, 60])
+
 class MainMenu(Gui):
     '''
     Main Menu screen with a player login form
