@@ -87,6 +87,8 @@ class GameScreen(Gui):
     def __init__(self, game):
         super().__init__()
         self.game = game
+        # Open the HUD overlay
+        game.openOverlay(game.getModInstance('ClientMod').hudOverlay, game)
 
     def drawBackgroundLayer(self):
         # Draw the tile map in the area around the player
