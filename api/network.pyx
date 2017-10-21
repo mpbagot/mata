@@ -52,7 +52,7 @@ class PacketHandler:
         t.daemon = True
         t.start()
         # Fire the login event
-        self.game.fireEvent('onPlayerLogin', self.game.player)
+        self.game.fireEvent('onClientConnected')
         # Send a login packet
         self.sendToServer(LoginPacket(self.game.player))
 
@@ -91,7 +91,7 @@ class PacketHandler:
             except UnicodeDecodeError:
                 print(data)
             try:
-                dataDictionary = {a.split(':')[0][1:-1] : a.split(':')[1][1:-1] for a in re.findall('".*?":".*?"', data, re.DOTALL)}
+                dataDictionary = {a.split(':')[0][1:-1] : ':'.join(a.split(':')[1:])[1:-1] for a in re.findall('".*?":".*?"', data, re.DOTALL)}
             except IndexError:
                 print('errored', data)
 
