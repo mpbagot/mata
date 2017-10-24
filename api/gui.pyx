@@ -7,6 +7,7 @@ class Gui:
         self.textboxes = []
         self.bars = []
         self.itemSlots = []
+        self.extraItems = []
         self.currentTextBox = None
 
     def drawBackgroundLayer(self):
@@ -21,6 +22,8 @@ class Gui:
         '''
         for slot in self.itemSlots:
             slot.draw(self.screen, mousePos)
+        for item in self.extraItems:
+            item.draw(self.screen, mousePos)
 
     def drawForegroundLayer(self, mousePos):
         '''
@@ -32,6 +35,14 @@ class Gui:
             box.draw(self.screen, mousePos)
         for bar in self.bars:
             bar.draw(self.screen, mousePos)
+
+    def addItem(self, item):
+        '''
+        Add an Item to be drawn
+        '''
+        if 'draw' in dir(item):
+            raise Exception('Invalid Item Being Added To Gui.')
+        self.extraItems.append(item)
 
 class Overlay(Gui):
     def doKeyPress(self, event):
@@ -56,6 +67,29 @@ class ItemSlot:
             square.set_alpha(128)
             square.fill((0, 0, 0))
             screen.blit(square, [a-3 for a in self.pos])
+
+class PlayerImage:
+    def __init__(self, rect, pos):
+        self.rect = rect
+        if rect[0] > rect[1]:
+            raise Exception('Invalid Player Image Dimensions!')
+        self.pos = pos
+        self.rot = [1, 1]
+
+    def draw(self, screen, mousePos):
+        width = self.rect[0]*self.rot[0]
+        height = self.rect[1]*self.rot[1]
+        # Draw the rect underneath
+        pygame.draw.rect(screen, (0, 0, 0), self.rect+self.pos)
+        # Draw the silver border
+        pygame.draw.rect(screen, (127, 127, 127), self.rect+self.pos, 3)
+
+        # Draw the player
+        pos = [self.pos[0]+width//2, self.pos[1]+height//2]
+        # Generate the image
+        # img = pygame.image.load('')
+        # img = pygame.transform.scale(img, [height//2.5, height])
+        # screen.blit(img, pos)
 
 class Bar:
     def __init__(self, topLeftPos, width, height, colour, percentage=100, label=''):
