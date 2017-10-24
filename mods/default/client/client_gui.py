@@ -2,8 +2,13 @@
 client_gui.py
 A module containing the GUI screens of the default client game
 '''
+# Import the Python Standard libraries
+from threading import Thread
+
 # Import the Modding API
 from api.gui import *
+from mods.default.client.gui.extras import *
+from mods.default.client.gui.menus import *
 
 class HUD(Overlay):
     def __init__(self, game):
@@ -35,30 +40,27 @@ class HUD(Overlay):
         text = font.render('Level: '+str(self.game.player.level), True, (255, 255, 255))
         self.screen.blit(text, [744, 670])
 
+class PlayerInventoryScreen(Gui):
+    '''
+    Player Inventory screen
+    '''
+    def __init__(self, game):
+        super().__init__()
+        self.buttons = []
+        self.addItem(PlayerImage([200, 500], [50, 200]))
+        # Fetch the inventory and fill the screen
+        t = Thread(target=self.fillScreen, args=(game,))
+        t.daemon = True
+        t.start()
 
-class PlayButton(Button):
-    def onClick(self, game):
-        # Grab the variables from the textboxes
-        username = game.openGUI[1].textboxes[0].text
-        address = game.openGUI[1].textboxes[1].text
-        # Set the player username
-        game.player.setUsername(username)
-        game.openGui(game.getModInstance('ClientMod').loadingGui)
-        # Try to connect
-        error = game.getModInstance('ClientMod').packetPipeline.connectToServer(address)
-        # Display an error if it fails for any reason
-        if error:
-            game.openGui(game.getModInstance('ClientMod').mainMenuGui)
-            game.openGUI[1].error = error
-            game.openGUI[1].textboxes[0].text = username
+    def fillScreen(self, game):
+        # TODO fetch the inventory, and populate the screen with itemslots
+        packetPipeline = game.getModInstance('ClientMod').packetPipeline
+        packetPipeline.sendToServer(FetchInventoryPacket(game.player.username))
 
-class ExitButton(Button):
-    def onClick(self, game):
-        game.quit()
 
-class MenuButton(Button):
-    def onClick(self, game):
-        game.openGui(game.getModInstance('ClientMod').mainMenuGui)
+    def drawBackgroundLayer(self):
+        self.screen.blit(self.backImg, [0, 0])
 
 class PlayerDrawScreen(Gui):
     '''
@@ -79,29 +81,6 @@ class PlayerDrawScreen(Gui):
         text = font.render('Customise your Character', True, (0, 0, 0))
         self.screen.blit(text, [512-text.get_rect().width//2, 60])
 
-class MainMenu(Gui):
-    '''
-    Main Menu screen with a player login form
-    '''
-    def __init__(self):
-        super().__init__()
-        self.backImg = pygame.image.load('resources/textures/background.png').convert()
-        self.error = ''
-        self.buttons = [PlayButton([400, 350, 224, 50], 'Play'), ExitButton([400, 450, 224, 50], 'Exit')]
-        self.textboxes = [TextBox([375, 180, 274, 40], 'Username'), TextBox([375, 250, 274, 40], 'Server Address')]
-
-    def drawBackgroundLayer(self):
-        self.screen.blit(self.backImg, [0, 0])
-
-    def drawMiddleLayer(self, mousePos):
-        font = pygame.font.Font('resources/font/main.ttf', 40)
-        # Draw the title
-        text = font.render('Game\'s Main Menu', True, (0, 0, 0))
-        self.screen.blit(text, [512-text.get_rect().width//2, 60])
-        # Draw the error message
-        text = font.render(self.error, True, (255, 0, 0))
-        self.screen.blit(text, [512-text.get_rect().width//2, 110])
-
 class GameScreen(Gui):
     def __init__(self, game):
         super().__init__()
@@ -116,7 +95,6 @@ class GameScreen(Gui):
         yPos = int(y)+45
         x -= int(x)
         y -= int(y)
-        # x, y = round(x%1, 1), round(y%1, 1)
         # Check if the world is loaded into memory
         if self.game.world and self.game.world.world:
             xPos1 = xPos-20 if xPos >= 20 else 0
@@ -141,26 +119,3 @@ class GameScreen(Gui):
         super().drawForegroundLayer(mousePos)
         # Draw the player
         pass
-
-class MessageScreen(Gui):
-    def __init__(self, message):
-        super().__init__()
-        self.message = message
-        self.backImg = pygame.image.load('resources/textures/background.png').convert()
-
-    def drawBackgroundLayer(self):
-        self.screen.blit(self.backImg, [0, 0])
-
-    def drawMiddleLayer(self, mousePos):
-        font = pygame.font.Font('resources/font/main.ttf', 40)
-        text = font.render(self.message, True, (0, 0, 0))
-        self.screen.blit(text, [512-text.get_rect().width//2, 330])
-
-class DisconnectMessage(MessageScreen):
-    def __init__(self, message):
-        super().__init__(message)
-        self.buttons = [MenuButton([300, 500, 424, 80], 'Return To Menu')]
-
-class LoadingScreen(MessageScreen):
-    def __init__(self):
-        super().__init__('Loading...')
