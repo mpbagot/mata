@@ -15,6 +15,12 @@ class Player:
         self.properties = {}
         self.synced = False
 
+    def setInventory(self, inv):
+        self.inventory = inv
+
+    def getInventory(self):
+        return self.inventory
+
     def setProperty(self, propName, propVal):
         self.properties[propName] = propVal
 
