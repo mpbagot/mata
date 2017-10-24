@@ -30,4 +30,6 @@ class Item:
         return 'null_item'
 
 class ItemStack:
-    pass
+    def __init__(self, item, size):
+        self.stackSize = size
+        self.item = item
