@@ -22,7 +22,7 @@ class PacketHandler:
         self.connections = []
         self.safePackets = [ByteSizePacket, LoginPacket,
                             DisconnectPacket, SyncPlayerPacket,
-                            ResetPlayerPacket
+                            ResetPlayerPacket, InvalidLoginPacket
                            ]
 
         self.socket = socket.socket()

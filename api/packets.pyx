@@ -50,7 +50,10 @@ class LoginPacket(Packet):
     def onReceive(self, connection, game):
         connection.username = self.player.username
         # Add the player
-        self.player = game.world.addPlayer(self.player)
+        try:
+            self.player = game.world.addPlayer(self.player)
+        except Exception:
+            return InvalidLoginPacket()
         # Fire a login event
         game.fireEvent('onPlayerLogin', self.player)
         print(self.player.username + ' joined the server!')
@@ -106,12 +109,22 @@ class SyncPlayerPacket(Packet):
         # If the player has clipped into a plant, reset their position
         world = game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj()
 
-        # if world.world.map[self.player.pos[1]][self.player.pos[0]].plantIndex != -1:
+        # if world.world.map[self.player.pos[1]][self.player.pos[0]].plantIndex < 0:
         #     return ResetPlayerPacket(serverPlayer)
 
         # Sync the player object on the server
         playerIndex = game.getPlayerIndex(self.player)
         game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj().players[playerIndex] = self.player
+
+class InvalidLoginPacket(Packet):
+    def toBytes(self, buf):
+        pass
+
+    def fromBytes(self, data):
+        pass
+
+    def onReceive(self, conn, game):
+        pass
 
 class DisconnectPacket(Packet):
     def __init__(self, message=''):
