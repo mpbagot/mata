@@ -17,9 +17,11 @@ class MainMenu(Gui):
 
     def drawMiddleLayer(self, mousePos):
         font = pygame.font.Font('resources/font/main.ttf', 40)
+
         # Draw the title
         text = font.render('Game\'s Main Menu', True, (0, 0, 0))
         self.screen.blit(text, [512-text.get_rect().width//2, 60])
+
         # Draw the error message
         text = font.render(self.error, True, (255, 0, 0))
         self.screen.blit(text, [512-text.get_rect().width//2, 110])
