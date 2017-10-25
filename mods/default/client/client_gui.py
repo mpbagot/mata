@@ -69,8 +69,9 @@ class PlayerDrawScreen(Gui):
     def __init__(self):
         super().__init__()
         self.backImg = pygame.image.load('resources/textures/background.png').convert()
-        self.buttons = []
-        self.textboxes = []
+        self.buttons = [StartGameButton([600, 500, 350, 200])]
+        self.valSliders = []
+        self.addItem(PlayerImageBox([200, 500], [20, 100]))
 
     def drawBackgroundLayer(self):
         self.screen.blit(self.backImg, [0, 0])
