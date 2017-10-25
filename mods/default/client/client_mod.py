@@ -34,6 +34,7 @@ class ClientMod(Mod):
         self.packetPipeline = network.PacketHandler(self.game, util.CLIENT)
         # Register the valid packet classes
         self.packetPipeline.registerPacket(WorldUpdatePacket)
+        self.packetPipeline.registerPacket(SendPlayerImagePacket)
         # Register the packet handler with the game
         self.gameRegistry.registerPacketHandler(self.packetPipeline)
 
@@ -71,6 +72,10 @@ def onPacketReceived(game, packet):
     elif packet.__class__.__name__ == 'ResetPlayerPacket':
         # Tell the game that the player is synced
         game.player.synced = True
+    elif packet.__class__.__name__ == 'InvalidLoginPacket':
+        # Tell the player that their username is already taken
+        game.openGui(game.getModInstance('ClientMod').mainMenuGui)
+        game.openGUI.error = 'That Username Already Taken.'
 
 def onDisconnect(game):
     game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, 'Server Connection Reset')
@@ -81,9 +86,7 @@ def onClientConnected(game):
 
 def onPlayerLogin(game, player):
     # TODO Show the player customisation screen
-    # game.openGui(game.getModInstance('ClientMod').playerDrawGui)
-    # Show the game screen
-    game.openGui(game.getModInstance('ClientMod').gameGui, game)
+    game.openGui(game.getModInstance('ClientMod').playerDrawGui)
 
 def onTick(game, tick):
     # Check if this client has connected to a server
