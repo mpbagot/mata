@@ -8,6 +8,7 @@ class Player:
         self.health = 100
         self.level = 1
         self.exp = 0
+        self.img = [0, 0, 0]
         self.inventory = Inventory()
         self.isDead = False
         self.tickDamage = None
