@@ -32,6 +32,23 @@ class FetchInventoryPacket(Packet):
         inventory = players[game.getPlayerIndex(self.playername)].getInventory()
         return SendInventoryPacket(inventory)
 
+class SendPlayerImagePacket(Packet):
+    def __init__(self, player=None):
+        self.player = player
+        self.playerImg = player.img
+
+    def toBytes(self, buf):
+        buf.write(self.player.toBytes()+b'|')
+        buf.write(self.playerImg.__str__().encode())
+
+    def fromBytes(self, data):
+        self.player = Player.fromBytes(data.split(b'|')[0])
+        self.playerImg = eval((data.split(b'|')[1]).decode())
+
+    def onReceive(self, connection, game):
+        # Store the image data in the server side player
+        game.world.players[game.getPlayerIndex(self.player)].img = self.playerImg
+
 class SendInventoryPacket(Packet):
     def __init__(self, inventory=None):
         self.inventory = inventory
@@ -43,5 +60,5 @@ class SendInventoryPacket(Packet):
         self.inventory = Inventory.fromBytes(data)
 
     def onReceive(self, connection, game):
-        # TODO Do something with the inventory here
-        pass
+        # Store the inventory in the client side player
+        game.player.setInventory(self.inventory)
