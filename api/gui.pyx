@@ -6,6 +6,7 @@ class Gui:
         self.buttons = []
         self.textboxes = []
         self.bars = []
+        self.valSliders = []
         self.itemSlots = []
         self.extraItems = []
         self.currentTextBox = None
@@ -24,6 +25,8 @@ class Gui:
             slot.draw(self.screen, mousePos)
         for item in self.extraItems:
             item.draw(self.screen, mousePos)
+        for slider in self.valSliders:
+            slider.draw(self.screen, mousePos)
 
     def drawForegroundLayer(self, mousePos):
         '''
@@ -40,7 +43,7 @@ class Gui:
         '''
         Add an Item to be drawn
         '''
-        if 'draw' in dir(item):
+        if 'draw' not in dir(item):
             raise Exception('Invalid Item Being Added To Gui.')
         self.extraItems.append(item)
 
@@ -68,7 +71,29 @@ class ItemSlot:
             square.fill((0, 0, 0))
             screen.blit(square, [a-3 for a in self.pos])
 
-class PlayerImage:
+class Slider:
+    def __init__(self, rect, colour):
+        self.rect = rect
+        self.value = 0
+        self.bar = Bar(rect[:2], rect[2], rect[3], colour)
+
+    def draw(self, screen, mousePos):
+        if self.isHovered(mousePos):
+            self.value = abs(mousePos[0]-self.rect[0])/self.rect[2]
+        self.bar.draw()
+
+        # Draw the circle over the top of the b
+        circlePos = [self.rect[0]+self.rect[2]*self.value, self.rect[1]+self.rect[3]//2]
+        pygame.draw.circle(screen, (255, 255, 255), circlePos, self.rect[3]+10)
+
+    def isHovered(self, mousePos):
+        x, y = mousePos
+        if y > self.rect[1] and y < self.rect[1]+self.rect[3]:
+            if x > self.rect[0] and x < self.rect[0]+self.rect[2]:
+                return True
+        return False
+
+class PlayerImageBox:
     def __init__(self, rect, pos):
         self.rect = rect
         if rect[0] > rect[1]:
