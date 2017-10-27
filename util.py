@@ -8,6 +8,7 @@ COMBINED = 2
 
 DEFAULT_PORT = 6658
 MAX_PLAYERS = 100
+FPS = 60
 
 class ArgumentHandler:
     '''

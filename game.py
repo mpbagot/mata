@@ -109,8 +109,8 @@ class Game:
             # Get the time that the tick took to run
             deltaTime = time.time()-startTickTime
             # Sleep if running faster than 30 ticks per second
-            if deltaTime < 1/30:
-                time.sleep((1/30)-deltaTime)
+            if deltaTime < 1/util.FPS:
+                time.sleep((1/util.FPS)-deltaTime)
 
     def drawClientGame(self, pos):
         '''
