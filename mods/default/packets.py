@@ -1,5 +1,6 @@
 from api.packets import Packet
 from api.item import Inventory
+from api.entity import Player
 
 class WorldUpdatePacket(Packet):
     def __init__(self, world=None):
@@ -35,7 +36,8 @@ class FetchInventoryPacket(Packet):
 class SendPlayerImagePacket(Packet):
     def __init__(self, player=None):
         self.player = player
-        self.playerImg = player.img
+        if player:
+            self.playerImg = player.img
 
     def toBytes(self, buf):
         buf.write(self.player.toBytes()+b'|')
