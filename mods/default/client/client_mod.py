@@ -85,8 +85,8 @@ def onClientConnected(game):
     game.player.setProperty('relPos2', game.getModInstance('ClientMod').relPos2Property)
 
 def onPlayerLogin(game, player):
-    # TODO Show the player customisation screen
-    game.openGui(game.getModInstance('ClientMod').playerDrawGui)
+    # Show the player customisation screen
+    game.openGui(game.getModInstance('ClientMod').playerDrawGui, game)
 
 def onTick(game, tick):
     # Check if this client has connected to a server

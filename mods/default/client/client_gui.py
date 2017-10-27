@@ -7,6 +7,7 @@ from threading import Thread
 
 # Import the Modding API
 from api.gui import *
+from api.colour import *
 from mods.default.client.gui.extras import *
 from mods.default.client.gui.menus import *
 
@@ -66,12 +67,12 @@ class PlayerDrawScreen(Gui):
     '''
     Player customisation screen
     '''
-    def __init__(self):
+    def __init__(self, game):
         super().__init__()
         self.backImg = pygame.image.load('resources/textures/background.png').convert()
         self.buttons = [StartGameButton([600, 500, 350, 200])]
         self.valSliders = []
-        self.addItem(PlayerImageBox([200, 500], [20, 100]))
+        self.addItem(PlayerImageBox([200, 500], [20, 100], game))
 
     def drawBackgroundLayer(self):
         self.screen.blit(self.backImg, [0, 0])
