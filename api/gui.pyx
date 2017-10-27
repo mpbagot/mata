@@ -1,5 +1,7 @@
 import pygame
 
+from api.colour import *
+
 class Gui:
     def __init__(self):
         self.screen = pygame.display.get_surface()
@@ -94,12 +96,14 @@ class Slider:
         return False
 
 class PlayerImageBox:
-    def __init__(self, rect, pos):
+    def __init__(self, rect, pos, game):
         self.rect = rect
         if rect[0] > rect[1]:
             raise Exception('Invalid Player Image Dimensions!')
         self.pos = pos
         self.rot = [1, 1]
+        self.game = game
+        self.hueShifter = HueShifter()
 
     def draw(self, screen, mousePos):
         width = self.rect[0]*self.rot[0]
