@@ -78,6 +78,7 @@ class PlayerDrawScreen(Gui):
         self.screen.blit(self.backImg, [0, 0])
 
     def drawMiddleLayer(self, mousePos):
+        super().drawMiddleLayer(mousePos)
         font = pygame.font.Font('resources/font/main.ttf', 40)
         # Draw the title
         text = font.render('Customise your Character', True, (0, 0, 0))
@@ -87,6 +88,7 @@ class GameScreen(Gui):
     def __init__(self, game):
         super().__init__()
         self.game = game
+        self.players = game.world.players
         # Open the HUD overlay
         game.openOverlay(game.getModInstance('ClientMod').hudOverlay, game)
 
@@ -114,8 +116,13 @@ class GameScreen(Gui):
                         self.screen.blit(tile.tileTypes[tile.tileIndex].img, [round(40*(-1+t-x)), round(40*(-1+r-y))])
 
     def drawMiddleLayer(self, mousePos):
+        super().drawMiddleLayer(mousePos)
         # Draw the trees, entities, vehicles, dropped items, buildings
-        pass
+        # Iterate the players and calculate any uncalculated images
+        for p, player in enumerate(self.players):
+            if player.img != None and len(player.img) == 1:
+                self.players[p].img = self.game.getModInstance('ClientMod').calculateAvatar(player.img)
+        # TODO draw the player images to screen
 
     def drawForegroundLayer(self, mousePos):
         super().drawForegroundLayer(mousePos)
