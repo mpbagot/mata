@@ -18,7 +18,6 @@ class FetchInventoryPacket(Packet):
         inventory = players[game.getPlayerIndex(self.playername)].getInventory()
         return SendInventoryPacket(inventory)
 
-# TODO Fill this in
 class FetchPlayerImagePacket(Packet):
     def __init__(self, player=None):
         self.player = player
@@ -30,25 +29,26 @@ class FetchPlayerImagePacket(Packet):
         self.player = data.decode()
 
     def onReceive(self, connection, game):
-        pass
+        player = game.world.players[game.getPlayerIndex(self.player)]
+        return SendPlayerImagePacket(player)
 
 class SendPlayerImagePacket(Packet):
     def __init__(self, player=None):
-        self.player = player
         if player:
+            self.playerName = player.username
             self.playerImg = player.img
 
     def toBytes(self, buf):
-        buf.write(self.player.toBytes()+b'|')
+        buf.write(self.playerName.encode()+b'|')
         buf.write(self.playerImg.__str__().encode())
 
     def fromBytes(self, data):
-        self.player = Player.fromBytes(data.split(b'|')[0])
+        self.playerName = data.split(b'|')[0].decode()
         self.playerImg = eval((data.split(b'|')[1]).decode())
 
     def onReceive(self, connection, game):
         # Store the image data in the player object
-        game.world.players[game.getPlayerIndex(self.player)].img = self.playerImg
+        game.world.players[game.getPlayerIndex(self.playerName)].img = self.playerImg
 
 class SendInventoryPacket(Packet):
     def __init__(self, inventory=None):
