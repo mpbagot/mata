@@ -192,9 +192,12 @@ class Game:
         print('[ERROR] Overlay is not currently open.')
 
     def getPlayerIndex(self, player):
-        playerList = self.modLoader.gameRegistry.dimensions[player.dimension].getWorldObj().players
         try:
-            index = [a.username == player.username for a in playerList].index(True)
+            if isinstance(player, str):
+                index = [a.username == player for a in self.world.players].index(True)
+            else:
+                    playerList = self.modLoader.gameRegistry.dimensions[player.dimension].getWorldObj().players
+                    index = [a.username == player.username for a in playerList].index(True)
         except ValueError:
             raise IndexError('Player is not in the list')
         return index
