@@ -71,7 +71,7 @@ class PlayerDrawScreen(Gui):
         super().__init__()
         self.backImg = pygame.image.load('resources/textures/background.png').convert()
         self.buttons = [StartGameButton([600, 500, 350, 200])]
-        self.valSliders = []
+        self.valSliders = [Slider([400, 50, 300, 10], (255, 0, 0))]
         self.addItem(PlayerImageBox([200, 500], [20, 100], game))
 
     def drawBackgroundLayer(self):
@@ -120,8 +120,13 @@ class GameScreen(Gui):
         # Draw the trees, entities, vehicles, dropped items, buildings
         # Iterate the players and calculate any uncalculated images
         for p, player in enumerate(self.players):
-            if player.img != None and len(player.img) == 1:
-                self.players[p].img = self.game.getModInstance('ClientMod').calculateAvatar(player.img)
+            if player.img != None:
+                try:
+                    x = self.players[p].smallImg
+                    self.players[p].smallImg = self.game.getModInstance('ClientMod').calculateAvatar(player.img)
+                except AttributeError:
+                    pass
+
         # TODO draw the player images to screen
 
     def drawForegroundLayer(self, mousePos):
