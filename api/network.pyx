@@ -117,9 +117,14 @@ class PacketHandler:
         for packet in self.safePackets:
             if packet.__name__ == dataDictionary['type']:
                 # Initialise the packet, and handle it accordingly
-                p = packet()
-                p.fromBytes(dataDictionary['data'].encode())
-                response = p.onReceive(self.connections[connIndex], self.game)
+                try:
+                    p = packet()
+                    p.fromBytes(dataDictionary['data'].encode())
+                    response = p.onReceive(self.connections[connIndex], self.game)
+                except Exception as e:
+                    print('Packet unable to be handled correctly.')
+                    print('Error is as follow:\n', e)
+                    return
                 self.game.fireEvent('onPacketReceived', p)
                 if response:
                     # Send any required response and reset the receive size
