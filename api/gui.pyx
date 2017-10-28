@@ -80,15 +80,15 @@ class Slider:
     def draw(self, screen, mousePos):
         if self.isHovered(mousePos) and pygame.mouse.get_pressed()[0]:
             self.value = abs(mousePos[0]-self.rect[0])/self.rect[2]
-        self.bar.draw()
+        self.bar.draw(screen, mousePos)
 
-        # Draw the circle over the top of the b
-        circlePos = [self.rect[0]+self.rect[2]*self.value, self.rect[1]+self.rect[3]//2]
-        pygame.draw.circle(screen, (255, 255, 255), circlePos, self.rect[3]+10)
+        # Draw the circle over the top of the bar
+        circlePos = [int(self.rect[0]+self.rect[2]*self.value), int(self.rect[1]+self.rect[3]//2)]
+        pygame.draw.circle(screen, (255, 255, 255), circlePos, self.rect[3])
 
     def isHovered(self, mousePos):
         x, y = mousePos
-        if y > self.rect[1] and y < self.rect[1]+self.rect[3]:
+        if y > self.rect[1]-self.rect[3]//2 and y < self.rect[1]+int(self.rect[3]*1.5):
             if x > self.rect[0] and x < self.rect[0]+self.rect[2]:
                 return True
         return False
