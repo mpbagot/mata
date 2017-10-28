@@ -81,7 +81,7 @@ class PlayerImageBox:
 
         # Decelerate the rotational velocity
         if abs(self.rotVel[0]) < 0.08:
-            self.rotVel[0] = 0
+            self.rotVel[0] = 0.006
         else:
             self.rotVel[0] -= (1 if self.rotVel[0] > 0 else -1)*0.01
 
@@ -122,4 +122,4 @@ class PlayerImageBox:
         if x in range(self.pos[0], self.pos[0]+self.rect[0]):
             if y in range(self.pos[1], self.pos[1]+self.rect[1]):
                 return True
-        return False 
+        return False
