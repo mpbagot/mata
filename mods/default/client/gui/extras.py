@@ -79,15 +79,13 @@ class PlayerImageBox:
         self.rot[0] += self.rotVel[0]
         self.rot[1] += self.rotVel[1]
 
-        # Deccelerate the rotational velocity
+        # Decelerate the rotational velocity
         if abs(self.rotVel[0]) < 0.08:
-            # print('nulling velocity')
             self.rotVel[0] = 0
         else:
             self.rotVel[0] -= (1 if self.rotVel[0] > 0 else -1)*0.01
 
         if abs(self.rotVel[1]) < 0.08:
-            # print('nulling velocity')
             self.rotVel[1] = 0
         else:
             self.rotVel[1] -= (1 if self.rotVel[1] > 0 else -1)*0.01
@@ -114,7 +112,14 @@ class PlayerImageBox:
         screen.blit(img, pos)
 
         # If the player is clicking and dragging, update the rotational velocity
-        if pygame.mouse.get_pressed()[0]:
+        if pygame.mouse.get_pressed()[0] and self.isHovered(mousePos):
             self.rotVel = [(2*pi*(mousePos[a]-self.prevPos[a]))/self.rect[a] for a in range(2)]
 
         self.prevPos = list(mousePos)
+
+    def isHovered(self, mousePos):
+        x, y = mousePos
+        if x in range(self.pos[0], self.pos[0]+self.rect[0]):
+            if y in range(self.pos[1], self.pos[1]+self.rect[1]):
+                return True
+        return False 
