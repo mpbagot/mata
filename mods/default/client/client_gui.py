@@ -117,8 +117,13 @@ class GameScreen(Gui):
 
     def drawMiddleLayer(self, mousePos):
         super().drawMiddleLayer(mousePos)
+
+        x = self.screen.get_rect().width
+        y = self.screen.get_rect().height
+
         # Draw the trees, entities, vehicles, dropped items, buildings
-        # Iterate the players and calculate any uncalculated images
+
+        # Iterate the players and render any unrendered avatars
         for p, player in enumerate(self.game.world.players):
             if player.img != None:
                 try:
@@ -127,9 +132,18 @@ class GameScreen(Gui):
                 except AttributeError:
                     self.game.world.players[p].smallImg = self.game.getModInstance('ClientMod').calculateAvatar(player.img)
 
-        # TODO draw the player images to screen
+        # Draw the player images to screen
+        for player in self.game.world.players:
+            mainAbsPos = self.game.player.getAbsPos()
+            deltaPos = [player.pos[a]-mainAbsPos[a] for a in range(2)]
+            size = player.smallImg.get_rect()
+            pos = [x//2+deltaPos[0]*size-size//2, y//2+deltaPos[1]*size-size//2]
+            self.screen.blit(player.smallImg, pos)
 
     def drawForegroundLayer(self, mousePos):
         super().drawForegroundLayer(mousePos)
         # Draw the player
-        pass
+        size = self.playerImg.get_rect().width//2
+        x = self.screen.get_rect().width
+        y = self.screen.get_rect().height
+        self.screen.blit(self.playerImg, [x//2-size, y//2-size])
