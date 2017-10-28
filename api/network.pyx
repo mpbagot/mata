@@ -80,7 +80,7 @@ class PacketHandler:
                 data = conn.recv(self.connections[connIndex].nextSize)
                 data = data.decode()[1:-1]
                 if not data:
-                    continue
+                    raise ConnectionResetError
             except ConnectionResetError:
                 if self.side == util.SERVER:
                     print('A Client has disconnected')
@@ -120,7 +120,13 @@ class PacketHandler:
                 try:
                     p = packet()
                     p.fromBytes(dataDictionary['data'].encode())
-                    response = p.onReceive(self.connections[connIndex], self.game)
+
+                    # Pass the connection list in if a login packet
+                    if packet.__name__ == 'LoginPacket':
+                        response = p.onReceive(self.connections[connIndex], self.game, self.connections)
+                    else:
+                        response = p.onReceive(self.connections[connIndex], self.game)
+
                 except Exception as e:
                     print('Packet unable to be handled correctly.')
                     print('Error is as follow:\n', e)

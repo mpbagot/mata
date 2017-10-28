@@ -7,6 +7,7 @@ from mods.default.biomes import *
 from mods.default.client.client_gui import *
 import util
 
+import pygame
 from threading import Thread
 from copy import deepcopy
 
@@ -68,14 +69,14 @@ class ClientMod(Mod):
     def generateLargePlayerImage(self, hueTransforms):
         imageData = []
         if hueTransforms == None:
-            return imageData
-        return []
+            return pygame.Surface((40, 40))
+        return pygame.Surface((40, 40))
 
     def calculateAvatar(self, hueTransforms):
         imageData = []
         if hueTransforms == None:
-            return imageData
-        return []
+            return pygame.Surface((40, 40))
+        return pygame.Surface((40, 40))
 
 def onPacketReceived(game, packet):
     if packet.__class__.__name__ == 'DisconnectPacket':
@@ -87,7 +88,7 @@ def onPacketReceived(game, packet):
     elif packet.__class__.__name__ == 'InvalidLoginPacket':
         # Tell the player that their username is already taken
         game.openGui(game.getModInstance('ClientMod').mainMenuGui)
-        game.openGUI.error = 'That Username Is Already Taken.'
+        game.openGUI[1].error = 'That Username Is Already Taken.'
     elif packet.__class__.__name__ == 'WorldUpdatePacket':
         # Fetch images of new players
         for p, player in enumerate(game.world.players):

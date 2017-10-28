@@ -47,13 +47,14 @@ class LoginPacket(Packet):
     def fromBytes(self, data):
         self.player = Player.fromBytes(data)
 
-    def onReceive(self, connection, game):
+    def onReceive(self, connection, game, connections):
+        for conn in connections:
+            if conn.username == self.player.username:
+                return InvalidLoginPacket()
+
         connection.username = self.player.username
         # Add the player
-        try:
-            self.player = game.world.addPlayer(self.player)
-        except Exception:
-            return InvalidLoginPacket()
+        self.player = game.world.addPlayer(self.player)
         # Fire a login event
         game.fireEvent('onPlayerLogin', self.player)
         print(self.player.username + ' joined the server!')
