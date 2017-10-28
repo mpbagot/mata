@@ -88,7 +88,7 @@ class GameScreen(Gui):
     def __init__(self, game):
         super().__init__()
         self.game = game
-        self.players = game.world.players
+        self.playerImg = self.game.getModInstance('ClientMod').calculateAvatar(self.game.player.img)
         # Open the HUD overlay
         game.openOverlay(game.getModInstance('ClientMod').hudOverlay, game)
 
@@ -119,13 +119,13 @@ class GameScreen(Gui):
         super().drawMiddleLayer(mousePos)
         # Draw the trees, entities, vehicles, dropped items, buildings
         # Iterate the players and calculate any uncalculated images
-        for p, player in enumerate(self.players):
+        for p, player in enumerate(self.game.world.players):
             if player.img != None:
                 try:
-                    x = self.players[p].smallImg
-                    self.players[p].smallImg = self.game.getModInstance('ClientMod').calculateAvatar(player.img)
+                    if player.smallImg:
+                        continue
                 except AttributeError:
-                    pass
+                    self.game.world.players[p].smallImg = self.game.getModInstance('ClientMod').calculateAvatar(player.img)
 
         # TODO draw the player images to screen
 
