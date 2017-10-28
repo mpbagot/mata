@@ -1,7 +1,5 @@
 import pygame
 
-from api.colour import *
-
 class Gui:
     def __init__(self):
         self.screen = pygame.display.get_surface()
@@ -80,7 +78,7 @@ class Slider:
         self.bar = Bar(rect[:2], rect[2], rect[3], colour)
 
     def draw(self, screen, mousePos):
-        if self.isHovered(mousePos):
+        if self.isHovered(mousePos) and pygame.mouse.get_pressed()[0]:
             self.value = abs(mousePos[0]-self.rect[0])/self.rect[2]
         self.bar.draw()
 
@@ -94,31 +92,6 @@ class Slider:
             if x > self.rect[0] and x < self.rect[0]+self.rect[2]:
                 return True
         return False
-
-class PlayerImageBox:
-    def __init__(self, rect, pos, game):
-        self.rect = rect
-        if rect[0] > rect[1]:
-            raise Exception('Invalid Player Image Dimensions!')
-        self.pos = pos
-        self.rot = [1, 1]
-        self.game = game
-        self.hueShifter = HueShifter()
-
-    def draw(self, screen, mousePos):
-        width = self.rect[0]*self.rot[0]
-        height = self.rect[1]*self.rot[1]
-        # Draw the rect underneath
-        pygame.draw.rect(screen, (0, 0, 0), self.rect+self.pos)
-        # Draw the silver border
-        pygame.draw.rect(screen, (127, 127, 127), self.rect+self.pos, 3)
-
-        # Draw the player
-        pos = [self.pos[0]+width//2, self.pos[1]+height//2]
-        # Generate the image
-        # img = pygame.image.load('')
-        # img = pygame.transform.scale(img, [height//2.5, height])
-        # screen.blit(img, pos)
 
 class Bar:
     def __init__(self, topLeftPos, width, height, colour, percentage=100, label=''):
