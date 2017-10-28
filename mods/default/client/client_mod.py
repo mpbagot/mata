@@ -65,6 +65,18 @@ class ClientMod(Mod):
         self.gameRegistry.registerEventHandler(onPacketReceived, 'onPacketReceived')
         self.gameRegistry.registerEventHandler(onDisconnect, 'onDisconnect')
 
+    def generateLargePlayerImage(self, hueTransforms):
+        imageData = []
+        if hueTransforms == None:
+            return imageData
+        return []
+
+    def calculateAvatar(self, hueTransforms):
+        imageData = []
+        if hueTransforms == None:
+            return imageData
+        return []
+
 def onPacketReceived(game, packet):
     if packet.__class__.__name__ == 'DisconnectPacket':
         # Open a GUI that displays the message, and disconnect them
@@ -75,7 +87,12 @@ def onPacketReceived(game, packet):
     elif packet.__class__.__name__ == 'InvalidLoginPacket':
         # Tell the player that their username is already taken
         game.openGui(game.getModInstance('ClientMod').mainMenuGui)
-        game.openGUI.error = 'That Username Already Taken.'
+        game.openGUI.error = 'That Username Is Already Taken.'
+    elif packet.__class__.__name__ == 'WorldUpdatePacket':
+        # Fetch images of new players
+        for p, player in enumerate(game.world.players):
+            if player.img == None:
+                game.getModInstance('ClientMod').packetPipeline.sendToServer(FetchPlayerImagePacket(player))
 
 def onDisconnect(game):
     game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, 'Server Connection Reset')
