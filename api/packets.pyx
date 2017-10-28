@@ -116,6 +116,21 @@ class SyncPlayerPacket(Packet):
         playerIndex = game.getPlayerIndex(self.player)
         game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj().players[playerIndex] = self.player
 
+class WorldUpdatePacket(Packet):
+    def __init__(self, world=None):
+        self.world = world
+
+    def toBytes(self, buf):
+        buf.write(self.world.getUpdateData())
+
+    def fromBytes(self, data):
+        self.world = data
+
+    def onReceive(self, connection, game):
+        # Update the world on the Client side
+        if game.world:
+            game.world.handleUpdate(self.world)
+
 class InvalidLoginPacket(Packet):
     def toBytes(self, buf):
         pass

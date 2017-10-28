@@ -2,21 +2,6 @@ from api.packets import Packet
 from api.item import Inventory
 from api.entity import Player
 
-class WorldUpdatePacket(Packet):
-    def __init__(self, world=None):
-        self.world = world
-
-    def toBytes(self, buf):
-        buf.write(self.world.getUpdateData())
-
-    def fromBytes(self, data):
-        self.world = data
-
-    def onReceive(self, connection, game):
-        # Update the world on the Client side
-        if game.world:
-            game.world.handleUpdate(self.world)
-
 class FetchInventoryPacket(Packet):
     def __init__(self, playername=''):
         self.playername = playername
@@ -33,6 +18,20 @@ class FetchInventoryPacket(Packet):
         inventory = players[game.getPlayerIndex(self.playername)].getInventory()
         return SendInventoryPacket(inventory)
 
+# TODO Fill this in
+class FetchPlayerImagePacket(Packet):
+    def __init__(self, player=None):
+        self.player = player
+
+    def toBytes(self, buf):
+        buf.write(player.username.encode())
+
+    def fromBytes(self, data):
+        self.player = data.decode()
+
+    def onReceive(self, connection, game):
+        pass
+
 class SendPlayerImagePacket(Packet):
     def __init__(self, player=None):
         self.player = player
@@ -48,7 +47,7 @@ class SendPlayerImagePacket(Packet):
         self.playerImg = eval((data.split(b'|')[1]).decode())
 
     def onReceive(self, connection, game):
-        # Store the image data in the server side player
+        # Store the image data in the player object
         game.world.players[game.getPlayerIndex(self.player)].img = self.playerImg
 
 class SendInventoryPacket(Packet):
