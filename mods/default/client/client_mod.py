@@ -121,32 +121,33 @@ def onTick(game, tick):
                 # Send the copy of the player object in the packet
                 game.getModInstance('ClientMod').packetPipeline.sendToServer(SyncPlayerPacket(playerCopy))
 
-        # Handle player movement
-        keys = pygame.key.get_pressed()
-        speed = 0.2
+        if game.openGUI[0] == game.getModInstance('ClientMod').gameGui:
+            # Handle player movement
+            keys = pygame.key.get_pressed()
+            speed = 0.2
 
-        # Update the secondary relative position
-        props = game.player.getProperty('relPos2')
-        if props.props['ready']:
+            # Update the secondary relative position
+            props = game.player.getProperty('relPos2')
+            if props.props['ready']:
+                if keys[pygame.K_UP]:
+                    props.props['pos'][1] -= speed
+                if keys[pygame.K_DOWN]:
+                    props.props['pos'][1] += speed
+                if keys[pygame.K_LEFT]:
+                    props.props['pos'][0] -= speed
+                if keys[pygame.K_RIGHT]:
+                    props.props['pos'][0] += speed
+                game.player.setProperty('relPos2', props)
+
+            # Update the relative position
             if keys[pygame.K_UP]:
-                props.props['pos'][1] -= speed
+                game.player.relPos[1] -= speed
             if keys[pygame.K_DOWN]:
-                props.props['pos'][1] += speed
+                game.player.relPos[1] += speed
             if keys[pygame.K_LEFT]:
-                props.props['pos'][0] -= speed
+                game.player.relPos[0] -= speed
             if keys[pygame.K_RIGHT]:
-                props.props['pos'][0] += speed
-            game.player.setProperty('relPos2', props)
-
-        # Update the relative position
-        if keys[pygame.K_UP]:
-            game.player.relPos[1] -= speed
-        if keys[pygame.K_DOWN]:
-            game.player.relPos[1] += speed
-        if keys[pygame.K_LEFT]:
-            game.player.relPos[0] -= speed
-        if keys[pygame.K_RIGHT]:
-            game.player.relPos[0] += speed
+                game.player.relPos[0] += speed
 
         # If the player has moved more than a certain distance, generate the world
         absRelPos = [abs(a) for a in game.player.relPos]
