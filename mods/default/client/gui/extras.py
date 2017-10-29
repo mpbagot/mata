@@ -72,7 +72,11 @@ class PlayerImageBox:
         self.prevPos = pygame.mouse.get_pos()
 
         self.game = game
-        self.hueShifter = HueShifter()
+
+        # Initialise the colours and player image
+        self.prevColours = None
+        self.colours = None
+        self.img = None
 
     def draw(self, screen, mousePos):
         # Update the rotation from rotation velocity
@@ -103,11 +107,13 @@ class PlayerImageBox:
 
         # Draw the player
         pos = [self.pos[0]+(self.rect[0]-width)//2, self.pos[1]+(self.rect[1]-height)//2]
-        # TODO Generate the image
-        img = pygame.image.load('resources/textures/mods/tiles/grass.png')
 
-        # Flip and rotate the
-        img = pygame.transform.flip(img, flipX, flipY)
+        # Generate the image
+        if self.colours != self.prevColours or self.img == None:
+            self.img = self.game.getModInstance('ClientMod').generateLargePlayerImage(self.colours)
+
+        # Flip, rotate and draw the image
+        img = pygame.transform.flip(self.img, flipX, flipY)
         img = pygame.transform.scale(img, [width, height])
         screen.blit(img, pos)
 
