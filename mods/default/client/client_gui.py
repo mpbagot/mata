@@ -36,6 +36,7 @@ class HUD(Overlay):
         font = pygame.font.Font('resources/font/main.ttf', 20)
         text = font.render('Username: '+self.game.player.username, True, (255, 255, 255))
         self.screen.blit(text, [744, 640])
+
         # Generate a smaller font object
         font = pygame.font.Font('resources/font/main.ttf', 12)
         text = font.render('Level: '+str(self.game.player.level), True, (255, 255, 255))
@@ -49,6 +50,7 @@ class PlayerInventoryScreen(Gui):
         super().__init__()
         self.buttons = []
         self.addItem(PlayerImage([200, 500], [50, 200]))
+
         # Fetch the inventory and fill the screen
         t = Thread(target=self.fillScreen, args=(game,))
         t.daemon = True
@@ -77,9 +79,13 @@ class PlayerDrawScreen(Gui):
     def drawBackgroundLayer(self):
         self.screen.blit(self.backImg, [0, 0])
 
+        values = self.valSliders
+        self.extraItems[0].colours = [round(slider.value*360-180, 1) for slider in values]
+
     def drawMiddleLayer(self, mousePos):
         super().drawMiddleLayer(mousePos)
         font = pygame.font.Font('resources/font/main.ttf', 40)
+
         # Draw the title
         text = font.render('Customise your Character', True, (0, 0, 0))
         self.screen.blit(text, [512-text.get_rect().width//2, 60])
@@ -89,6 +95,7 @@ class GameScreen(Gui):
         super().__init__()
         self.game = game
         self.playerImg = self.game.getModInstance('ClientMod').calculateAvatar(self.game.player.img)
+
         # Open the HUD overlay
         game.openOverlay(game.getModInstance('ClientMod').hudOverlay, game)
 
@@ -99,16 +106,19 @@ class GameScreen(Gui):
         yPos = int(y)+45
         x -= int(x)
         y -= int(y)
+
         # Check if the world is loaded into memory
         if self.game.world and self.game.world.world:
             xPos1 = xPos-20 if xPos >= 20 else 0
             yPos1 = yPos-14 if yPos >= 14 else 0
+
             # Pad the top of the map if applicable
             tileMap = [[0] for a in range(abs(yPos-14))] if yPos < 14 else []
             for row in self.game.world.world.map[yPos1:yPos+14]:
                 # Generate the cropped tilemap of the world
                 padding = [0 for a in range(abs(xPos-20))] if xPos < 20 else []
                 tileMap.append(padding+row[xPos1:xPos+20])
+
             # Iterate and blit the tiles to screen
             for r, row in enumerate(tileMap):
                 for t, tile in enumerate(row):
@@ -116,12 +126,13 @@ class GameScreen(Gui):
                         self.screen.blit(tile.tileTypes[tile.tileIndex].img, [round(40*(-1+t-x)), round(40*(-1+r-y))])
 
     def drawMiddleLayer(self, mousePos):
+        '''
+        Draw the trees, entities, vehicles, dropped items, buildings
+        '''
         super().drawMiddleLayer(mousePos)
 
         x = self.screen.get_rect().width
         y = self.screen.get_rect().height
-
-        # Draw the trees, entities, vehicles, dropped items, buildings
 
         # Iterate the players and render any unrendered avatars
         for p, player in enumerate(self.game.world.players):
@@ -134,15 +145,21 @@ class GameScreen(Gui):
 
         # Draw the player images to screen
         for player in self.game.world.players:
+            # Get the difference in position
             mainAbsPos = self.game.player.getAbsPos()
             deltaPos = [player.pos[a]-mainAbsPos[a] for a in range(2)]
             size = player.smallImg.get_rect()
+
+            # Adjust position accordingly, and draw to screen
             pos = [x//2+deltaPos[0]*size-size//2, y//2+deltaPos[1]*size-size//2]
             self.screen.blit(player.smallImg, pos)
 
     def drawForegroundLayer(self, mousePos):
+        '''
+        Draw the player
+        '''
         super().drawForegroundLayer(mousePos)
-        # Draw the player
+
         size = self.playerImg.get_rect().width//2
         x = self.screen.get_rect().width
         y = self.screen.get_rect().height
