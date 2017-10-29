@@ -1,6 +1,7 @@
 from mod import Mod
 from api import audio, network, biome, cmd, dimension, entity, gui, item, properties, vehicle
 from api.packets import *
+from api.colour import HueShifter
 
 from mods.default.packets import *
 from mods.default.biomes import *
@@ -66,29 +67,66 @@ class ClientMod(Mod):
         self.gameRegistry.registerEventHandler(onPacketReceived, 'onPacketReceived')
         self.gameRegistry.registerEventHandler(onDisconnect, 'onDisconnect')
 
+    def hueShiftImage(self, hueTransforms, imageData, image):
+        '''
+        Shift the hue of an image using an array of hue shift values
+        '''
+        pixArray = pygame.PixelArray(image)
+
+        # If the hueTransforms are None
+        if not hueTransforms:
+            for y, row in enumerate(imageData):
+                for x, colour in enumerate(row):
+                    if colour[0] != -1:
+                        pixArray[x, y] = colour[1]
+                    else:
+                        pixArray[x, y] = (0, 0, 0, 255)
+            return image
+
+        # Initialise the hueshifter and hueshift the image as necessary
+        hueShifter = HueShifter()
+        for i, val in enumerate(hueTransforms):
+            hueShifter.set_hue_rotation(val)
+            for y, row in enumerate(imageData):
+                for x, colour in enumerate(row):
+                    if colour[0] == i:
+                        pixArray[x, y] = hueShifter.apply(*colour[1])
+                    else:
+                        pixArray[x, y] = colour[1]
+        return image
+
     def generateLargePlayerImage(self, hueTransforms):
-        imageData = []
-        if hueTransforms == None:
-            return pygame.Surface((40, 40))
-        return pygame.Surface((40, 40))
+        '''
+        Generate the large player image using an array of hue shift values
+        '''
+        # Initialise the surface and the image data
+        image = pygame.Surface((80, 200)).convert_alpha()
+        imageData = eval(open('resources/other/player_img.data').read())
+        # Return a hueshifted version of the image
+        return self.hueShiftImage(hueTransforms, imageData, image)
 
     def calculateAvatar(self, hueTransforms):
-        imageData = []
-        if hueTransforms == None:
-            return pygame.Surface((40, 40))
-        return pygame.Surface((40, 40))
+        '''
+        Generate the in-world player avatar using an array of hue shift values
+        '''
+        image = pygame.Surface((40, 40)).convert_alpha()
+        imageData = eval(open('resources/other/player_avatar.data').read())
+        return self.hueShiftImage(hueTransforms, imageData, image)
 
 def onPacketReceived(game, packet):
     if packet.__class__.__name__ == 'DisconnectPacket':
         # Open a GUI that displays the message, and disconnect them
         game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, packet.message)
+
     elif packet.__class__.__name__ == 'ResetPlayerPacket':
         # Tell the game that the player is synced
         game.player.synced = True
+
     elif packet.__class__.__name__ == 'InvalidLoginPacket':
         # Tell the player that their username is already taken
         game.openGui(game.getModInstance('ClientMod').mainMenuGui)
         game.openGUI[1].error = 'That Username Is Already Taken.'
+
     elif packet.__class__.__name__ == 'WorldUpdatePacket':
         # Fetch images of new players
         for p, player in enumerate(game.world.players):
