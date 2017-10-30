@@ -11,7 +11,7 @@ class HueShifter:
     def __init__(self):
         self.matrix = [[1,0,0],[0,1,0],[0,0,1]]
 
-    def set_hue_rotation(self, degrees):
+    def setHueRotation(self, degrees):
         cosA = cos(radians(degrees))
         sinA = sin(radians(degrees))
         self.matrix[0][0] = cosA + (1.0 - cosA) / 3.0
