@@ -75,16 +75,25 @@ class Slider:
     def __init__(self, rect, colour):
         self.rect = rect
         self.value = 0
+        self.displayValue = self.value
         self.bar = Bar(rect[:2], rect[2], rect[3], colour)
 
     def draw(self, screen, mousePos):
         if self.isHovered(mousePos) and pygame.mouse.get_pressed()[0]:
             self.value = abs(mousePos[0]-self.rect[0])/self.rect[2]
+            # draw a value label
+            font = pygame.font.Font('resources/font/main.ttf', 15)
+            text = font.render(str(self.displayValue), True, (0, 0, 0))
+            pos = [mousePos[0]-text.get_rect().width//2, mousePos[1]-30]
+            self.screen.blit(text, pos)
+
         self.bar.draw(screen, mousePos)
 
         # Draw the circle over the top of the bar
         circlePos = [int(self.rect[0]+self.rect[2]*self.value), int(self.rect[1]+self.rect[3]//2)]
         pygame.draw.circle(screen, (255, 255, 255), circlePos, self.rect[3])
+
+        self.displayValue = round(self.value, 2)
 
     def isHovered(self, mousePos):
         x, y = mousePos
