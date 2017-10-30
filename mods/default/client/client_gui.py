@@ -73,14 +73,24 @@ class PlayerDrawScreen(Gui):
         super().__init__()
         self.backImg = pygame.image.load('resources/textures/background.png').convert()
         self.buttons = [StartGameButton([600, 580, 350, 120])]
-        self.valSliders = [Slider([580, 180, 390, 20], (255, 0, 0))]
+        self.valSliders = [Slider([580, 180+50*a, 390, 20], (255, 0, 0)) for a in range(12)]#, Slider([580, 230, 390, 20], (255, 0, 0))]
         self.addItem(PlayerImageBox([300, 528], [30, 170], game))
 
     def drawBackgroundLayer(self):
         self.screen.blit(self.backImg, [0, 0])
 
         values = self.valSliders
-        self.extraItems[0].colours = [round(slider.value*360-180, 1) for slider in values]
+        self.extraItems[0].colours = [[int(values[s].value*5), round(values[s+1].value*360-180, 1)] for s in range(0, len(values), 2)]
+        # Set the eye type to 0
+        self.extraItems[0].colours[1][0] = 0
+
+        for s in range(0, len(self.valSliders), 2):
+            # If it's the eye type slider, leave it at 0 always
+            if s == 2:
+                self.valSliders[s].displayValue = 0
+            else:
+                self.valSliders[s].displayValue = int(self.valSliders[s].value*5)
+            self.valSliders[s+1].displayValue = round(values[s+1].value*360-180)
 
     def drawMiddleLayer(self, mousePos):
         super().drawMiddleLayer(mousePos)
@@ -136,12 +146,12 @@ class GameScreen(Gui):
 
         # Iterate the players and render any unrendered avatars
         for p, player in enumerate(self.game.world.players):
-            if player.img != None:
-                try:
-                    if player.smallImg:
-                        continue
-                except AttributeError:
-                    self.game.world.players[p].smallImg = self.game.getModInstance('ClientMod').calculateAvatar(player.img)
+            # if player.img != None:
+            try:
+                if player.smallImg:
+                    continue
+            except AttributeError:
+                self.game.world.players[p].smallImg = self.game.getModInstance('ClientMod').calculateAvatar(player.img)
 
         # Draw the player images to screen
         for player in self.game.world.players:
@@ -152,7 +162,7 @@ class GameScreen(Gui):
 
             # Adjust position accordingly, and draw to screen
             pos = [x//2+deltaPos[0]*size-size//2, y//2+deltaPos[1]*size-size//2]
-            self.screen.blit(player.smallImg, pos)
+            self.screen.blit(player.smallImg[0], pos)
 
     def drawForegroundLayer(self, mousePos):
         '''

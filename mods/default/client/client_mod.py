@@ -67,51 +67,61 @@ class ClientMod(Mod):
         self.gameRegistry.registerEventHandler(onPacketReceived, 'onPacketReceived')
         self.gameRegistry.registerEventHandler(onDisconnect, 'onDisconnect')
 
-    def hueShiftImage(self, hueTransforms, imageData, image):
+    def hueShiftImage(self, imgValues, imageName, image):
         '''
         Shift the hue of an image using an array of hue shift values
         '''
+        fullPath = 'resources/other/'+imageName
         pixArray = pygame.PixelArray(image)
 
-        # If the hueTransforms are None
-        if not hueTransforms:
-            for y, row in enumerate(imageData):
-                for x, colour in enumerate(row):
-                    if colour[0] != -1:
-                        pixArray[x, y] = colour[1]
-                    else:
-                        pixArray[x, y] = (0, 0, 0, 255)
-            return image
-
-        # Initialise the hueshifter and hueshift the image as necessary
+        # Initialise the hue-shifter and hue-shift the image as necessary
         hueShifter = HueShifter()
-        for i, val in enumerate(hueTransforms):
-            hueShifter.set_hue_rotation(val)
-            for y, row in enumerate(imageData):
-                for x, colour in enumerate(row):
-                    if colour[0] == i:
-                        pixArray[x, y] = hueShifter.apply(*colour[1])
-                    else:
-                        pixArray[x, y] = colour[1]
+        for i in range(7):
+            try:
+                value = imgValues[i]
+            except IndexError:
+                value = [0, 0]
+            # Set the hue shift
+            hueShifter.setHueRotation(value[1])
+            # Generate the full image path and load the image
+            imagePath = fullPath+'_{}_{}.png'.format(i, value[0])
+            layer = pygame.image.load(imagePath).convert_alpha()
+            # Create a pixel array
+            pixArray2 = pygame.PixelArray(layer)
+            # Colours are ARGB, rather than the standard RGBA
+            # Use 'big' encoding to get to bytes from raw value
+            for y in range(image.get_rect().height):
+                for x in range(image.get_rect().width):
+                    # Iterate and grab an ARGB pixel tuple for each pixel
+                    try:
+                        colour = [a for a in pixArray2[x, y].to_bytes(4, 'big')]
+                    except IndexError:
+                        print(x, y)
+                    if colour[0] == 255:
+                        # Pixel is fully opaque
+                        finalColour = colour[1:]
+                        if value[1] != 0:
+                            finalColour = hueShifter.apply(*finalColour)
+                        pixArray[x, y] = finalColour
         return image
 
-    def generateLargePlayerImage(self, hueTransforms):
+    def generateLargePlayerImage(self, imgValues):
         '''
         Generate the large player image using an array of hue shift values
         '''
         # Initialise the surface and the image data
         image = pygame.Surface((80, 200)).convert_alpha()
-        imageData = eval(open('resources/other/player_img.data').read())
+        imageName = 'player_img'
         # Return a hueshifted version of the image
-        return self.hueShiftImage(hueTransforms, imageData, image)
+        return self.hueShiftImage(imgValues, imageName, image)
 
-    def calculateAvatar(self, hueTransforms):
+    def calculateAvatar(self, imgValues):
         '''
         Generate the in-world player avatar using an array of hue shift values
         '''
         image = pygame.Surface((40, 40)).convert_alpha()
-        imageData = eval(open('resources/other/player_avatar.data').read())
-        return self.hueShiftImage(hueTransforms, imageData, image)
+        imageNames = ['player_avatar_{}'.format(a) for a in range(4)]
+        return [self.hueShiftImage(imgValues, imageName, image) for imageName in imageNames]
 
 def onPacketReceived(game, packet):
     if packet.__class__.__name__ == 'DisconnectPacket':

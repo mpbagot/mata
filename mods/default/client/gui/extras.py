@@ -119,6 +119,7 @@ class PlayerImageBox:
 
         # If the player is clicking and dragging, update the rotational velocity
         if pygame.mouse.get_pressed()[0] and self.isHovered(mousePos):
+            # set the rotational velocity
             self.rotVel = [(2*pi*(mousePos[a]-self.prevPos[a]))/self.rect[a] for a in range(2)]
 
         self.prevPos = list(mousePos)
