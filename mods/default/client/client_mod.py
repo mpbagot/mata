@@ -74,12 +74,19 @@ class ClientMod(Mod):
         fullPath = 'resources/other/'+imageName
         pixArray = pygame.PixelArray(image)
 
+        # Remove the black background
+        for y in range(image.get_rect().height):
+            for x in range(image.get_rect().width):
+                pixArray[x, y] = int.from_bytes([0, 0, 0, 0], 'big')
+
         # Initialise the hue-shifter and hue-shift the image as necessary
         hueShifter = HueShifter()
         for i in range(7):
             try:
                 value = imgValues[i]
             except IndexError:
+                value = [0, 0]
+            except TypeError:
                 value = [0, 0]
             # Set the hue shift
             hueShifter.setHueRotation(value[1])
@@ -99,10 +106,9 @@ class ClientMod(Mod):
                         print(x, y)
                     if colour[0] == 255:
                         # Pixel is fully opaque
-                        finalColour = colour[1:]
                         if value[1] != 0:
-                            finalColour = hueShifter.apply(*finalColour)
-                        pixArray[x, y] = finalColour
+                            colour = [colour[0]]+hueShifter.apply(*colour[1:])
+                        pixArray[x, y] = int.from_bytes(colour, 'big')
         return image
 
     def generateLargePlayerImage(self, imgValues):
@@ -110,7 +116,7 @@ class ClientMod(Mod):
         Generate the large player image using an array of hue shift values
         '''
         # Initialise the surface and the image data
-        image = pygame.Surface((80, 200)).convert_alpha()
+        image = pygame.Surface((75, 132)).convert_alpha()
         imageName = 'player_img'
         # Return a hueshifted version of the image
         return self.hueShiftImage(imgValues, imageName, image)
@@ -121,7 +127,11 @@ class ClientMod(Mod):
         '''
         image = pygame.Surface((40, 40)).convert_alpha()
         imageNames = ['player_avatar_{}'.format(a) for a in range(4)]
-        return [self.hueShiftImage(imgValues, imageName, image) for imageName in imageNames]
+        # Generate 4 frames per player, 3 frames per direction
+        # Filename is player_avatar_<direction_id>_<frame_id>_<characteristic_id>_<type_id>.png
+        # Direction is between 0-3, frame is between 0-2, characteristic is between 0-6, type is between 0-5
+        # return [[self.hueShiftImage(imgValues, imageName+'_'+str(a), image) for a in range(3)] for imageName in imageNames]
+        return self.hueShiftImage(imgValues, 'player_avatar_0', image)
 
 def onPacketReceived(game, packet):
     if packet.__class__.__name__ == 'DisconnectPacket':
@@ -152,7 +162,8 @@ def onClientConnected(game):
 
 def onPlayerLogin(game, player):
     # Show the player customisation screen
-    game.openGui(game.getModInstance('ClientMod').playerDrawGui, game)
+    game.openGui(game.getModInstance('ClientMod').gameGui, game)
+    # game.openGui(game.getModInstance('ClientMod').playerDrawGui, game)
 
 def onTick(game, tick):
     # Check if this client has connected to a server
