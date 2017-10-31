@@ -131,7 +131,6 @@ class WorldMP:
         '''
         Use the binary blob data to update the world
         '''
-        # self.hueShifter = HueShifter()
         pass
 
     def addPlayer(self, player):

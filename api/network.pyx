@@ -88,18 +88,18 @@ class PacketHandler:
                     self.game.fireEvent('onDisconnect')
                 del self.connections[connIndex]
                 return
-            except UnicodeDecodeError:
-                print(data)
-            try:
-                dataDictionary = {a.split(':')[0][1:-1] : ':'.join(a.split(':')[1:])[1:-1] for a in re.findall('".*?":".*?"', data, re.DOTALL)}
-            except IndexError:
-                print('errored', data)
+            # except UnicodeDecodeError:
+            #     print(data)
+            # try:
+            dataDictionary = {a.split(':')[0][1:-1] : ':'.join(a.split(':')[1:])[1:-1] for a in re.findall('".*?":".*?"', data, re.DOTALL)}
+            # except IndexError:
+            #     print('errored', data)
 
-            try:
-                print('Received '+dataDictionary['type'])
-            except KeyError:
-                print(dataDictionary)
-                print(data, self.connections[connIndex].nextSize)
+            # try:
+            #     print('Received '+dataDictionary['type'])
+            # except KeyError:
+            #     print(dataDictionary)
+            #     print(data, self.connections[connIndex].nextSize)
 
             if dataDictionary['type'] == 'ByteSizePacket':
                 self.handlePacket(dataDictionary, connIndex)
@@ -130,6 +130,7 @@ class PacketHandler:
                 except Exception as e:
                     print('Packet unable to be handled correctly.')
                     print('Error is as follow:\n', e)
+                    raise e
                     return
                 self.game.fireEvent('onPacketReceived', p)
                 if response:
@@ -244,5 +245,4 @@ class Connection:
         '''
         Set the size of the next packet to be recieved
         '''
-        print('setting packet size to ' + str(size))
         self.nextSize = size

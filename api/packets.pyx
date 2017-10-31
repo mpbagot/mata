@@ -53,8 +53,10 @@ class LoginPacket(Packet):
                 return InvalidLoginPacket()
 
         connection.username = self.player.username
+
         # Add the player
         self.player = game.world.addPlayer(self.player)
+
         # Fire a login event
         game.fireEvent('onPlayerLogin', self.player)
         print(self.player.username + ' joined the server!')
@@ -70,11 +72,8 @@ class ResetPlayerPacket(Packet):
         buf.write(self.player.toBytes())
         buf.write(b'|')
         buf.write(int(self.firstTime).to_bytes(1, 'big'))
-        print(buf.getvalue())
 
     def fromBytes(self, data):
-        print('received a player sync packet')
-        print(data)
         playerData, firstTime = data.split(b'|')
         self.player = Player.fromBytes(playerData)
         self.firstTime = int.from_bytes(firstTime, 'big')
@@ -83,7 +82,6 @@ class ResetPlayerPacket(Packet):
         # Sync the player object on the client
         game.player.pos = self.player.pos
         game.player.health = self.player.health
-        print('player set by player sync packet')
         game.player.relPos = [0, 0]
         # Fire a login event if the player has just been synced for the first time
         if self.firstTime:
