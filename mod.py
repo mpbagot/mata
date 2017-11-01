@@ -75,7 +75,10 @@ class GameRegistry:
         Return a world object that contains all of the data of the world
         It contains a list of players, a list of entities and the tile data of the world
         '''
-        return self.dimensions[0].getWorldObj()
+        try:
+            return self.dimensions[0].getWorldObj()
+        except KeyError:
+            raise Exception('At least one DimensionHandler is required to be registered.')
 
     def registerItem(self, itemClass):
         '''
