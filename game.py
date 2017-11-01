@@ -155,8 +155,8 @@ class Game:
         self.prevGUI = self.openGUI
         self.prevOverlays = list(self.openOverlays)
 
-        self.openGUI = [guiID, self.modLoader.gameRegistry.guis[guiID](*args)]
         self.openOverlays = []
+        self.openGUI = [guiID, self.modLoader.gameRegistry.guis[guiID](*args)]
 
     def restoreGui(self):
         '''
@@ -192,6 +192,9 @@ class Game:
         print('[ERROR] Overlay is not currently open.')
 
     def getPlayerIndex(self, player):
+        '''
+        Get index of a given player object in the world player list
+        '''
         try:
             if isinstance(player, str):
                 index = [a.username == player for a in self.world.players].index(True)
