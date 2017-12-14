@@ -146,23 +146,26 @@ class GameScreen(Gui):
 
         # Iterate the players and render any unrendered avatars
         for p, player in enumerate(self.game.world.players):
-            # if player.img != None:
             try:
                 if player.smallImg:
                     continue
-            except AttributeError:
+            except:
+                print('rendering image')
                 self.game.world.players[p].smallImg = self.game.getModInstance('ClientMod').calculateAvatar(player.img)
 
         # Draw the player images to screen
         for player in self.game.world.players:
             # Get the difference in position
-            mainAbsPos = self.game.player.getAbsPos()
+            p = self.game.player
+            mainAbsPos = [p.relPos[0]+p.pos[0], p.relPos[1]+p.pos[1]]
             deltaPos = [player.pos[a]-mainAbsPos[a] for a in range(2)]
+
+            # Get the player image size
             size = player.smallImg.get_rect()
 
             # Adjust position accordingly, and draw to screen
-            pos = [x//2+deltaPos[0]*size-size//2, y//2+deltaPos[1]*size-size//2]
-            self.screen.blit(player.smallImg[0], pos)
+            pos = [x//2+deltaPos[0]*size.width-size.width//2, y//2+deltaPos[1]*size.height-size.height//2]
+            self.screen.blit(player.smallImg, pos)
 
     def drawForegroundLayer(self, mousePos):
         '''

@@ -128,7 +128,7 @@ class WorldUpdatePacket(Packet):
     def onReceive(self, connection, game):
         # Update the world on the Client side
         if game.world:
-            game.world.handleUpdate(self.world)
+            game.world.handleUpdate(self.world, game)
 
 class InvalidLoginPacket(Packet):
     def toBytes(self, buf):

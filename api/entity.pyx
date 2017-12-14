@@ -8,7 +8,7 @@ class Player:
         self.health = 100
         self.level = 1
         self.exp = 0
-        self.img = None
+        self.img = []
         self.inventory = Inventory()
         self.isDead = False
         self.tickDamage = None
@@ -41,7 +41,7 @@ class Player:
         self.username = name
 
     def toBytes(self):
-        return (str([self.username, self.pos, self.health, str(self.tickDamage)]).replace(' ', '')).encode()
+        return (str([self.username, self.pos, self.health, str(self.tickDamage)]).replace(', ', ',')).encode()
 
     @staticmethod
     def fromBytes(data):
@@ -60,6 +60,8 @@ class Entity:
     def __init__(self):
         self.isDead = False
         self.tickDamage = None
+        self.hp = 100
+        self.pos = [0, 0]
 
 class Damage:
     def __init__(self, amount, source):

@@ -3,6 +3,7 @@ from threading import Thread
 import random
 import time
 import noise
+from copy import deepcopy
 
 # Import the mod files
 from api.packets import *
@@ -13,18 +14,6 @@ class DimensionHandler:
         self.biomes = biomes
         self.biomeSize = biomeSize
         self.worldObj = WorldMP(self)
-
-    def saveToFile(self):
-        '''
-        Write the dimension data to a file (Run on Server Side Only)
-        '''
-        pass
-
-    def readFromFile(self):
-        '''
-        Read the dimension data from a file (Run on Server Side Only)
-        '''
-        pass
 
     def getWorldObj(self):
         '''
@@ -90,12 +79,14 @@ class WorldMP:
                 entityBackup = self.entities[e]
                 del self.entities[e]
                 # Trigger on Entity Death events
-                for func in gameRegistry.EVENT_BUS.get('onEntityDeath', []):
-                    func(game, entityBackup, entityBackup.tickDamage)
+                game.fireEvent('onEntityDeath', entityBackup, entityBackup.tickDamage)
+                # for func in gameRegistry.EVENT_BUS.get('onEntityDeath', []):
+                #     func(game, entityBackup, entityBackup.tickDamage)
             elif self.entities[e].tickDamage:
                 # Trigger on Entity Damaged events
-                for func in gameRegistry.EVENT_BUS.get('onEntityDamage', []):
-                    func(game, self.entities[e], self.entities[e].tickDamage)
+                game.fireEvent('onEntityDamage', self.entities[e], self.entities[e].tickDamage)
+                # for func in gameRegistry.EVENT_BUS.get('onEntityDamage', []):
+                #     func(game, self.entities[e], self.entities[e].tickDamage)
 
         # Loop through the vehicles and update them
         for v in range(len(self.vehicles)):
@@ -105,8 +96,9 @@ class WorldMP:
                 vehicleBackup = self.vehicles[v]
                 del self.vehicles[v]
                 # Trigger on Vehicle Destruction events
-                for func in gameRegistry.EVENT_BUS.get('onVehicleDestroyed', []):
-                    func(game, vehicleBackup)
+                game.fireEvent('onVehicleDestroyed', vehicleBackup)
+                # for func in gameRegistry.EVENT_BUS.get('onVehicleDestroyed', []):
+                #     func(game, vehicleBackup)
 
         # Loop through the players and disconnect them if they died
         for p in range(len(self.players)):
@@ -117,21 +109,48 @@ class WorldMP:
                                                     self.players[p].username)
             elif self.players[p].tickDamage:
                 # Trigger on Player Damaged events
-                for func in gameRegistry.EVENT_BUS.get('onPlayerDamage', []):
-                    func(game, self.players[p], self.players[p].tickDamage)
+                game.fireEvent('onPlayerDamage', self.players[p], self.players[p].tickDamage)
+                # for func in gameRegistry.EVENT_BUS.get('onPlayerDamage', []):
+                #     func(game, self.players[p], self.players[p].tickDamage)
 
 
     def getUpdateData(self):
         '''
         Collate the update data into a bytes object
         '''
-        return b''
+        return str([p.toBytes() for p in self.players]).replace('"', "'''").encode()
 
-    def handleUpdate(self, updateBytes):
+    def handleUpdate(self, updateBytes, game):
         '''
         Use the binary blob data to update the world
         '''
-        pass
+        players = eval(updateBytes.decode())
+        players = [Player.fromBytes(p) for p in players]
+
+        self.oldPlayers = deepcopy(self.players)
+
+        finalPlayers = []
+        for p in self.players:
+            for player in players:
+                if player.username == p.username:
+                    p.health = player.health
+                    p.pos = player.pos
+                    # print(dir(p))
+                    # player.img = p.img
+                    break
+            # if player.username == game.player.username:
+            finalPlayers.append(p)
+        for player in players:
+            g = True
+            if player.username == game.player.username:
+                continue
+            for p in finalPlayers:
+                if player.username == p.username:
+                    g = False
+                    break
+            if g:
+                finalPlayers.append(player)
+        self.players = finalPlayers
 
     def addPlayer(self, player):
         '''

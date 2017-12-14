@@ -23,7 +23,7 @@ class FetchPlayerImagePacket(Packet):
         self.player = player
 
     def toBytes(self, buf):
-        buf.write(player.username.encode())
+        buf.write(self.player.username.encode())
 
     def fromBytes(self, data):
         self.player = data.decode()
