@@ -1,12 +1,15 @@
-# HSC Major Project MMORPG
+# M.A.T.A (Medieval Attack-Trade-Alliance)
 
 For my HSC major project, I am creating a simple MMORPG that allows players to play together on either a local network or over the internet.
 The game can be played singleplayer, but is created with the multiplayer experience in mind.
 
 ### Setting up:
+
 Getting the game running from source code only involves a couple of steps.
 Firstly, ensure that your computer has the following dependencies installed:
+
 ##### Linux:
+
  - Python3 Packages (Installed using pip3):
   - pygame
   - noise
@@ -21,4 +24,30 @@ Extra command line arguments (see below) can also be added to change the game's 
 
 ### Command Line Arguments:
 
-TODO fill this in.
+Presently, there are only 3 command line arguments which can be used.
+These are:
+
+##### The _--type_ Argument:
+
+The _--type_ argument is used to set which mode the game should run in.
+This argument requires a second keyword immediately following it. There are 3 possible keywords
+ - COMBINED (Default. Starts a server in the background and launches a client game in the foreground. Equivalent to launching a client and server separately.)
+ - SERVER (Launch a dedicated server available over a local or remote connection.)
+ - CLIENT (Launch a client-side game which can connect to external server games)
+
+If the above is ambiguous, the argument is used as such:
+> python3 main.py [--type <u>keyword</u>]
+
+##### The _--disableMods_ Argument:
+
+The _--disableMods_ argument does exactly what it sounds it should. It disables any mods and functionality beyond the base game. This argument is mostly useful for temporarily playing without mods, or for troubleshooting game errors that arise from mods.
+
+This argument requires no extra keywords:
+> python3 main.py [--disableMods]
+
+##### The _--address_ Argument:
+
+This argument is only used to prefill an IP address for a client game upon launch. It serves no purpose on a server game.
+
+This argument requires a keyword, the ip address:
+> python3 main.py [--address <u>address</u>] 
