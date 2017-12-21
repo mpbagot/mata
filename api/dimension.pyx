@@ -115,35 +115,15 @@ class WorldMP:
         '''
         Use the binary blob data to update the world
         '''
+
+        # TODO Add in entities and vehicles to this.
+        # TODO Only fire update events here and handle the actual updates in the client_mod module code
+
         players = eval(updateBytes.decode())
         players = [Player.fromBytes(p) for p in players]
 
-        self.oldPlayers = deepcopy(self.players)
-
-        finalPlayers = []
-        # Update the old players
-        for p in self.players:
-            for player in players:
-                if player.username == p.username:
-                    p.health = player.health
-                    p.newPos = player.pos
-                    p.updateTick = game.tick
-                    break
-            finalPlayers.append(p)
-
-        # Add the new players into the world
         for player in players:
-            g = True
-            if player.username == game.player.username:
-                continue
-            for p in finalPlayers:
-                if player.username == p.username:
-                    g = False
-                    break
-            if g:
-                finalPlayers.append(player)
-        # Set the players
-        self.players = finalPlayers
+            game.fireEvent("onPlayerUpdate", player, self.players)
 
     def addPlayer(self, player):
         '''

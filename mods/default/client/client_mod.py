@@ -67,6 +67,7 @@ class ClientMod(Mod):
         self.gameRegistry.registerEventHandler(onPlayerLogin, 'onPlayerLogin')
         self.gameRegistry.registerEventHandler(onPacketReceived, 'onPacketReceived')
         self.gameRegistry.registerEventHandler(onDisconnect, 'onDisconnect')
+        self.gameRegistry.registerEventHandler(onPlayerUpdate, 'onPlayerUpdate')
 
     def hueShiftImage(self, imgValues, imageName, image):
         '''
@@ -82,6 +83,7 @@ class ClientMod(Mod):
 
         # Initialise the hue-shifter and hue-shift the image as necessary
         hueShifter = HueShifter()
+        # Loop each part (hat, shirt, etc) of the character image
         for i in range(7):
             try:
                 value = imgValues[i]
@@ -163,8 +165,21 @@ def onClientConnected(game):
 
 def onPlayerLogin(game, player):
     # Show the player customisation screen
+    # TODO Change this later
     game.openGui(game.getModInstance('ClientMod').gameGui, game)
     # game.openGui(game.getModInstance('ClientMod').playerDrawGui, game)
+
+def onPlayerUpdate(game, player, oldPlayers):
+    if player.username == game.player.username:
+        return
+    for p in range(len(oldPlayers)):
+        if oldPlayers[p].username == player.username:
+            oldPlayers[p].health = player.health
+            # TODO Update the extra properties here
+            oldPlayers[p].newPos = player.pos
+            oldPlayers[p].updateTick = game.tick
+            return
+    oldPlayers.append(player)
 
 def onTick(game, tick):
     # Check if this client has connected to a server
