@@ -22,7 +22,8 @@ class PacketHandler:
         self.connections = []
         self.safePackets = [ByteSizePacket, LoginPacket,
                             DisconnectPacket, SyncPlayerPacket,
-                            ResetPlayerPacket, InvalidLoginPacket
+                            ResetPlayerPacket, InvalidLoginPacket,
+                            SetupClientPacket
                            ]
 
         self.socket = socket.socket()
@@ -237,9 +238,22 @@ class Connection:
         sizePacket.toBytes(byteBuf)
         byteBuf.write('"}'.encode())
 
-        # Sanitise and send the two packets one after the other
-        self.connObj.send(byteBuf.getvalue())
-        self.connObj.send(buf.getvalue())
+        # Run error checks here to stop the server from crashing
+        try:
+            # Sanitise and send the two packets one after the other
+            self.connObj.send(byteBuf.getvalue())
+            self.connObj.send(buf.getvalue())
+        except Exception as e:
+            if isinstance(e, ConnectionResetError):
+                # The client might still be connected
+                print('[ERROR] The Packet Failed To Send For Some Reason.')
+            elif isinstance(e, BrokenPipeError):
+                # The client is completely disconnected
+                print('[WARNING] The Client Has Disconnected Badly. Clearing Connection...')
+                # TODO Disconnect the client
+                del self
+            else:
+                print('[ERROR] An Error Occured!'+str(e))
 
     def setNextPacketSize(self, size):
         '''

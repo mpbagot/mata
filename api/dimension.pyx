@@ -41,9 +41,9 @@ class WorldMP:
         yPos = round(yPos)
 
         # Generate Simplex Noise for the world
-        noiseMap = [[noise.snoise2(x, y, 8, 1.4, 0.45)/2+0.5 for x in range(xPos-150, xPos+151)] for y in range(yPos-105, yPos+106)]
+        noiseMap = [[noise.snoise2(x, y, 8, 1.4, 0.45, base=gameRegistry.seed)/2+0.5 for x in range(xPos-150, xPos+151)] for y in range(yPos-105, yPos+106)]
         biomeSize = self.dimHandler.biomeSize
-        biomeNoise = [[noise.snoise2(x, y, 7, 3, 0.6-(biomeSize*0.1))/2+0.5 for x in range(xPos-150, xPos+151)] for y in range(yPos-105, yPos+106)]
+        biomeNoise = [[noise.snoise2(x, y, 7, 3, 0.6-(biomeSize*0.1), base=gameRegistry.seed/2)/2+0.5 for x in range(xPos-150, xPos+151)] for y in range(yPos-105, yPos+106)]
         detailNoise = []
 
         biomes = self.dimHandler.biomes

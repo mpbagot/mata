@@ -61,31 +61,48 @@ class LoginPacket(Packet):
         game.fireEvent('onPlayerLogin', self.player)
         print(self.player.username + ' joined the server!')
         # Sync the player back to the Client
-        return ResetPlayerPacket(self.player, True)
+        return [
+                SetupClientPacket(game.world.dimHandler.biomeSize, game.modLoader.gameRegistry.seed),
+                ResetPlayerPacket(self.player)
+               ]
+
+class SetupClientPacket(Packet):
+    def __init__(self, biomeSize=0, seed=0):
+        self.seed = seed
+        self.size = biomeSize
+
+    def toBytes(self, buf):
+        buf.write(self.size.to_bytes(1, 'big'))
+        buf.write(str(round(self.seed, 5)).encode())
+
+    def fromBytes(self, data):
+        print(data)
+        self.size = data[0]
+        self.seed = eval(data[1:])
+
+    def onReceive(self, connection, game):
+        # Set the seed and biomesize
+        game.modLoader.gameRegistry.seed = self.seed
+        game.world.dimHandler.biomeSize = self.size
+        # Fire the login event
+        game.fireEvent('onPlayerLogin', game.player)
 
 class ResetPlayerPacket(Packet):
-    def __init__(self, player='', firstTime=False):
+    def __init__(self, player=''):
         self.player = player
-        self.firstTime = firstTime
 
     def toBytes(self, buf):
         buf.write(self.player.toBytes())
-        buf.write(b'|')
-        buf.write(int(self.firstTime).to_bytes(1, 'big'))
 
     def fromBytes(self, data):
-        playerData, firstTime = data.split(b'|')
+        playerData = data
         self.player = Player.fromBytes(playerData)
-        self.firstTime = int.from_bytes(firstTime, 'big')
 
     def onReceive(self, connection, game):
         # Sync the player object on the client
         game.player.pos = self.player.pos
         game.player.health = self.player.health
         game.player.relPos = [0, 0]
-        # Fire a login event if the player has just been synced for the first time
-        if self.firstTime:
-            game.fireEvent('onPlayerLogin', game.player)
 
 class SyncPlayerPacket(Packet):
     def __init__(self, player=''):

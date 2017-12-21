@@ -231,10 +231,13 @@ class Game:
             self.modLoader.registerMod(nn.NNetAIMod)
 
         if argHandler.getShouldLoadCustomMods():
-            # Schedule the loading of the extra custom mods ,
+            # Schedule the loading of the extra custom mods
             # if they aren't disabled in the command line.
             for modName in open('modlist'):
                 self.modLoader.registerModByName(modName)
+
+        # Set the world generation seed
+        self.modLoader.gameRegistry.seed = argHandler.getSeed()
 
         # Print a helpful message
         print('Starting Game in {} Mode'.format({util.SERVER : 'SERVER',

@@ -69,6 +69,7 @@ class GameRegistry:
         self.resources = {}
         self.EVENT_BUS = {}
         self.properties = {}
+        self.seed = 0
 
     def getWorld(self):
         '''

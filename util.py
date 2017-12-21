@@ -44,6 +44,14 @@ class ArgumentHandler:
                 self.results['address'] = self.args[i+1]
                 del self.args[i+1]
 
+            elif arg == "--seed" and i != len(self.args)-1:
+                try:
+                    x = float(self.args[i+1])
+                except ValueError:
+                    x = 0
+                self.results['seed'] = (4*x)/(x**2+1)
+                del self.args[i+1]
+
             # Handle the AI argument
             elif arg == '--enableSpecialAI':
                 self.results['specialAI'] = True
@@ -70,6 +78,12 @@ class ArgumentHandler:
         Return whether to load custom mods, beyond the default game
         '''
         return self.results.get('loadCustomMods', True)
+
+    def getSeed(self):
+        '''
+        Return the world generation seed
+        '''
+        return self.results.get('seed', 0)
 
     def getConnectingAddress(self):
         '''
