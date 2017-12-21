@@ -81,7 +81,7 @@ class Slider:
     def draw(self, screen, mousePos):
         if self.isHovered(mousePos) and pygame.mouse.get_pressed()[0]:
             self.value = abs(mousePos[0]-self.rect[0])/self.rect[2]
-            # draw a value label
+            # Draw a value label
             font = pygame.font.Font('resources/font/main.ttf', 15)
             text = font.render(str(self.displayValue), True, (0, 0, 0))
             pos = [mousePos[0]-text.get_rect().width//2, mousePos[1]-30]
@@ -240,7 +240,6 @@ class TextBox(Button):
         # Draw the input text on the button
         label = self.getTextObject()
         screen.blit(label, self.getLabelPos(label))
-
 
     def doKeyPress(self, event):
         '''
