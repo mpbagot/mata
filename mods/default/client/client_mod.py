@@ -183,6 +183,20 @@ def onTick(game, tick):
                 game.getModInstance('ClientMod').packetPipeline.sendToServer(SyncPlayerPacket(playerCopy))
 
         if game.openGUI[0] == game.getModInstance('ClientMod').gameGui:
+            # Move the players
+            for p in range(len(game.world.players)):
+                # Get the number of ticks since the last sync to server
+                moduloTick = 5-(game.tick-game.world.players[p].updateTick-1)%5
+
+                # Calculate the change in position
+                pos = game.world.players[p].pos
+                deltaPos = [game.world.players[p].newPos[a]-pos[a] for a in (0, 1)]
+                deltaPos = [deltaPos[0]/moduloTick, deltaPos[1]/moduloTick]
+
+                # Apply the position transform to the player
+                pos = [pos[a]+deltaPos[a] for a in (0, 1)]
+                game.world.players[p].pos = deepcopy(pos)
+
             # Handle player movement
             keys = pygame.key.get_pressed()
             speed = 0.2

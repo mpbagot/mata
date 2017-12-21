@@ -4,6 +4,8 @@ class Player:
     def __init__(self):
         self.username = ''
         self.pos = [0, 0]
+        self.newPos = [0, 0]
+        self.updateTick = 0
         self.relPos = [0, 0]
         self.health = 100
         self.level = 1
@@ -32,7 +34,7 @@ class Player:
         '''
         Get the absolute position of the player
         '''
-        return [round(self.relPos[0]+self.pos[0]), round(self.relPos[1]+self.pos[1])]
+        return [round(self.relPos[0]+self.pos[0], 2), round(self.relPos[1]+self.pos[1], 2)]
 
     def setUsername(self, name):
         '''

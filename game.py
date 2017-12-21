@@ -55,10 +55,10 @@ class Game:
         Run the game after initialising all of the mods
         '''
         self.fireEvent('onGameLaunch')
-        tick = 0
+        self.tick = 0
         # Run at 30 ticks per second
         while True:
-            tick += 1
+            self.tick += 1
             # Get the start time of the tick
             startTickTime = time.time()
 
@@ -67,7 +67,7 @@ class Game:
                 self.world.tickUpdate(self)
 
             # Trigger all of the onTick events
-            self.fireEvent('onTick', tick)
+            self.fireEvent('onTick', self.tick)
 
             # If running a client side game then do some extra things
             if self.args.getRuntimeType() != util.SERVER:

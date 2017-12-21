@@ -40,9 +40,10 @@ class ServerMod(Mod):
         self.gameRegistry.registerEventHandler(onTick, 'onTick')
 
 def onTick(game, tick):
-    # Send server updates to all of the connected clients
-    game.getModInstance('ServerMod').packetPipeline.sendToAll(WorldUpdatePacket(game.world))
-    pass
+    if tick%5 == 0:
+        # Send server updates to all of the connected clients 6 times a second
+        game.getModInstance('ServerMod').packetPipeline.sendToAll(WorldUpdatePacket(game.world))
+        pass
 
 class KickPlayerCommand(cmd.Command):
     def run(self, *args):
