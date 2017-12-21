@@ -67,7 +67,7 @@ class WorldMP:
 
     def tickUpdate(self, game):
         '''
-        Run one tick of updates on the world and everything in it
+        Run one tick of updates on the world and everything in it (SERVER-SIDE UPDATE)
         '''
         # Separate the Game Registry
         gameRegistry = game.modLoader.gameRegistry
@@ -80,13 +80,9 @@ class WorldMP:
                 del self.entities[e]
                 # Trigger on Entity Death events
                 game.fireEvent('onEntityDeath', entityBackup, entityBackup.tickDamage)
-                # for func in gameRegistry.EVENT_BUS.get('onEntityDeath', []):
-                #     func(game, entityBackup, entityBackup.tickDamage)
             elif self.entities[e].tickDamage:
                 # Trigger on Entity Damaged events
                 game.fireEvent('onEntityDamage', self.entities[e], self.entities[e].tickDamage)
-                # for func in gameRegistry.EVENT_BUS.get('onEntityDamage', []):
-                #     func(game, self.entities[e], self.entities[e].tickDamage)
 
         # Loop through the vehicles and update them
         for v in range(len(self.vehicles)):
@@ -97,22 +93,17 @@ class WorldMP:
                 del self.vehicles[v]
                 # Trigger on Vehicle Destruction events
                 game.fireEvent('onVehicleDestroyed', vehicleBackup)
-                # for func in gameRegistry.EVENT_BUS.get('onVehicleDestroyed', []):
-                #     func(game, vehicleBackup)
 
-        # Loop through the players and disconnect them if they died
+        # Loop through the players and update them
         for p in range(len(self.players)):
             if self.players[p].isDead:
                 # If the player has died, disconnect them (because of permadeath)
                 game.modLoader.mods['ServerMod'].packetPipeline.sendToPlayer(
-                                                    DisconnectPacket('You have died'),
-                                                    self.players[p].username)
+                DisconnectPacket('You have died'),
+                self.players[p].username)
             elif self.players[p].tickDamage:
                 # Trigger on Player Damaged events
                 game.fireEvent('onPlayerDamage', self.players[p], self.players[p].tickDamage)
-                # for func in gameRegistry.EVENT_BUS.get('onPlayerDamage', []):
-                #     func(game, self.players[p], self.players[p].tickDamage)
-
 
     def getUpdateData(self):
         '''
@@ -130,16 +121,17 @@ class WorldMP:
         self.oldPlayers = deepcopy(self.players)
 
         finalPlayers = []
+        # Update the old players
         for p in self.players:
             for player in players:
                 if player.username == p.username:
                     p.health = player.health
-                    p.pos = player.pos
-                    # print(dir(p))
-                    # player.img = p.img
+                    p.newPos = player.pos
+                    p.updateTick = game.tick
                     break
-            # if player.username == game.player.username:
             finalPlayers.append(p)
+
+        # Add the new players into the world
         for player in players:
             g = True
             if player.username == game.player.username:
@@ -150,6 +142,7 @@ class WorldMP:
                     break
             if g:
                 finalPlayers.append(player)
+        # Set the players
         self.players = finalPlayers
 
     def addPlayer(self, player):
