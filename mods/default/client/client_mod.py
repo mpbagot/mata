@@ -20,6 +20,7 @@ class ClientMod(Mod):
         self.readyToStart = False
 
         self.relPos2Property = properties.Property(pos=[0, 0], ready=False)
+        self.worldUpdateProperty = properties.Property(newPos=[0, 0], updateTick=0)
 
         # Initialise the display
         pygame.display.set_mode((1024, 768))
@@ -174,11 +175,18 @@ def onPlayerUpdate(game, player, oldPlayers):
         return
     for p in range(len(oldPlayers)):
         if oldPlayers[p].username == player.username:
+            # Update vanilla player properties
             oldPlayers[p].health = player.health
-            # TODO Update the extra properties here
-            oldPlayers[p].newPos = player.pos
-            oldPlayers[p].updateTick = game.tick
+
+            # Update the modded properties
+            props = oldPlayers[p].getProperty('worldUpdate')
+            props.props['newPos'] = player.pos
+            props.props['updateTick'] = game.tick
+            oldPlayers[p].setProperty('worldUpdate', props)
+
             return
+
+    player.setProperty('worldUpdate', game.getModInstance('ClientMod').worldUpdateProperty)
     oldPlayers.append(player)
 
 def onTick(game, tick):
@@ -200,12 +208,14 @@ def onTick(game, tick):
         if game.openGUI[0] == game.getModInstance('ClientMod').gameGui:
             # Move the players
             for p in range(len(game.world.players)):
+                props = game.world.players[p].getProperty('worldUpdate')
+
                 # Get the number of ticks since the last sync to server
-                moduloTick = 5-(game.tick-game.world.players[p].updateTick-1)%5
+                moduloTick = 5-(game.tick-props.props['updateTick'])%5
 
                 # Calculate the change in position
                 pos = game.world.players[p].pos
-                deltaPos = [game.world.players[p].newPos[a]-pos[a] for a in (0, 1)]
+                deltaPos = [props.props['newPos'][a]-pos[a] for a in (0, 1)]
                 deltaPos = [deltaPos[0]/moduloTick, deltaPos[1]/moduloTick]
 
                 # Apply the position transform to the player
