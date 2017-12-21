@@ -157,7 +157,7 @@ class GameScreen(Gui):
         for player in self.game.world.players:
             # Get the difference in position
             p = self.game.player
-            mainAbsPos = [p.relPos[0]+p.pos[0], p.relPos[1]+p.pos[1]]
+            mainAbsPos = p.getAbsPos()#[p.relPos[0]+p.pos[0], p.relPos[1]+p.pos[1]]
             deltaPos = [player.pos[a]-mainAbsPos[a] for a in range(2)]
 
             # Get the player image size
