@@ -13,7 +13,6 @@ The API is a collection of .pyx files to allow them to be compiled with Cython3.
 
 ###### Windows:
  - Python 3
- - Anything else...
 
 #### Instructions:
 With Python and the dependencies installed, compiling should simply be a case of running one of the following 3 commands in the root directory of the game.
@@ -22,6 +21,12 @@ With Python and the dependencies installed, compiling should simply be a case of
 > python compile_api.py build_ext --inplace
 
 > py compile_api.py build_ext --inplace
+
+**Note: Due to the fact that the API modules are simply Python code, changing the file extension from .pyx to .py will allow the game to load them as normal Python modules. If you choose this method, the pythonify_api scripts provided in the root directory will automatically perform the rename.**
+
+**Bear in mind that game may have reduced performance when using the Python modules rather than the compiled ones.**
+
+# Modding Information
 
 ## Object Registration Order:
 
