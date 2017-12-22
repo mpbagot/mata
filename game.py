@@ -211,6 +211,7 @@ class Game:
         '''
         import mods.default.server.server_mod as server
         import mods.default.neural_net as nn
+        
         if argHandler.getRuntimeType() == util.SERVER:
             # Schedule the Server side mods to be loaded here
             self.modLoader.registerMod(server.ServerMod)

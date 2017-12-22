@@ -32,7 +32,7 @@ class Player:
 
     def getAbsPos(self):
         '''
-        Get the absolute position of the player
+        Get the absolute position of the player, rounded to 2 decimal places
         '''
         return [round(self.relPos[0]+self.pos[0], 2), round(self.relPos[1]+self.pos[1], 2)]
 

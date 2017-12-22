@@ -120,8 +120,10 @@ class SyncPlayerPacket(Packet):
         # Reset them if it's not
         playerList = game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj().players
         serverPlayer = playerList[game.getPlayerIndex(self.player)]
+
         if abs(self.player.pos[0]-serverPlayer.pos[0]) > 5 or abs(self.player.pos[1]-serverPlayer.pos[1]) > 5:
             return ResetPlayerPacket(serverPlayer)
+
         # If the player has clipped into a plant, reset their position
         world = game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj()
 
