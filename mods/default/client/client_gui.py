@@ -42,6 +42,37 @@ class HUD(Overlay):
         text = font.render('Level: '+str(self.game.player.level), True, (255, 255, 255))
         self.screen.blit(text, [744, 670])
 
+class Chat(Overlay):
+    def __init__(self, game):
+        super().__init__()
+        self.game = game
+        # self.bars = [
+        #                 Bar([744, 698], 260, 20, (255, 0, 0), self.game.player.health, 'Health'),
+        #                 Bar([744, 728], 260, 20, (0, 102, 255), self.game.player.exp, 'Experience')
+        #             ]
+        # equippedItems = self.game.player.inventory.getEquipped()
+        # self.itemSlots = [
+        #                     ItemSlot(equippedItems[0], [664, 630], 60),
+        #                     ItemSlot(equippedItems[1], [664, 700], 60)
+        #                  ]
+
+    def drawBackgroundLayer(self):
+        # Draw the background rectangle
+        pygame.draw.rect(self.screen, (120, 120, 120), [100, 80, 824, 608])
+        pygame.draw.rect(self.screen, (40, 40, 40), [100, 80, 824, 608], 4)
+
+    def drawForegroundLayer(self, mousePos):
+        super().drawForegroundLayer(mousePos)
+        # # Generate a font object
+        # font = pygame.font.Font('resources/font/main.ttf', 20)
+        # text = font.render('Username: '+self.game.player.username, True, (255, 255, 255))
+        # self.screen.blit(text, [744, 640])
+        #
+        # # Generate a smaller font object
+        # font = pygame.font.Font('resources/font/main.ttf', 12)
+        # text = font.render('Level: '+str(self.game.player.level), True, (255, 255, 255))
+        # self.screen.blit(text, [744, 670])
+
 class PlayerInventoryScreen(Gui):
     '''
     Player Inventory screen
