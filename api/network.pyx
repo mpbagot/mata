@@ -8,6 +8,7 @@ from api.packets import *
 
 # Import the Python standard libraries
 import socket
+import math
 import re
 import time
 import io
@@ -174,6 +175,23 @@ class PacketHandler:
             return
         for conn in self.connections:
             self.sendToPlayer(packet, conn.username)
+
+    def sendToNearby(self, packet, username, radius=10):
+        '''
+        Send a packet to all players within a certain distance of a given player
+        '''
+        if not self.isPacketSafe(packet):
+            # Reject the packet
+            print('[ERROR] Packet was not sent to clients because it was not registered.')
+            return
+        if self.side == util.CLIENT:
+            print('[WARNING] Cannot send a packet to clients from a client runtime!')
+            return
+        player = self.game.world.players[self.game.world.getPlayerIndex(username)]
+        pos = player.pos
+        for p in self.game.world.players:
+            if math.sqrt((p.pos[0]-pos[0])**2 + (p.pos[1]-pos[1])**2) <= 53:
+                self.sendToPlayer(packet, p.username)
 
     def sendToPlayer(self, packet, username):
         '''

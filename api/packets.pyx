@@ -164,7 +164,7 @@ class SendCommandPacket(Packet):
 
     def onReceive(self, connection, game):
         if self.text[0] != '/':
-            self.text = '/message '+self.text
+            self.text = '/message global '+self.text
         game.fireCommand(self.text, connection.username)
         game.fireEvent('onCommand', self.text)
 

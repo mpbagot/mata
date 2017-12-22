@@ -50,6 +50,7 @@ class ClientMod(Mod):
 
         # Initialise the Overlays
         self.hudOverlay = self.gameRegistry.registerGUI(HUD)
+        self.chatOverlay = self.gameRegistry.registerGUI(Chat)
 
     def postLoad(self):
         # Open the main menu on startup
@@ -75,6 +76,8 @@ class ClientMod(Mod):
         self.gameRegistry.registerEventHandler(other_events.onDisconnect, 'onDisconnect')
         self.gameRegistry.registerEventHandler(other_events.onPlayerUpdate, 'onPlayerUpdate')
 
+        self.gameRegistry.registerEventHandler(other_events.onKeyPress, 'onKeyPress')
+
     def generateLargePlayerImage(self, imgValues):
         '''
         Generate the large player image using an array of hue shift values
@@ -98,4 +101,4 @@ class ClientMod(Mod):
 
 class MessageCommand(cmd.Command):
     def run(self, username, *args):
-        print(' '.join(args))
+        print(' '.join(args[1:]))
