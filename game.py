@@ -188,6 +188,15 @@ class Game:
         '''
         self.openOverlays.append([guiID, self.modLoader.gameRegistry.guis[guiID](*args)])
 
+    def isOverlayOpen(self, guiID):
+        '''
+        Return whether or not the given overlay is currently open
+        '''
+        for overlay in self.openOverlays:
+            if overlay[0] == guiID:
+                return True
+        return False
+
     def closeGui(self):
         '''
         Close the currently open gui

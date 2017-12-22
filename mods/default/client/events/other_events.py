@@ -1,3 +1,17 @@
+import pygame
+
+def onKeyPress(game, event):
+    '''
+    Event Hook: onKeyPress
+    Handle the opening and closing of the messaging overlay
+    '''
+    if game.openGUI[0] == game.getModInstance('ClientMod').gameGui:
+        chatOverlay = game.getModInstance('ClientMod').chatOverlay
+        if event.key == pygame.K_t and not game.isOverlayOpen(chatOverlay):
+            game.openOverlay(chatOverlay, game)
+        elif event.key == pygame.K_ESCAPE and game.isOverlayOpen(chatOverlay):
+            game.closeOverlay(chatOverlay)
+
 def onPacketReceived(game, packet):
     '''
     Event Hook: onPacketReceived

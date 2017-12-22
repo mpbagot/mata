@@ -57,19 +57,36 @@ class Chat(Overlay):
         #                  ]
 
     def drawBackgroundLayer(self):
-        # Draw the background rectangle
-        pygame.draw.rect(self.screen, (120, 120, 120), [100, 80, 824, 608])
-        pygame.draw.rect(self.screen, (40, 40, 40), [100, 80, 824, 608], 4)
+        pass
 
     def drawForegroundLayer(self, mousePos):
         super().drawForegroundLayer(mousePos)
-        # # Generate a font object
-        # font = pygame.font.Font('resources/font/main.ttf', 20)
+
+        overlayScreen = pygame.Surface((824, 558))
+        overlayScreen.set_alpha(191)
+        # square.fill((0, 0, 0))
+        # Draw the background rectangle
+        pygame.draw.rect(overlayScreen, (140, 140, 140), [0, 0, 824, 558])
+
+        # 150px tall, 458px from the top
+        pygame.draw.rect(overlayScreen, (170, 170, 170), [0, 458, 824, 100])
+
+        self.screen.blit(overlayScreen, [100, 80])
+
+        # Draw the outline boxes
+        pygame.draw.rect(self.screen, (40, 40, 40), [100, 538, 824, 100], 4)
+        pygame.draw.rect(self.screen, (40, 40, 40), [100, 80, 824, 558], 4)
+        pygame.draw.rect(self.screen, (40, 40, 40), [718, 538, 206, 100], 4)
+
+        # Generate a font object
+        fontLarge = pygame.font.Font('resources/font/main.ttf', 20)
+        # Generate a smaller font object
+        fontSmall = pygame.font.Font('resources/font/main.ttf', 12)
+
+
         # text = font.render('Username: '+self.game.player.username, True, (255, 255, 255))
         # self.screen.blit(text, [744, 640])
         #
-        # # Generate a smaller font object
-        # font = pygame.font.Font('resources/font/main.ttf', 12)
         # text = font.render('Level: '+str(self.game.player.level), True, (255, 255, 255))
         # self.screen.blit(text, [744, 670])
 
