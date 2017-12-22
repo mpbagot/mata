@@ -149,6 +149,22 @@ class WorldUpdatePacket(Packet):
         if game.world:
             game.world.handleUpdate(self.world, game)
 
+class SendCommandPacket(Packet):
+    def __init__(self, text=''):
+        self.text = text
+
+    def toBytes(self, buf):
+        buf.write(self.text.encode())
+
+    def fromBytes(self, data):
+        self.text = data.decode()
+
+    def onReceive(self, connection, game):
+        if self.text[0] != '/':
+            self.text = '/message '+self.text
+        game.fireCommand(self.text)
+        game.fireEvent('onCommand', self.text)
+
 class InvalidLoginPacket(Packet):
     def toBytes(self, buf):
         pass

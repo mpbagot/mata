@@ -5,6 +5,8 @@ Module containing the Mod loading and Mod API code for the game
 # Import the Python3 standard libraries
 import os
 
+from api.cmd import FailedCommand, MessageCommand
+
 class ModLoader:
     def __init__(self, game):
         self.modsToLoad = []
@@ -63,7 +65,10 @@ class GameRegistry:
         self.guis = {}
         self.dimensions = {}
         self.vehicles = {}
-        self.commands = {}
+        self.commands = {
+                         '/failedCommand' : FailedCommand,
+                         '/message' : MessageCommand
+                        }
         self.packetPipelines = {}
         self.audioEffects = {}
         self.resources = {}

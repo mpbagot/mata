@@ -148,6 +148,22 @@ class Game:
         for func in self.modLoader.gameRegistry.EVENT_BUS.get(eventType, []):
             func(self, *args)
 
+    def fireCommand(self, text):
+        '''
+        Fire a command on either side
+        '''
+        # split the command and arguments
+        command, *args = text.split()
+        # Fetch the command class
+        commandClass = self.modLoader.gameRegistry.commands.get(command)
+        if commandClass is None:
+            commandClass = self.modLoader.gameRegistry.commands.get('/failedCommand')
+            args = [command]
+        # Instantiate the command
+        commandClass = commandClass(self)
+        commandClass.run(*args)
+
+
     def openGui(self, guiID, *args):
         '''
         Open the GUI with the given id for this client
@@ -211,7 +227,7 @@ class Game:
         '''
         import mods.default.server.server_mod as server
         import mods.default.neural_net as nn
-        
+
         if argHandler.getRuntimeType() == util.SERVER:
             # Schedule the Server side mods to be loaded here
             self.modLoader.registerMod(server.ServerMod)

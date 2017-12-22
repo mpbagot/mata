@@ -23,7 +23,7 @@ class PacketHandler:
         self.safePackets = [ByteSizePacket, LoginPacket,
                             DisconnectPacket, SyncPlayerPacket,
                             ResetPlayerPacket, InvalidLoginPacket,
-                            SetupClientPacket
+                            SetupClientPacket, SendCommandPacket
                            ]
 
         self.socket = socket.socket()

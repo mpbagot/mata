@@ -49,8 +49,7 @@ class KickPlayerCommand(cmd.Command):
         for player in args:
             # Loop the players, and kick them by deleting the PacketHandler
             for p in self.game.world.players:
-                # kick the player if they match
-                if player.username == p:
-                    self.getModInstance('ServerMod').packetPipeline.sendToPlayer(
-                                DisconnectPacket('You have been kicked from the server.'),
-                                                                               p.username)
+                # Kick the player if they match
+                if player == p.username:
+                    self.game.getModInstance('ServerMod').packetPipeline.sendToPlayer(DisconnectPacket('You have been kicked from the server.'), p.username)
+                    break
