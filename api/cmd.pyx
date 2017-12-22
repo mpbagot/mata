@@ -3,4 +3,4 @@ class Command:
         self.game = game
 
     def run(self, *args):
-        raise NotImplementedError('[ERROR] A command has been told to not do anything?')
+        raise NotImplementedError('[ERROR] A command has not been told to do anything')
