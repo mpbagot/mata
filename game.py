@@ -148,7 +148,7 @@ class Game:
         for func in self.modLoader.gameRegistry.EVENT_BUS.get(eventType, []):
             func(self, *args)
 
-    def fireCommand(self, text):
+    def fireCommand(self, text, username):
         '''
         Fire a command on either side
         '''
@@ -161,8 +161,7 @@ class Game:
             args = [command]
         # Instantiate the command
         commandClass = commandClass(self)
-        commandClass.run(*args)
-
+        commandClass.run(username, *args)
 
     def openGui(self, guiID, *args):
         '''

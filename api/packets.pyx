@@ -48,6 +48,9 @@ class LoginPacket(Packet):
         self.player = Player.fromBytes(data)
 
     def onReceive(self, connection, game, connections):
+
+        # TODO Add password login for certain elevated usernames
+
         for conn in connections:
             if conn.username == self.player.username:
                 return InvalidLoginPacket()
@@ -162,7 +165,7 @@ class SendCommandPacket(Packet):
     def onReceive(self, connection, game):
         if self.text[0] != '/':
             self.text = '/message '+self.text
-        game.fireCommand(self.text)
+        game.fireCommand(self.text, connection.username)
         game.fireEvent('onCommand', self.text)
 
 class InvalidLoginPacket(Packet):
@@ -186,4 +189,5 @@ class DisconnectPacket(Packet):
         self.message = data.decode()
 
     def onReceive(self, connection, game):
+        connection.connObj.close()
         del connection

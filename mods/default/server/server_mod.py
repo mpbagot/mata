@@ -45,11 +45,17 @@ def onTick(game, tick):
         game.getModInstance('ServerMod').packetPipeline.sendToAll(WorldUpdatePacket(game.world))
 
 class KickPlayerCommand(cmd.Command):
-    def run(self, *args):
+    def run(self, username, *args):
+        pp = self.game.getModInstance('ServerMod').packetPipeline
+        # Send a failure message if the user doesn't have elevated privileges
+        if username not in open('mods/default/server/elevated_users').read().split('\n')[:-1]:
+            pp.sendToPlayer(SendCommandPacket('/message You do not have permission to use that command'), username)
+            return
+
         for player in args:
             # Loop the players, and kick them by deleting the PacketHandler
             for p in self.game.world.players:
                 # Kick the player if they match
                 if player == p.username:
-                    self.game.getModInstance('ServerMod').packetPipeline.sendToPlayer(DisconnectPacket('You have been kicked from the server.'), p.username)
+                    pp.sendToPlayer(DisconnectPacket('You have been kicked from the server.'), p.username)
                     break
