@@ -74,6 +74,7 @@ class WorldMP:
         # Loop through the entities and update them
         for e in range(len(self.entities)):
             self.entities[e].onLivingUpdate(game)
+            game.fireEvent('onEntityUpdate', self.entities[e])
             # If they die, delete them, and trigger events
             if self.entities[e].isDead:
                 entityBackup = self.entities[e]
@@ -87,6 +88,7 @@ class WorldMP:
         # Loop through the vehicles and update them
         for v in range(len(self.vehicles)):
             self.vehicles[v].onVehicleUpdate(game)
+            game.fireEvent('onVehicleUpdate', self.vehicles[v])
             # If they get destroyed, delete them, and trigger events
             if self.vehicles[v].isDestroyed:
                 vehicleBackup = self.vehicles[v]
@@ -113,12 +115,10 @@ class WorldMP:
 
     def handleUpdate(self, updateBytes, game):
         '''
-        Use the binary blob data to update the world
+        Use the binary data to update the world
         '''
-
-        # TODO Add in entities and vehicles to this.
-        # TODO Only fire update events here and handle the actual updates in the client_mod module code
-
+        # TODO Add entities and vehicles to this.
+        # TODO Only fire update events here and handle the actual updates in the client_mod module cod
         players = eval(updateBytes.decode())
         players = [Player.fromBytes(p) for p in players]
 
