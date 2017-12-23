@@ -88,6 +88,8 @@ class PacketHandler:
                 self.game.fireEvent('onDisconnect')
                 del self.connections[connIndex]
                 return
+            except UnicodeDecodeError:
+                print(data)
 
             try:
                 dataDictionary = {a.split(':')[0][1:-1] : ':'.join(a.split(':')[1:])[1:-1] for a in re.findall('".*?":".*?"', data, re.DOTALL)}
@@ -140,10 +142,10 @@ class PacketHandler:
                     # Send any required response and reset the receive size
                     if isinstance(response, list):
                         for res in response:
-                            print('sending packet {} in response to {}'.format(res.__class__.__name__, packet.__name__))
+                            # print('sending packet {} in response to {}'.format(res.__class__.__name__, packet.__name__))
                             self.connections[connIndex].sendPacket(res)
                     else:
-                        print('sending packet {} in response to {}'.format(response.__class__.__name__, packet.__name__))
+                        # print('sending packet {} in response to {}'.format(response.__class__.__name__, packet.__name__))
                         self.connections[connIndex].sendPacket(response)
                 if packet.__name__ == 'DisconnectPacket':
                     self.connections[connIndex].connObj.close()
@@ -177,7 +179,7 @@ class PacketHandler:
         for conn in self.connections:
             self.sendToPlayer(packet, self.connections[conn].username)
 
-    def sendToNearby(self, packet, username, radius=10):
+    def sendToNearby(self, packet, username, radius=16):
         '''
         Send a packet to all players within a certain distance of a given player
         '''
@@ -190,8 +192,10 @@ class PacketHandler:
             return
         player = self.game.world.players[self.game.getPlayerIndex(username)]
         pos = player.pos
+        print(pos)
         for p in self.game.world.players:
-            if math.sqrt((p.pos[0]-pos[0])**2 + (p.pos[1]-pos[1])**2) <= 53:
+            print(math.sqrt((p.pos[0]-pos[0])**2 + (p.pos[1]-pos[1])**2))
+            if math.sqrt((p.pos[0]-pos[0])**2 + (p.pos[1]-pos[1])**2) <= radius:
                 self.sendToPlayer(packet, p.username)
 
     def sendToPlayer(self, packet, username):
