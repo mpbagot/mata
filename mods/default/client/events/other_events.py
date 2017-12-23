@@ -8,11 +8,15 @@ def onKeyPress(game, event):
     '''
     if game.openGUI[0] == game.getModInstance('ClientMod').gameGui:
         chatOverlay = game.getModInstance('ClientMod').chatOverlay
-        if event.key == pygame.K_t and not game.isOverlayOpen(chatOverlay):
-            game.openOverlay(chatOverlay, game)
-        elif event.key == pygame.K_ESCAPE and game.isOverlayOpen(chatOverlay):
+        if not game.isOverlayOpen(chatOverlay):
+            if event.key == pygame.K_t:
+                game.openOverlay(chatOverlay, game)
+            elif event.key == pygame.K_u:
+                game.openOverlay(chatOverlay, game, 'local')
+        elif event.key == pygame.K_ESCAPE:
             game.closeOverlay(chatOverlay)
-        elif event.key == pygame.K_m:
+
+        if event.key == pygame.K_m:
             game.getModInstance('ClientMod').packetPipeline.sendToServer(SendCommandPacket('random test message'))
 
 def onPacketReceived(game, packet):

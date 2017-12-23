@@ -43,14 +43,12 @@ class HUD(Overlay):
         self.screen.blit(text, [744, 670])
 
 class Chat(Overlay):
-    def __init__(self, game):
+    def __init__(self, game, tab='global'):
         super().__init__()
         self.game = game
-        self.tab = 'global'
+        self.tab = tab
 
     def drawForegroundLayer(self, mousePos):
-        super().drawForegroundLayer(mousePos)
-
         # Fetch the messages from the mod instance
         messages = self.game.getModInstance('ClientMod').chatMessages.get(self.tab, [])
 
@@ -76,6 +74,8 @@ class Chat(Overlay):
         for m, message in enumerate(messages):
             text = fontSmall.render(message, True, (0, 0, 0))
             self.screen.blit(text, [110, 90+15*m])
+
+        super().drawForegroundLayer(mousePos)
 
 class PlayerInventoryScreen(Gui):
     '''
