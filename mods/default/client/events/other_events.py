@@ -1,4 +1,5 @@
 import pygame
+from api.packets import SendCommandPacket
 
 def onKeyPress(game, event):
     '''
@@ -11,6 +12,8 @@ def onKeyPress(game, event):
             game.openOverlay(chatOverlay, game)
         elif event.key == pygame.K_ESCAPE and game.isOverlayOpen(chatOverlay):
             game.closeOverlay(chatOverlay)
+        elif event.key == pygame.K_m:
+            game.getModInstance('ClientMod').packetPipeline.sendToServer(SendCommandPacket('random test message'))
 
 def onPacketReceived(game, packet):
     '''

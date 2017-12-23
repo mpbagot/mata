@@ -46,29 +46,19 @@ class Chat(Overlay):
     def __init__(self, game):
         super().__init__()
         self.game = game
-        # self.bars = [
-        #                 Bar([744, 698], 260, 20, (255, 0, 0), self.game.player.health, 'Health'),
-        #                 Bar([744, 728], 260, 20, (0, 102, 255), self.game.player.exp, 'Experience')
-        #             ]
-        # equippedItems = self.game.player.inventory.getEquipped()
-        # self.itemSlots = [
-        #                     ItemSlot(equippedItems[0], [664, 630], 60),
-        #                     ItemSlot(equippedItems[1], [664, 700], 60)
-        #                  ]
-
-    def drawBackgroundLayer(self):
-        pass
+        self.tab = 'global'
 
     def drawForegroundLayer(self, mousePos):
         super().drawForegroundLayer(mousePos)
 
+        # Fetch the messages from the mod instance
+        messages = self.game.getModInstance('ClientMod').chatMessages.get(self.tab, [])
+
+        # Draw the background rectangle
         overlayScreen = pygame.Surface((824, 558))
         overlayScreen.set_alpha(191)
-        # square.fill((0, 0, 0))
-        # Draw the background rectangle
-        pygame.draw.rect(overlayScreen, (140, 140, 140), [0, 0, 824, 558])
 
-        # 150px tall, 458px from the top
+        pygame.draw.rect(overlayScreen, (140, 140, 140), [0, 0, 824, 558])
         pygame.draw.rect(overlayScreen, (170, 170, 170), [0, 458, 824, 100])
 
         self.screen.blit(overlayScreen, [100, 80])
@@ -83,12 +73,9 @@ class Chat(Overlay):
         # Generate a smaller font object
         fontSmall = pygame.font.Font('resources/font/main.ttf', 12)
 
-
-        # text = font.render('Username: '+self.game.player.username, True, (255, 255, 255))
-        # self.screen.blit(text, [744, 640])
-        #
-        # text = font.render('Level: '+str(self.game.player.level), True, (255, 255, 255))
-        # self.screen.blit(text, [744, 670])
+        for m, message in enumerate(messages):
+            text = fontSmall.render(message, True, (0, 0, 0))
+            self.screen.blit(text, [110, 90+15*m])
 
 class PlayerInventoryScreen(Gui):
     '''
