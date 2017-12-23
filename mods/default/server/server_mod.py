@@ -38,10 +38,12 @@ class ServerMod(Mod):
 
         # Register the events
         self.gameRegistry.registerEventHandler(onTick, 'onTick')
+        self.gameRegistry.registerEventHandler(onDisconnect, 'onDisconnect')
 
 def onTick(game, tick):
     if tick%5 == 0:
         # Send server updates to all of the connected clients 6 times a second
+        return
         game.getModInstance('ServerMod').packetPipeline.sendToAll(WorldUpdatePacket(game.world))
 
 class KickPlayerCommand(cmd.Command):
@@ -59,3 +61,10 @@ class KickPlayerCommand(cmd.Command):
                 if player == p.username:
                     pp.sendToPlayer(DisconnectPacket('You have been kicked from the server.'), p.username)
                     break
+
+def onDisconnect(game):
+    '''
+    Event Hook: onDisconnect
+    Print a little message in the server console
+    '''
+    print('A Client has disconnected')

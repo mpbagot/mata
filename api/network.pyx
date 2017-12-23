@@ -83,25 +83,25 @@ class PacketHandler:
                 data = data.decode()[1:-1]
                 if not data:
                     raise ConnectionResetError
-            except ConnectionResetError:
-                if self.side == util.SERVER:
-                    print('A Client has disconnected')
-                if self.side != util.SERVER:
-                    self.game.fireEvent('onDisconnect')
+            except ConnectionResetError as e:
+                print(e)
+                self.game.fireEvent('onDisconnect')
                 del self.connections[connIndex]
                 return
-            # except UnicodeDecodeError:
-            #     print(data)
-            # try:
-            dataDictionary = {a.split(':')[0][1:-1] : ':'.join(a.split(':')[1:])[1:-1] for a in re.findall('".*?":".*?"', data, re.DOTALL)}
-            # except IndexError:
-            #     print('errored', data)
 
-            # try:
-            #     print('Received '+dataDictionary['type'])
-            # except KeyError:
-            #     print(dataDictionary)
-            #     print(data, self.connections[connIndex].nextSize)
+            try:
+                dataDictionary = {a.split(':')[0][1:-1] : ':'.join(a.split(':')[1:])[1:-1] for a in re.findall('".*?":".*?"', data, re.DOTALL)}
+            except IndexError:
+                dataDictionary = {}
+                # print('errored', data)
+
+            try:
+                print('Received '+dataDictionary['type'])
+            except KeyError:
+                print('[ERROR] Packet corrupted. This is probably an issue with a mod you are using.')
+                # print('dictionary is: '+str(dataDictionary))
+                # print('raw data is: '+data)
+                continue
 
             if dataDictionary['type'] == 'ByteSizePacket':
                 self.handlePacket(dataDictionary, connIndex)
@@ -131,9 +131,10 @@ class PacketHandler:
 
                 except Exception as e:
                     print('Packet unable to be handled correctly.')
-                    print('Error is as follow:\n', e)
-                    raise e
+                    print('Error is as follow:')
+                    print(e)
                     return
+
                 self.game.fireEvent('onPacketReceived', p)
                 if response:
                     # Send any required response and reset the receive size
@@ -187,7 +188,7 @@ class PacketHandler:
         if self.side == util.CLIENT:
             print('[WARNING] Cannot send a packet to clients from a client runtime!')
             return
-        player = self.game.world.players[self.game.world.getPlayerIndex(username)]
+        player = self.game.world.players[self.game.getPlayerIndex(username)]
         pos = player.pos
         for p in self.game.world.players:
             if math.sqrt((p.pos[0]-pos[0])**2 + (p.pos[1]-pos[1])**2) <= 53:
