@@ -52,7 +52,7 @@ class LoginPacket(Packet):
         # TODO Add password login for certain elevated usernames
 
         for conn in connections:
-            if conn.username == self.player.username:
+            if connections[conn].username == self.player.username:
                 return InvalidLoginPacket()
 
         connection.username = self.player.username

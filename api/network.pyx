@@ -20,7 +20,7 @@ class PacketHandler:
         self.nextSize = 37
         self.game = game
         self.side = side
-        self.connections = []
+        self.connections = {}
         self.safePackets = [ByteSizePacket, LoginPacket,
                             DisconnectPacket, SyncPlayerPacket,
                             ResetPlayerPacket, InvalidLoginPacket,
@@ -48,9 +48,9 @@ class PacketHandler:
         except OSError:
             pass
 
-        self.connections.append(Connection(self.socket, address))
+        self.connections[max(self.connections, default=0)+1] = Connection(self.socket, address)
         # Fork a connection handling thread
-        t = Thread(target=self.handleConn, args=(len(self.connections)-1,))
+        t = Thread(target=self.handleConn, args=(max(self.connections, default=0),))
         t.daemon = True
         t.start()
         # Fire the login event
@@ -65,9 +65,9 @@ class PacketHandler:
         self.socket.listen(util.MAX_PLAYERS)
         while True:
             conn, addr = self.socket.accept()
-            self.connections.append(Connection(conn, addr))
+            self.connections[max(self.connections, default=0)+1] = Connection(conn, addr)
             # Fork a connection handling thread
-            t = Thread(target=self.handleConn, args=(len(self.connections)-1,))
+            t = Thread(target=self.handleConn, args=(max(self.connections, default=0),))
             t.daemon = True
             t.start()
 
@@ -175,7 +175,7 @@ class PacketHandler:
             print('[WARNING] Cannot send a packet to clients from a client runtime!')
             return
         for conn in self.connections:
-            self.sendToPlayer(packet, conn.username)
+            self.sendToPlayer(packet, self.connections[conn].username)
 
     def sendToNearby(self, packet, username, radius=10):
         '''
@@ -206,8 +206,8 @@ class PacketHandler:
             print('[WARNING] Cannot send a packet to clients from a client runtime!')
             return
         for conn in self.connections:
-            if conn.username == username:
-                conn.sendPacket(packet)
+            if self.connections[conn].username == username:
+                self.connections[conn].sendPacket(packet)
 
     def sendToServer(self, packet):
         '''
@@ -220,7 +220,7 @@ class PacketHandler:
         if self.side == util.SERVER:
             print('[WARNING] Cannot send a packet to server from a server runtime!')
             return
-        self.connections[0].sendPacket(packet)
+        self.connections[1].sendPacket(packet)
 
 class Connection:
     def __init__(self, conn, addr):
