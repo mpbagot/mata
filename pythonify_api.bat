@@ -1,1 +1,3 @@
-ren api/*.pyx api/*.py
+cd api
+ren *.pyx *.py
+cd ../
