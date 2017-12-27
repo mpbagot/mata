@@ -8,6 +8,14 @@ The game can be played singleplayer, but is created with the multiplayer experie
 Getting the game running from source code only involves a couple of steps.
 Firstly, ensure that your computer has the following dependencies installed:
 
+##### Windows
+
+- Python 3 (3.4 is preferred)
+- [Visual Studio C++ Build Tools](https://wiki.python.org/moin/WindowsCompilers) (Not needed for Python 3.4) 
+
+Once these dependencies are installed, simply run the setup.bat script, and run:
+> py main.py
+
 ##### Linux:
 
  - Python3 Packages (Installed using pip3):
