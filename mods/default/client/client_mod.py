@@ -30,7 +30,7 @@ class ClientMod(Mod):
 
         images = ['gravel', 'grass', 'dirt', 'road', 'sand', 'water']
         for i in images:
-            img = pygame.image.load('resources/textures/mods/tiles/'+i+'.png')
+            img = pygame.image.load('resources/textures/mods/tiles/'+i+'.png').convert()
             self.gameRegistry.registerResource('tile_'+i, img)
 
     def load(self):
