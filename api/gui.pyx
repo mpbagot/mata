@@ -60,29 +60,35 @@ class Scrollbox:
         self.pos = pos
         self.rect = rect
         self.maxHeight = self.rect[1]
-        self.innerScreen = pygame.Surface([rect[0], 65535]).convert_alpha()
+        self.objects = []
+        self.innerScreen = pygame.Surface(rect).convert_alpha()
 
         sliderRect = [pos[0]+int(rect[0]*0.97), pos[1]+30, int(rect[0]*0.025), rect[1]-60]
         self.scrollSlider = Slider(sliderRect, (0, 0, 0))
 
     def draw(self, screen, mousePos):
         # Draw the innerscreen, then draw the slider onto it.
-        newRect = pygame.Rect([0, 0], self.rect)
-        newRect.top = self.scrollValue
-        # print(newRect)
-        boundBox = self.innerScreen.subsurface(newRect)#pygame.Surface(self.rect)
-        # boundBox.blit(self.innerScreen, [0, -self.scrollValue])
-        screen.blit(boundBox, self.pos)
+        while self.objects:
+            obj, pos = self.objects[0]
+            pos = list(pos)
+            pos[1] -= self.scrollValue
+            self.innerScreen.blit(obj, pos)
+            del self.objects[0]
+
+        screen.blit(self.innerScreen, self.pos)
+
+        self.innerScreen = pygame.Surface(self.rect).convert_alpha()
 
         self.scrollSlider.draw(screen, mousePos)
 
         self.scrollValue = int(self.scrollSlider.value*self.maxHeight)
 
-    def blit(self, surface, pos, *args):
+    def blit(self, surface, pos):
         '''
         Draw a surface to the scrollbox's inner screen
         '''
-        self.innerScreen.blit(surface, pos, *args)
+        self.objects.append([surface, pos])
+        # self.innerScreen.blit(surface, pos, *args)
         if pos[1]+surface.get_height() > self.maxHeight-10:
             self.maxHeight = pos[1]+surface.get_height()+10
 
