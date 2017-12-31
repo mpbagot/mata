@@ -76,7 +76,7 @@ class Chat(Overlay):
 
         for m, message in enumerate(messages):
             text = fontSmall.render(message, True, (0, 0, 0))
-            self.scrollScreen.blit(text, [110, 90+15*m])
+            self.scrollScreen.blit(text, [0, 15*m])
 
         self.scrollScreen.draw(self.screen, mousePos)
 
