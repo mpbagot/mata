@@ -59,7 +59,7 @@ class Scrollbox:
         self.scrollValue = 0
         self.pos = pos
         self.rect = rect
-        self.maxHeight = self.rect[1]
+        self.maxHeight = 0
         self.objects = []
         self.innerScreen = pygame.Surface(rect).convert_alpha()
 
@@ -89,8 +89,9 @@ class Scrollbox:
         '''
         self.objects.append([surface, pos])
         # self.innerScreen.blit(surface, pos, *args)
-        if pos[1]+surface.get_height() > self.maxHeight-10:
-            self.maxHeight = pos[1]+surface.get_height()+10
+        testMaxHeight = pos[1]+surface.get_height()-self.rect[1]
+        if testMaxHeight > self.maxHeight-10 and testMaxHeight > 0:
+            self.maxHeight = testMaxHeight
 
 class ItemSlot:
     def __init__(self, item, pos, size):
@@ -113,7 +114,7 @@ class Slider:
     def __init__(self, rect, colour):
         self.rect = rect
         self.value = 0
-        # self.displayValue = self.value
+
         self.pad = rect[2]//2 if rect[2] < rect[3] else rect[3]//2
         self.isVertical = self.pad == rect[2]//2
 
@@ -138,8 +139,6 @@ class Slider:
         else:
             circlePos = [int(self.rect[0]+self.rect[2]*self.value), int(self.rect[1]+self.pad)]
         pygame.draw.circle(screen, (255, 255, 255), circlePos, int(self.pad*1.5))
-
-        # self.displayValue = round(self.value, 2)
 
     def isHovered(self, mousePos):
         x, y = mousePos
