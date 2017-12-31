@@ -54,6 +54,38 @@ class Overlay(Gui):
         '''
         pass
 
+class Scrollbox:
+    def __init__(self, rect, pos):
+        self.scrollValue = 0
+        self.pos = pos
+        self.rect = rect
+        self.maxHeight = self.rect[1]
+        self.innerScreen = pygame.Surface([rect[0], 65535]).convert_alpha()
+
+        sliderRect = [pos[0]+int(rect[0]*0.97), pos[1]+30, int(rect[0]*0.025), rect[1]-60]
+        self.scrollSlider = Slider(sliderRect, (0, 0, 0))
+
+    def draw(self, screen, mousePos):
+        # Draw the innerscreen, then draw the slider onto it.
+        newRect = pygame.Rect([0, 0], self.rect)
+        newRect.top = self.scrollValue
+        # print(newRect)
+        boundBox = self.innerScreen.subsurface(newRect)#pygame.Surface(self.rect)
+        # boundBox.blit(self.innerScreen, [0, -self.scrollValue])
+        screen.blit(boundBox, self.pos)
+
+        self.scrollSlider.draw(screen, mousePos)
+
+        self.scrollValue = int(self.scrollSlider.value*self.maxHeight)
+
+    def blit(self, surface, pos, *args):
+        '''
+        Draw a surface to the scrollbox's inner screen
+        '''
+        self.innerScreen.blit(surface, pos, *args)
+        if pos[1]+surface.get_height() > self.maxHeight-10:
+            self.maxHeight = pos[1]+surface.get_height()+10
+
 class ItemSlot:
     def __init__(self, item, pos, size):
         self.pos = [a+3 for a in pos]
@@ -75,40 +107,46 @@ class Slider:
     def __init__(self, rect, colour):
         self.rect = rect
         self.value = 0
-        self.displayValue = self.value
-        self.bar = Bar(rect[:2], rect[2], rect[3], colour)
+        # self.displayValue = self.value
+        self.pad = rect[2]//2 if rect[2] < rect[3] else rect[3]//2
+        self.isVertical = self.pad == rect[2]//2
+
+        if self.isVertical:
+            self.bar = VertBar(rect[:2], rect[2], rect[3], colour)
+        else:
+            self.bar = HorizBar(rect[:2], rect[2], rect[3], colour)
+
 
     def draw(self, screen, mousePos):
         if self.isHovered(mousePos) and pygame.mouse.get_pressed()[0]:
-            self.value = abs(mousePos[0]-self.rect[0])/self.rect[2]
-            # Draw a value label
-            font = pygame.font.Font('resources/font/main.ttf', 15)
-            text = font.render(str(self.displayValue), True, (0, 0, 0))
-            pos = [mousePos[0]-text.get_rect().width//2, mousePos[1]-30]
-            self.screen.blit(text, pos)
+            if self.isVertical:
+                self.value = abs(mousePos[1]-self.rect[1])/self.rect[3]
+            else:
+                self.value = abs(mousePos[0]-self.rect[0])/self.rect[2]
 
         self.bar.draw(screen, mousePos)
 
         # Draw the circle over the top of the bar
-        circlePos = [int(self.rect[0]+self.rect[2]*self.value), int(self.rect[1]+self.rect[3]//2)]
-        pygame.draw.circle(screen, (255, 255, 255), circlePos, self.rect[3])
+        if self.isVertical:
+            circlePos = [int(self.rect[0]+self.pad), int(self.rect[1]+self.rect[3]*self.value)]
+        else:
+            circlePos = [int(self.rect[0]+self.rect[2]*self.value), int(self.rect[1]+self.pad)]
+        pygame.draw.circle(screen, (255, 255, 255), circlePos, int(self.pad*1.5))
 
-        self.displayValue = round(self.value, 2)
+        # self.displayValue = round(self.value, 2)
 
     def isHovered(self, mousePos):
         x, y = mousePos
-        if y > self.rect[1]-self.rect[3]//2 and y < self.rect[1]+int(self.rect[3]*1.5):
-            if x > self.rect[0] and x < self.rect[0]+self.rect[2]:
+        if y > self.rect[1]-self.pad and y < self.rect[1]+self.rect[3]+self.pad:
+            if x > self.rect[0]-self.pad and x < self.rect[0]+self.rect[2]+self.pad:
                 return True
         return False
 
-class Bar:
+class HorizBar:
     def __init__(self, topLeftPos, width, height, colour, percentage=100, label=''):
         self.pos = topLeftPos
         self.width = width
         self.height = height+height%2
-        if width < height:
-            raise Exception('Invalid Gui Bar Dimensions!')
         self.percentage = percentage
         self.colour = colour
         self.label = label
@@ -133,7 +171,7 @@ class Bar:
         scaledRightPos = [leftPos[0] + round(lineLength * self.percentage/100), rightLinePos[1]]
         pygame.draw.line(screen, self.colour, leftLinePos, scaledRightPos, self.height)
         # Draw the end circles of the bar
-        scaledRightPos = [scaledRightPos[0], scaledRightPos[1]+1]
+        scaledRightPos[1] += 1
         pygame.draw.circle(screen, self.colour, leftPos, self.height//2)
         pygame.draw.circle(screen, self.colour, scaledRightPos, self.height//2)
 
@@ -143,6 +181,39 @@ class Bar:
             text = font.render(self.label, True, (255, 255, 255))
             pos = [self.pos[0]+8, self.pos[1]]
             screen.blit(text, pos)
+
+class VertBar(HorizBar):
+    def draw(self, screen, mousePos):
+        lineLength = self.height-self.width
+
+        # Get the left and right points of the bar's circles
+        topPos = [self.pos[0]+self.width//2, self.pos[1]+self.width//2]
+        bottomPos = [topPos[0], topPos[1]+lineLength]
+        # Get the end points of the line
+        topLinePos = [topPos[0]-1, topPos[1]]
+        bottomLinePos = [bottomPos[0]-1, bottomPos[1]]
+
+        # Draw the grey underbar
+        pygame.draw.line(screen, (192, 192, 192), topLinePos, bottomLinePos, self.width)
+        pygame.draw.circle(screen, (192, 192, 192), topPos, self.width//2)
+        pygame.draw.circle(screen, (192, 192, 192), bottomPos, self.width//2)
+
+        # Draw the bar over the top
+        # Get the scaled position of the end of the bar
+        scaledTopPos = [topPos[0]-1, bottomLinePos[1] - round(lineLength * self.percentage/100)]
+        pygame.draw.line(screen, self.colour, bottomLinePos, scaledTopPos, self.width)
+        # Draw the end circles of the bar
+        scaledTopPos[0] += 1
+        pygame.draw.circle(screen, self.colour, bottomPos, self.width//2)
+        pygame.draw.circle(screen, self.colour, scaledTopPos, self.width//2)
+
+        # Draw the label
+        if self.label:
+            font = pygame.font.Font('resources/font/main.ttf', self.width-4)
+            for c, char in enumerate(self.label):
+                text = font.render(self.label, True, (255, 255, 255))
+                pos = [self.pos[0], self.pos[1]+8+(c*self.width-4)]
+                screen.blit(text, pos)
 
 class Button:
     def __init__(self, rect, label):

@@ -16,8 +16,8 @@ class HUD(Overlay):
         super().__init__()
         self.game = game
         self.bars = [
-                        Bar([744, 698], 260, 20, (255, 0, 0), self.game.player.health, 'Health'),
-                        Bar([744, 728], 260, 20, (0, 102, 255), self.game.player.exp, 'Experience')
+                        HorizBar([744, 698], 260, 20, (255, 0, 0), self.game.player.health, 'Health'),
+                        HorizBar([744, 728], 260, 20, (0, 102, 255), self.game.player.exp, 'Experience')
                     ]
         equippedItems = self.game.player.inventory.getEquipped()
         self.itemSlots = [
@@ -47,6 +47,7 @@ class Chat(Overlay):
         super().__init__()
         self.game = game
         self.tab = tab
+        self.scrollScreen = Scrollbox([804, 438], [110, 90])
 
     def drawForegroundLayer(self, mousePos):
         # Fetch the messages from the mod instance
@@ -71,9 +72,13 @@ class Chat(Overlay):
         # Generate a smaller font object
         fontSmall = pygame.font.Font('resources/font/main.ttf', 12)
 
+        self.scrollScreen.innerScreen.fill(pygame.Color(127, 127, 127, 0))
+
         for m, message in enumerate(messages):
             text = fontSmall.render(message, True, (0, 0, 0))
-            self.screen.blit(text, [110, 90+15*m])
+            self.scrollScreen.blit(text, [110, 90+15*m])
+
+        self.scrollScreen.draw(self.screen, mousePos)
 
         super().drawForegroundLayer(mousePos)
 
