@@ -4,8 +4,9 @@ from api.ai import *
 class Bear(Entity):
     def __init__(self):
         super().__init__()
-        self.name = 'Bear'
+        self.setRegistryName('Bear')
         self.aiHandler.registerAITask(WalkAITask(self), 0)
+        self.setImage('entity_bear')
 
 class WalkAITask(AITask):
     def __init__(self, entity):

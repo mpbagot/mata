@@ -44,6 +44,22 @@ def onTickHandleMovement(game, tick):
             pos = [pos[a]+deltaPos[a] for a in (0, 1)]
             game.world.players[p].pos = deepcopy(pos)
 
+        # Interpolate the movement of the entities
+        for e in range(len(game.world.entities)):
+            props = game.world.entities[e].getProperty('worldUpdate')
+
+            # Get the number of ticks since the last sync to server
+            moduloTick = 5-(game.tick-props.props['updateTick'])%5
+
+            # Calculate the change in position
+            pos = game.world.entities[e].pos
+            deltaPos = [props.props['newPos'][a]-pos[a] for a in (0, 1)]
+            deltaPos = [deltaPos[0]/moduloTick, deltaPos[1]/moduloTick]
+
+            # Apply the position transform to the player
+            pos = [pos[a]+deltaPos[a] for a in (0, 1)]
+            game.world.entities[e].pos = deepcopy(pos)
+
         # Handle player movement
         keys = pygame.key.get_pressed()
         speed = 0.2

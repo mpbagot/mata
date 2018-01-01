@@ -1,4 +1,6 @@
 import pygame
+from copy import deepcopy
+
 from api.packets import SendCommandPacket
 
 def onKeyPress(game, event):
@@ -18,6 +20,9 @@ def onKeyPress(game, event):
 
         if event.key == pygame.K_m:
             game.getModInstance('ClientMod').packetPipeline.sendToServer(SendCommandPacket('/message global random test message'))
+
+        if event.key == pygame.K_e:
+            game.getModInstance('ClientMod').packetPipeline.sendToServer(SendCommandPacket('/spawn Bear'))
 
 def onPacketReceived(game, packet):
     '''
@@ -91,3 +96,25 @@ def onPlayerUpdate(game, player, oldPlayers):
 
     player.setProperty('worldUpdate', game.getModInstance('ClientMod').worldUpdateProperty)
     oldPlayers.append(player)
+
+def onEntitySync(game, entity, entities):
+    '''
+    Event Hook: onEntitySync
+    Apply the updates to the entity from the server
+    '''
+    # If the player being updated is the client player, skip it
+    for e in range(len(entities)):
+        if entities[e].uuid == entity.uuid:
+            # Update vanilla player properties
+            entities[e].hp = entity.hp
+
+            # Update the modded properties
+            props = entities[e].getProperty('worldUpdate')
+            props.props['newPos'] = entity.pos
+            props.props['updateTick'] = game.tick
+            entities[e].setProperty('worldUpdate', props)
+
+            return
+
+    entity.setProperty('worldUpdate', game.getModInstance('ClientMod').worldUpdateProperty)
+    entities.append(entity)

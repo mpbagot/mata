@@ -7,6 +7,8 @@ from mods.default.packets import *
 from mods.default.biomes import *
 from mods.default.client.client_gui import *
 from mods.default.client.events import tick_events, other_events
+from mods.default.server.entity import bear
+
 import util
 
 import pygame
@@ -32,6 +34,11 @@ class ClientMod(Mod):
             img = pygame.image.load('resources/textures/mods/tiles/'+i+'.png').convert()
             self.gameRegistry.registerResource('tile_'+i, img)
 
+        images = ['bear']
+        for i in images:
+            img = pygame.image.load('resources/textures/mods/entity/'+i+'.png').convert_alpha()
+            self.gameRegistry.registerResource('entity_'+i, img)
+
     def load(self):
         # Initialise the packet pipeline
         self.packetPipeline = network.PacketHandler(self.game, util.CLIENT)
@@ -52,6 +59,9 @@ class ClientMod(Mod):
         # Initialise the Overlays
         self.hudOverlay = self.gameRegistry.registerGUI(HUD)
         self.chatOverlay = self.gameRegistry.registerGUI(Chat)
+
+        # Register the entities
+        self.gameRegistry.registerEntity(bear.Bear())
 
     def postLoad(self):
         # Open the main menu on startup
@@ -76,6 +86,7 @@ class ClientMod(Mod):
         self.gameRegistry.registerEventHandler(other_events.onPacketReceived, 'onPacketReceived')
         self.gameRegistry.registerEventHandler(other_events.onDisconnect, 'onDisconnect')
         self.gameRegistry.registerEventHandler(other_events.onPlayerUpdate, 'onPlayerUpdate')
+        self.gameRegistry.registerEventHandler(other_events.onEntitySync, 'onEntitySync')
 
         self.gameRegistry.registerEventHandler(other_events.onKeyPress, 'onKeyPress')
 
