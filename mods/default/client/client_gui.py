@@ -193,11 +193,12 @@ class GameScreen(Gui):
                 print('rendering image')
                 self.game.world.players[p].smallImg = self.game.getModInstance('ClientMod').calculateAvatar(player.img)
 
+        p = self.game.player
+        mainAbsPos = p.getAbsPos()
+
         # Draw the player images to screen
         for player in self.game.world.players:
             # Get the difference in position
-            p = self.game.player
-            mainAbsPos = p.getAbsPos()#[p.relPos[0]+p.pos[0], p.relPos[1]+p.pos[1]]
             deltaPos = [player.pos[a]-mainAbsPos[a] for a in range(2)]
 
             # Get the player image size
@@ -206,6 +207,19 @@ class GameScreen(Gui):
             # Adjust position accordingly, and draw to screen
             pos = [x//2+deltaPos[0]*size.width-size.width//2, y//2+deltaPos[1]*size.height-size.height//2]
             self.screen.blit(player.smallImg, pos)
+
+        # Draw the entity images to screen
+        for ent in self.game.world.entities:
+            # Get the difference in position
+            deltaPos = [ent.pos[a]-mainAbsPos[a] for a in range(2)]
+
+            # Get the entity image size
+            entityImage = ent.getImage(self.game.modLoader.gameRegistry.resources)
+            size = entityImage.get_rect()
+
+            # Adjust position accordingly, and draw to screen
+            pos = [x//2+deltaPos[0]*size.width-size.width//2, y//2+deltaPos[1]*size.height-size.height//2]
+            self.screen.blit(entityImage, pos)
 
     def drawForegroundLayer(self, mousePos):
         '''
