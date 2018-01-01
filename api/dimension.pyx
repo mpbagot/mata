@@ -70,11 +70,7 @@ class WorldMP:
         '''
         Spawn a new entity instance into the world
         '''
-        print(entity)
-        entity = deepcopy(entity)
         entity.uuid = len(self.entities)
-        print(entity)
-        print(self.entities)
         self.entities.append(entity)
 
     def tickUpdate(self, game):
