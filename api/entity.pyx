@@ -1,6 +1,8 @@
 from api.item import Inventory
 from api.ai import AIHandler
 
+from copy import deepcopy
+
 class Player:
     '''
     A base class for storing the player information
@@ -75,11 +77,53 @@ class Entity:
         self.isDead = False
         self.tickDamage = None
         self.hp = 100
+        self.uuid = 0
         self.pos = [0, 0]
         self.aiHandler = AIHandler()
+        self.image = None
+        self.properties = {}
 
     def __str__(self):
+        x = super().__repr__()
+        return x.split()[-1][:-1] + ' {} {}'.format(self.name, self.uuid)
+
+    def __repr__(self):
+        x = super().__repr__()
+        return x.split()[-1][:-1] + ' {} {} {}'.format(self.name, self.uuid, self.pos)
+
+    def setRegistryName(self, name):
+        self.name = name
+
+    def getRegistryName(self):
         return self.name
+
+    def setProperty(self, propName, propVal):
+        self.properties[propName] = propVal
+
+    def getProperty(self, propName):
+        return self.properties.get(propName)
+
+    def getImage(self, resources):
+        try:
+            return resources[self.image]
+        except KeyError:
+            raise KeyError('Image "{}" has not been registered in the Game Registry'.format(self.image))
+
+    def setImage(self, image):
+        self.image = image
+
+    def toBytes(self):
+        return (str([self.__class__.__name__, self.name, self.uuid, self.pos, self.hp, str(self.tickDamage)]).replace(', ', ',')).encode()
+
+    @staticmethod
+    def fromBytes(eBytes, entityClassList):
+        entityClass, *entityProps = eval(eBytes)
+        finalEntity = deepcopy(entityClassList.get(entityClass, Entity()))
+
+        finalEntity.setRegistryName(entityProps[0])
+        finalEntity.uuid, finalEntity.pos, finalEntity.hp, finalEntity.tickDamage = entityProps[1:]
+
+        return finalEntity
 
 class Damage:
     '''
