@@ -1,12 +1,15 @@
 from api.entity import *
 from api.ai import *
 
+from random import randint
+
 class Bear(Entity):
     def __init__(self):
         super().__init__()
         self.setRegistryName('Bear')
         self.aiHandler.registerAITask(WalkAITask(self), 0)
         self.setImage('entity_bear')
+        self.pos = [randint(-5, 5), randint(-5, 5)]
 
 class WalkAITask(AITask):
     def __init__(self, entity):
