@@ -8,6 +8,7 @@ from copy import deepcopy
 # Import the mod files
 from api.packets import *
 from api.biome import *
+from api.entity import *
 
 class DimensionHandler:
     def __init__(self, biomes, biomeSize):
@@ -65,6 +66,17 @@ class WorldMP:
 
         return self
 
+    def spawnEntityInWorld(self, entity):
+        '''
+        Spawn a new entity instance into the world
+        '''
+        print(entity)
+        entity = deepcopy(entity)
+        entity.uuid = len(self.entities)
+        print(entity)
+        print(self.entities)
+        self.entities.append(entity)
+
     def tickUpdate(self, game):
         '''
         Run one tick of updates on the world and everything in it (SERVER-SIDE UPDATE)
@@ -73,7 +85,7 @@ class WorldMP:
         gameRegistry = game.modLoader.gameRegistry
         # Loop through the entities and update them
         for e in range(len(self.entities)):
-            self.entities[e].onLivingUpdate(game)
+            self.entities[e].aiHandler.runAITick()
             game.fireEvent('onEntityUpdate', self.entities[e])
             # If they die, delete them, and trigger events
             if self.entities[e].isDead:
@@ -111,19 +123,26 @@ class WorldMP:
         '''
         Collate the update data into a bytes object
         '''
-        return str([p.toBytes() for p in self.players]).replace('"', "'''").encode()
+        return (str([p.toBytes() for p in self.players])+'$$$'+str([e.toBytes() for e in self.entities])).replace('"', "'''").encode()
 
     def handleUpdate(self, updateBytes, game):
         '''
         Use the binary data to update the world
         '''
         # TODO Add entities and vehicles to this.
-        # TODO Only fire update events here and handle the actual updates in the client_mod module cod
-        players = eval(updateBytes.decode())
+        players, entities = updateBytes.decode().split('$$$')
+
+        players = eval(players)
         players = [Player.fromBytes(p) for p in players]
 
         for player in players:
             game.fireEvent("onPlayerUpdate", player, self.players)
+
+        entities = eval(entities)
+        entities = [Entity.fromBytes(e, game.modLoader.gameRegistry.entities) for e in entities]
+
+        for entity in entities:
+            game.fireEvent('onEntitySync', entity, self.entities)
 
     def addPlayer(self, player):
         '''
