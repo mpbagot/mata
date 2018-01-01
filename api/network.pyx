@@ -98,7 +98,7 @@ class PacketHandler:
                 # print('errored', data)
 
             try:
-                print('Received '+dataDictionary['type'])
+                x = ('Received '+dataDictionary['type'])
             except KeyError:
                 print('[ERROR] Packet corrupted. This is probably an issue with a mod you are using.')
                 # print('dictionary is: '+str(dataDictionary))
