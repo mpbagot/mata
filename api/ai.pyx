@@ -15,10 +15,12 @@ class AIHandler:
         Register an AI task with a certain weighting
         Low weighting values have priority over high weightings
         '''
-        if 0 < weight < 9:
+        if not isinstance(weight, int):
+            raise TypeError('AI Task weighting is not an integer')
+        if -1 < weight < 9:
             self.registeredAI[weight].append(task)
         else:
-            raise Exception('AI Task weighting is not between 0 and 9')
+            raise ValueError('AI Task weighting is not between 0 and 9')
 
     def runAITick(self):
         '''
