@@ -76,7 +76,7 @@ class Entity:
         self.tickDamage = None
         self.hp = 100
         self.pos = [0, 0]
-        self.aiRegister = AIHandler()
+        self.aiHandler = AIHandler()
 
     def __str__(self):
         return self.name

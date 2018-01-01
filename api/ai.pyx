@@ -45,24 +45,32 @@ class AIHandler:
                     if shouldRun == CONTINUE:
                         self.registeredAI[l][t].continueExecution()
                     elif shouldRun == END:
+                        self.registeredAI[l][t].endExecution()
                         self.registeredAI[l][t].status = IDLE
+
+                else:
+                    raise TypeError('Task status is not a valid execution state')
+
+                if shouldRun == SKIP:
+                    self.registeredAI[l][t].skipExecution()
 
 
 class AITask:
-    def __init__(self):
+    def __init__(self, entity):
         self.status = IDLE
+        self.entity = entity
 
     def shouldStartExecute(self):
         '''
         Return whether or not the ai task should start running on a given tick
         '''
-        return False
+        return SKIP
 
     def shouldContinueExecute(self):
         '''
         Return whether or not the ai task should continue running on a given tick
         '''
-        return False
+        return SKIP
 
     def startExecution(self):
         '''
