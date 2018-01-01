@@ -17,7 +17,7 @@ def onKeyPress(game, event):
             game.closeOverlay(chatOverlay)
 
         if event.key == pygame.K_m:
-            game.getModInstance('ClientMod').packetPipeline.sendToServer(SendCommandPacket('random test message'))
+            game.getModInstance('ClientMod').packetPipeline.sendToServer(SendCommandPacket('/message global random test message'))
 
 def onPacketReceived(game, packet):
     '''
