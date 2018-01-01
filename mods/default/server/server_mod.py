@@ -6,7 +6,10 @@ from api.packets import *
 # Import the extra mod data
 from mods.default.packets import *
 from mods.default.biomes import *
+from mods.default.server.entity import bear
+
 import util
+from copy import deepcopy
 
 class ServerMod(Mod):
     modName = 'ServerMod'
@@ -24,9 +27,12 @@ class ServerMod(Mod):
         # Register the packet handler with the game
         self.gameRegistry.registerPacketHandler(self.packetPipeline)
 
+        # Register the entities
+        self.gameRegistry.registerEntity(bear.Bear())
+
     def postLoad(self):
         # Register the commands
-        self.commands = [('/kick', KickPlayerCommand)]
+        self.commands = [('/kick', KickPlayerCommand), ('/spawn', SpawnEntityCommand)]
         for comm in self.commands:
             self.gameRegistry.registerCommand(*comm)
 
@@ -60,6 +66,16 @@ class KickPlayerCommand(cmd.Command):
                 if player == p.username:
                     pp.sendToPlayer(DisconnectPacket('You have been kicked from the server.'), p.username)
                     break
+
+class SpawnEntityCommand(cmd.Command):
+    def run(self, username, *args):
+        entityName = args[0]
+        try:
+            newEntity = self.game.modLoader.gameRegistry.entities[entityName]
+            self.game.world.spawnEntityInWorld(newEntity)
+            # self.game.world.entities.append(deepcopy(self.game.modLoader.gameRegistry.entities[entityName]))
+        except KeyError:
+            print('[ERROR] Entity does not exist')
 
 def onDisconnect(game):
     '''
