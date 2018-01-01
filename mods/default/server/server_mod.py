@@ -71,7 +71,7 @@ class SpawnEntityCommand(cmd.Command):
     def run(self, username, *args):
         entityName = args[0]
         try:
-            newEntity = self.game.modLoader.gameRegistry.entities[entityName]
+            newEntity = self.game.modLoader.gameRegistry.entities[entityName]()
             self.game.world.spawnEntityInWorld(newEntity)
             # self.game.world.entities.append(deepcopy(self.game.modLoader.gameRegistry.entities[entityName]))
         except KeyError:

@@ -116,5 +116,5 @@ def onEntitySync(game, entity, entities):
 
             return
 
-    entity.setProperty('worldUpdate', game.getModInstance('ClientMod').worldUpdateProperty)
+    entity.setProperty('worldUpdate', deepcopy(game.getModInstance('ClientMod').worldUpdateProperty))
     entities.append(entity)

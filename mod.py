@@ -100,7 +100,7 @@ class GameRegistry:
         Register an entity
         '''
         if self.entities.get(entityClass.getRegistryName()) is None:
-            self.entities[entityClass.getRegistryName()] = entityClass
+            self.entities[entityClass.getRegistryName()] = entityClass.__class__
             return
         raise KeyError('[ERROR] Registry name {} already in use by another entity!'.format(entityClass.getRegistryName()))
 

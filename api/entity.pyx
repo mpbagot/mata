@@ -118,7 +118,7 @@ class Entity:
     @staticmethod
     def fromBytes(eBytes, entityClassList):
         entityClass, *entityProps = eval(eBytes)
-        finalEntity = deepcopy(entityClassList.get(entityClass, Entity()))
+        finalEntity = entityClassList.get(entityClass, Entity)()
 
         finalEntity.setRegistryName(entityProps[0])
         finalEntity.uuid, finalEntity.pos, finalEntity.hp, finalEntity.tickDamage = entityProps[1:]
