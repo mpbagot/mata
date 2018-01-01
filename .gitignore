@@ -2,6 +2,7 @@
 *.c
 *.cpython-34m.so
 *.cpython-35m-x86_64-linux-gnu.so
+*.xcf
 .fuse_hidden*
 setup.py
 
