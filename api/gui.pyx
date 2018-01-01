@@ -67,6 +67,9 @@ class Scrollbox:
         self.scrollSlider = Slider(sliderRect, (0, 0, 0))
 
     def draw(self, screen, mousePos):
+        '''
+        Draw the scrollbox to a given screen
+        '''
         # Draw the innerscreen, then draw the slider onto it.
         while self.objects:
             obj, pos = self.objects[0]
@@ -101,6 +104,9 @@ class ItemSlot:
         self.button = Button(pos+[size, size], '')
 
     def draw(self, screen, mousePos):
+        '''
+        Draw the itemslot to a given screen
+        '''
         self.button.draw(screen, [0, 0])
         imgRect = screen.blit(self.item.img, self.pos)
         if self.button.isHovered(mousePos):
@@ -125,6 +131,9 @@ class Slider:
 
 
     def draw(self, screen, mousePos):
+        '''
+        Draw the slider to a given screen
+        '''
         if self.isHovered(mousePos) and pygame.mouse.get_pressed()[0]:
             if self.isVertical:
                 self.value = abs(mousePos[1]-self.rect[1])/self.rect[3]
@@ -141,6 +150,9 @@ class Slider:
         pygame.draw.circle(screen, (255, 255, 255), circlePos, int(self.pad*1.5))
 
     def isHovered(self, mousePos):
+        '''
+        Determine if a given mousePos is hovering over the slider
+        '''
         x, y = mousePos
         if y > self.rect[1]-self.pad and y < self.rect[1]+self.rect[3]+self.pad:
             if x > self.rect[0]-self.pad and x < self.rect[0]+self.rect[2]+self.pad:

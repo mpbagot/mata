@@ -3,6 +3,9 @@ from math import sqrt,cos,sin,radians
 import pygame
 
 def clamp(v):
+    '''
+    Clamp the pixel colour to between 0 and 255
+    '''
     if v < 0:
         return 0
     if v > 255:
@@ -14,6 +17,9 @@ class HueShifter:
         self.matrix = [[1,0,0],[0,1,0],[0,0,1]]
 
     def setHueRotation(self, degrees):
+        '''
+        Initialise a matrix for hue shifting the pixel
+        '''
         cosA = cos(radians(degrees))
         sinA = sin(radians(degrees))
         self.matrix[0][0] = cosA + (1.0 - cosA) / 3.0
@@ -27,6 +33,9 @@ class HueShifter:
         self.matrix[2][2] = cosA + 1./3. * (1.0 - cosA)
 
     def apply(self, r, g, b):
+        '''
+        Apply the hue transformation to the pixel
+        '''
         rx = r * self.matrix[0][0] + g * self.matrix[0][1] + b * self.matrix[0][2]
         gx = r * self.matrix[1][0] + g * self.matrix[1][1] + b * self.matrix[1][2]
         bx = r * self.matrix[2][0] + g * self.matrix[2][1] + b * self.matrix[2][2]

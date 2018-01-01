@@ -1,11 +1,13 @@
 from api.item import Inventory
+from api.ai import AIHandler
 
 class Player:
+    '''
+    A base class for storing the player information
+    '''
     def __init__(self):
         self.username = ''
         self.pos = [0, 0]
-        self.newPos = [0, 0]
-        self.updateTick = 0
         self.relPos = [0, 0]
         self.health = 100
         self.level = 1
@@ -43,10 +45,16 @@ class Player:
         self.username = name
 
     def toBytes(self):
+        '''
+        Get a string representation of the player object
+        '''
         return (str([self.username, self.pos, self.health, str(self.tickDamage)]).replace(', ', ',')).encode()
 
     @staticmethod
     def fromBytes(data):
+        '''
+        Get a player object from a string representation
+        '''
         uname, pos, health, damage = eval(data.decode())
         p = Player()
         p.username = uname
@@ -59,13 +67,24 @@ class Player:
         return p
 
 class Entity:
+    '''
+    A base class for new entities
+    '''
     def __init__(self):
+        self.name = ''
         self.isDead = False
         self.tickDamage = None
         self.hp = 100
         self.pos = [0, 0]
+        self.aiRegister = AIHandler()
+
+    def __str__(self):
+        return self.name
 
 class Damage:
+    '''
+    A base class for damage types
+    '''
     def __init__(self, amount, source):
         self.amount = amount
         self.source = source
