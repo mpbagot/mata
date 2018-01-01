@@ -79,8 +79,8 @@ class PacketHandler:
         while True:
             # Receive the packet data
             try:
-                data = conn.recv(self.connections[connIndex].nextSize)
-                data = data.decode()[1:-1]
+                data = conn.recv(self.connections[connIndex].nextSize)[1:-1]
+                # data = data.decode()
                 if not data:
                     raise ConnectionResetError
             except ConnectionResetError as e:
@@ -89,23 +89,22 @@ class PacketHandler:
                 del self.connections[connIndex]
                 return
             except UnicodeDecodeError:
-                print(data)
+                pass
 
             try:
-                dataDictionary = {a.split(':')[0][1:-1] : ':'.join(a.split(':')[1:])[1:-1] for a in re.findall('".*?":".*?"', data, re.DOTALL)}
+                # dataDictionary = {a.split(':')[0][1:-1] : (':'.join(a.split(':')[1:])[1:-1]).encode() for a in re.findall('".*?":".*?"', data, re.DOTALL)}
+                dataDictionary = {a.split(b':')[0][1:-1] : b':'.join(a.split(b':')[1:])[1:-1] for a in re.findall(b'".*?":".*?"', data, re.DOTALL)}
+                dataDictionary = {a.decode() : dataDictionary[a] for a in dataDictionary.keys()}
             except IndexError:
                 dataDictionary = {}
-                # print('errored', data)
 
             try:
-                x = ('Received '+dataDictionary['type'])
+                x = ('Received '+dataDictionary['type'].decode())
             except KeyError:
                 print('[ERROR] Packet corrupted. This is probably an issue with a mod you are using.')
-                # print('dictionary is: '+str(dataDictionary))
-                # print('raw data is: '+data)
                 continue
 
-            if dataDictionary['type'] == 'ByteSizePacket':
+            if dataDictionary['type'] == b'ByteSizePacket':
                 self.handlePacket(dataDictionary, connIndex)
             else:
                 t = Thread(target=self.handlePacket, args=(dataDictionary, connIndex))
@@ -119,11 +118,11 @@ class PacketHandler:
         '''
         # Loop through the registered packets and handle the received data accordingly
         for packet in self.safePackets:
-            if packet.__name__ == dataDictionary['type']:
+            if packet.__name__ == dataDictionary['type'].decode():
                 # Initialise the packet, and handle it accordingly
                 try:
                     p = packet()
-                    p.fromBytes(dataDictionary['data'].encode())
+                    p.fromBytes(dataDictionary['data'])
 
                     # Pass the connection list in if a login packet
                     if packet.__name__ == 'LoginPacket':
@@ -237,7 +236,7 @@ class Connection:
         '''
         Send a packet on this connection
         '''
-        print('Sending packet: '+packet.__class__.__name__)
+        # print('Sending packet: '+packet.__class__.__name__)
         # Prepare the packet buffer
         buf = io.BytesIO()
         buf.write('{'.encode())
