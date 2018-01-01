@@ -1,26 +1,77 @@
+IDLE = 0
+RUNNING = 1
+
+START = 2
+CONTINUE = 3
+END = 4
+SKIP = 5
+
 class AIHandler:
     def __init__(self):
         self.registeredAI = [[] for a in range(10)]
 
-    def registerAIProcess(self, process, weight):
+    def registerAITask(self, task, weight):
         '''
-        Register an AI process with a certain weighting
+        Register an AI task with a certain weighting
         Low weighting values have priority over high weightings
         '''
         if 0 < weight < 9:
-            self.registeredAI[weight].append(process)
+            self.registeredAI[weight].append(task)
         else:
-            raise Exception('AI Process weighting is not between 0 and 9')
+            raise Exception('AI Task weighting is not between 0 and 9')
 
     def runAITick(self):
         '''
-        Run the registered AI processes for a tick
+        Run the registered AI tasks for a tick
         '''
-        for level in self.registeredAI[::-1]:
-            for process in level:
-                # TODO Run the process
-                pass
+        for l in range(9, -1, -1):
+            for t, task in enumerate(self.registeredAI[l]):
+                # Check if the task should run, and run if able
+                if task.status == IDLE:
+                    shouldRun = self.registeredAI[l][t].shouldStartExecute()
+                    if shouldRun not in [START, SKIP]:
+                        raise TypeError('Returned value is not a valid execution state')
 
-class AIProcess:
+                    if shouldRun == START:
+                        self.registeredAI[l][t].startExecution()
+                        self.registeredAI[l][t].status = RUNNING
+
+                # Check if the task should continue, and run if able
+                elif task.status == RUNNING:
+                    shouldRun = self.registeredAI[l][t].shouldContinueExecute()
+                    if shouldRun not in [CONTINUE, SKIP, END]:
+                        raise TypeError('Returned value is not a valid execution state')
+
+                    if shouldRun == CONTINUE:
+                        self.registeredAI[l][t].continueExecution()
+                    elif shouldRun == END:
+                        self.registeredAI[l][t].status = IDLE
+
+
+class AITask:
     def __init__(self):
+        self.status = IDLE
+
+    def shouldStartExecute(self):
+        '''
+        Return whether or not the ai task should start running on a given tick
+        '''
+        return False
+
+    def shouldContinueExecute(self):
+        '''
+        Return whether or not the ai task should continue running on a given tick
+        '''
+        return False
+
+    def startExecution(self):
+        '''
+        Execute a one-shot task or begin executing a continuous task
+        '''
+        pass
+
+    def continueExecution(self):
+        '''
+        Execute a continuous task for a tick
+        '''
         pass
