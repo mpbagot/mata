@@ -18,10 +18,13 @@ def onKeyPress(game, event):
         elif event.key == pygame.K_ESCAPE:
             game.closeOverlay(chatOverlay)
 
+        if event.key == pygame.K_e:
+            game.openGui(game.getModInstance('ClientMod').inventoryGui, game)
+
         if event.key == pygame.K_m:
             game.getModInstance('ClientMod').packetPipeline.sendToServer(SendCommandPacket('/message global random test message'))
 
-        if event.key == pygame.K_e:
+        if event.key == pygame.K_b:
             game.getModInstance('ClientMod').packetPipeline.sendToServer(SendCommandPacket('/spawn Bear'))
 
 def onPacketReceived(game, packet):
