@@ -42,10 +42,12 @@ class ClientMod(Mod):
     def load(self):
         # Initialise the packet pipeline
         self.packetPipeline = network.PacketHandler(self.game, util.CLIENT)
+
         # Register the valid packet classes
         self.packetPipeline.registerPacket(WorldUpdatePacket)
         self.packetPipeline.registerPacket(SendPlayerImagePacket)
         self.packetPipeline.registerPacket(FetchPlayerImagePacket)
+
         # Register the packet handler with the game
         self.gameRegistry.registerPacketHandler(self.packetPipeline)
 
@@ -54,6 +56,7 @@ class ClientMod(Mod):
         self.playerDrawGui = self.gameRegistry.registerGUI(PlayerDrawScreen)
         self.loadingGui = self.gameRegistry.registerGUI(LoadingScreen)
         self.mainMenuGui = self.gameRegistry.registerGUI(MainMenu)
+        self.inventoryGui = self.gameRegistry.registerGUI(PlayerInventoryScreen)
         self.disconnectMessageGui = self.gameRegistry.registerGUI(DisconnectMessage)
 
         # Initialise the Overlays

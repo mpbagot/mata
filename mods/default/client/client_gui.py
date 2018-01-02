@@ -88,22 +88,35 @@ class PlayerInventoryScreen(Gui):
     '''
     def __init__(self, game):
         super().__init__()
+        self.backImg = pygame.image.load('resources/textures/background.png').convert()
+        self.game = game
+
         self.buttons = []
-        self.addItem(PlayerImage([200, 500], [50, 200]))
+        self.addItem(PlayerImageBox([200, 500], [50, 200], game))
+
+        self.inventory = None
 
         # Fetch the inventory and fill the screen
-        t = Thread(target=self.fillScreen, args=(game,))
+        t = Thread(target=self.fetchInventory, args=(game,))
         t.daemon = True
         t.start()
 
-    def fillScreen(self, game):
-        # TODO fetch the inventory, and populate the screen with itemslots
+    def fetchInventory(self, game):
+        '''
+        Fetch the inventory from the server
+        '''
         packetPipeline = game.getModInstance('ClientMod').packetPipeline
         packetPipeline.sendToServer(FetchInventoryPacket(game.player.username))
 
-
     def drawBackgroundLayer(self):
+        self.inventory = self.game.player.inventory
         self.screen.blit(self.backImg, [0, 0])
+
+    def drawMiddleLayer(self, mousePos):
+        pass
+
+    def drawForegroundLayer(self, mousePos):
+        pass
 
 class PlayerDrawScreen(Gui):
     '''
@@ -113,7 +126,7 @@ class PlayerDrawScreen(Gui):
         super().__init__()
         self.backImg = pygame.image.load('resources/textures/background.png').convert()
         self.buttons = [StartGameButton([600, 580, 350, 120])]
-        self.valSliders = [Slider([580, 180+50*a, 390, 20], (255, 0, 0)) for a in range(12)]#, Slider([580, 230, 390, 20], (255, 0, 0))]
+        self.valSliders = [Slider([580, 180+50*a, 390, 20], (255, 0, 0)) for a in range(12)]
         self.addItem(PlayerImageBox([300, 528], [30, 170], game))
 
     def drawBackgroundLayer(self):
