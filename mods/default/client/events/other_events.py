@@ -34,7 +34,8 @@ def onInvKeyPress(game, event):
     Handle the key press events while in the inventory screen
     '''
     if game.openGUI[0] == game.getModInstance('ClientMod').inventoryGui:
-        pass
+        if event.key == pygame.K_ESCAPE:
+            game.restoreGui()
 
 def onPacketReceived(game, packet):
     '''
