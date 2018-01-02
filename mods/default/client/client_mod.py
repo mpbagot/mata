@@ -93,7 +93,8 @@ class ClientMod(Mod):
         self.gameRegistry.registerEventHandler(other_events.onPlayerUpdate, 'onPlayerUpdate')
         self.gameRegistry.registerEventHandler(other_events.onEntitySync, 'onEntitySync')
 
-        self.gameRegistry.registerEventHandler(other_events.onKeyPress, 'onKeyPress')
+        self.gameRegistry.registerEventHandler(other_events.onGameKeyPress, 'onKeyPress')
+        self.gameRegistry.registerEventHandler(other_events.onInvKeyPress, 'onKeyPress')
 
     def generateLargePlayerImage(self, imgValues):
         '''

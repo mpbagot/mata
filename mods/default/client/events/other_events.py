@@ -3,13 +3,14 @@ from copy import deepcopy
 
 from api.packets import SendCommandPacket
 
-def onKeyPress(game, event):
+def onGameKeyPress(game, event):
     '''
     Event Hook: onKeyPress
     Handle the opening and closing of the messaging overlay
     '''
     if game.openGUI[0] == game.getModInstance('ClientMod').gameGui:
         chatOverlay = game.getModInstance('ClientMod').chatOverlay
+
         if not game.isOverlayOpen(chatOverlay):
             if event.key == pygame.K_t:
                 game.openOverlay(chatOverlay, game)
@@ -26,6 +27,14 @@ def onKeyPress(game, event):
 
         if event.key == pygame.K_b:
             game.getModInstance('ClientMod').packetPipeline.sendToServer(SendCommandPacket('/spawn Bear'))
+
+def onInvKeyPress(game, event):
+    '''
+    Event Hook: onKeyPress
+    Handle the key press events while in the inventory screen
+    '''
+    if game.openGUI[0] == game.getModInstance('ClientMod').inventoryGui:
+        pass
 
 def onPacketReceived(game, packet):
     '''
