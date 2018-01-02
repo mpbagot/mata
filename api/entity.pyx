@@ -91,6 +91,16 @@ class Entity:
         x = super().__repr__()
         return x.split()[-1][:-1] + ' {} {} {}'.format(self.name, self.uuid, self.pos)
 
+    def hasAttribute(self, name):
+          '''
+          Return whether the class (and classes which extend this) has a given attribute
+          '''
+          try:
+              a = self.__getattribute__(name)
+              return True
+          except AttributeError:
+              return False
+
     def setRegistryName(self, name):
         self.name = name
 
@@ -135,6 +145,17 @@ class Damage:
 
     def __str__(self):
         return ''
+
+    def hasAttribute(self, name):
+        '''
+        Return whether the class (and classes which extend this) has a given attribute
+        '''
+        try:
+            a = self.__getattribute__(name)
+            return True
+        except AttributeError:
+            return False
+
 
     @staticmethod
     def fromBytes(data):

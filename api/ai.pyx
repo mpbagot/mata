@@ -56,6 +56,15 @@ class AIHandler:
                 if shouldRun == SKIP:
                     self.registeredAI[l][t].skipExecution()
 
+    def hasAttribute(self, name):
+        '''
+        Return whether the class (and classes which extend this) has a given attribute
+        '''
+        try:
+            a = self.__getattribute__(name)
+            return True
+        except AttributeError:
+            return False
 
 class AITask:
     def __init__(self, entity):
@@ -85,3 +94,13 @@ class AITask:
         Execute a continuous task for a tick
         '''
         pass
+
+    def hasAttribute(self, name):
+        '''
+        Return whether the class (and classes which extend this) has a given attribute
+        '''
+        try:
+            a = self.__getattribute__(name)
+            return True
+        except AttributeError:
+            return False

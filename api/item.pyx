@@ -29,6 +29,16 @@ class Item:
     def getItemName(self):
         return 'null_item'
 
+    def hasAttribute(self, name):
+        '''
+        Return whether the class (and classes which extend this) has a given attribute
+        '''
+        try:
+            a = self.__getattribute__(name)
+            return True
+        except AttributeError:
+            return False
+
 class ItemStack:
     def __init__(self, item, size):
         self.stackSize = size

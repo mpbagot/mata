@@ -47,6 +47,16 @@ class Gui:
             raise Exception('Invalid Item Being Added To Gui.')
         self.extraItems.append(item)
 
+    def hasAttribute(self, name):
+        '''
+        Return whether the class (and classes which extend this) has a given attribute
+        '''
+        try:
+            a = self.__getattribute__(name)
+            return True
+        except AttributeError:
+            return False
+
 class Overlay(Gui):
     def doKeyPress(self, event):
         '''
