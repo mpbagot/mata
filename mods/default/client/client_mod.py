@@ -45,6 +45,8 @@ class ClientMod(Mod):
 
         # Register the valid packet classes
         self.packetPipeline.registerPacket(WorldUpdatePacket)
+        self.packetPipeline.registerPacket(SendInventoryPacket)
+        self.packetPipeline.registerPacket(FetchInventoryPacket)
         self.packetPipeline.registerPacket(SendPlayerImagePacket)
         self.packetPipeline.registerPacket(FetchPlayerImagePacket)
 

@@ -22,6 +22,8 @@ class ServerMod(Mod):
         self.packetPipeline = network.PacketHandler(self.game, util.SERVER)
         # Register the valid packet classes
         self.packetPipeline.registerPacket(WorldUpdatePacket)
+        self.packetPipeline.registerPacket(SendInventoryPacket)
+        self.packetPipeline.registerPacket(FetchInventoryPacket)
         self.packetPipeline.registerPacket(SendPlayerImagePacket)
         self.packetPipeline.registerPacket(FetchPlayerImagePacket)
         # Register the packet handler with the game
