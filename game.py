@@ -167,7 +167,10 @@ class Game:
         '''
         Open the GUI with the given id for this client
         '''
-        self.prevGUI = self.openGUI
+        if isinstance(self.openGUI, list):
+            self.prevGUI = [self.openGUI[0], self.openGUI[1]]
+        else:
+            self.prevGUI = self.openGUI
         self.prevOverlays = list(self.openOverlays)
 
         self.openOverlays = []
@@ -177,7 +180,11 @@ class Game:
         '''
         Restore the previous GUI state for the client
         '''
-        self.openGUI = list(self.prevGUI)
+        if isinstance(self.prevGUI, list):
+            self.openGUI = [self.prevGUI[0], self.prevGUI[1]]
+        else:
+            self.openGUI = self.prevGUI
+        # self.openGUI = list(self.prevGUI)
         self.openOverlays = list(self.prevOverlays)
         self.prevGUI = None
         self.prevOverlays = []
