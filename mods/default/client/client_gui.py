@@ -58,13 +58,13 @@ class Chat(Overlay):
         messages = self.game.getModInstance('ClientMod').chatMessages.get(self.tab, [])
 
         # Draw the background rectangle
-        overlayScreen = pygame.Surface((824, 558))
+        overlayScreen = pygame.Surface(scaleRect([824, 558], self.screen))
         overlayScreen.set_alpha(191)
 
         pygame.draw.rect(overlayScreen, (140, 140, 140), scaleRect([0, 0, 824, 558], self.screen))
         pygame.draw.rect(overlayScreen, (170, 170, 170), scaleRect([0, 458, 824, 100], self.screen))
 
-        self.screen.blit(overlayScreen, [100, 80])
+        self.screen.blit(overlayScreen, scaleRect([100, 80], self.screen))
 
         # Draw the outline boxes
         pygame.draw.rect(self.screen, (40, 40, 40), scaleRect([100, 538, 824, 100], self.screen), 4)
