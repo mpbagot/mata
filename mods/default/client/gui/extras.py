@@ -58,11 +58,11 @@ class MenuButton(Button):
         game.openGui(game.getModInstance('ClientMod').mainMenuGui)
 
 class PlayerImageBox:
-    def __init__(self, rect, pos, game):
-        self.rect = rect
+    def __init__(self, rect, game):
+        self.rect = rect[:2]
         if rect[0] > rect[1]:
             raise Exception('Invalid Player Image Dimensions!')
-        self.pos = pos
+        self.pos = rect[2:]
 
         # Current rotation amount
         self.rot = [1, 1]
