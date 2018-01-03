@@ -1,7 +1,8 @@
 import pygame
 from copy import deepcopy
 
-from api.packets import SendCommandPacket
+import util
+from api.packets import SendCommandPacket, LoginPacket
 
 def onGameKeyPress(game, event):
     '''
@@ -59,7 +60,7 @@ def onPacketReceived(game, packet):
         # Fetch images of new players
         for p, player in enumerate(game.world.players):
             if player.img == None:
-                game.getModInstance('ClientMod').packetPipeline.sendToServer(FetchPlayerImagePacket(player))
+                game.getModInstance('ClientMod').packetPipeline.sendToServer(FetchPlayerImagePacket(player), util.NON_PRIMARY)
 
 def onDisconnect(game):
     '''
@@ -73,6 +74,8 @@ def onClientConnected(game):
     Event Hook: onClientConnected
     Apply the extra property to the client player when the connection to the server is established
     '''
+    # Send a login packet
+    game.getModInstance('ClientMod').packetPipeline.sendToServer(LoginPacket(game.player))
     print('connection to server established')
     game.player.setProperty('relPos2', game.getModInstance('ClientMod').relPos2Property)
 

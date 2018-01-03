@@ -55,8 +55,6 @@ class PacketHandler:
         t.start()
         # Fire the login event
         self.game.fireEvent('onClientConnected')
-        # Send a login packet
-        self.sendToServer(LoginPacket(self.game.player))
 
     def pollForConnections(self):
         '''
