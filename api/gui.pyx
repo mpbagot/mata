@@ -65,10 +65,10 @@ class Overlay(Gui):
         pass
 
 class Scrollbox:
-    def __init__(self, rect, pos):
+    def __init__(self, rect):
         self.scrollValue = 0
-        self.pos = pos
-        self.rect = rect
+        self.rect = rect[:2]
+        self.pos = pos[2:]
         self.maxHeight = 0
         self.objects = []
         self.innerScreen = pygame.Surface(rect).convert_alpha()
