@@ -24,8 +24,8 @@ class HUD(Overlay):
                     ]
         equippedItems = self.game.player.inventory.getEquipped()
         self.itemSlots = [
-                            ItemSlot(equippedItems[0], scaleRect([664, 630], self.screen), (5*h)//64),
-                            ItemSlot(equippedItems[1], scaleRect([664, 700], self.screen), (5*h)//64)
+                            ItemSlot(equippedItems[0].getItem(), scaleRect([664, 630], self.screen), (5*h)//64),
+                            ItemSlot(equippedItems[1].getItem(), scaleRect([664, 700], self.screen), (5*h)//64)
                          ]
 
     def drawBackgroundLayer(self):
