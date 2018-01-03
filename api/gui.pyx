@@ -135,9 +135,9 @@ class Slider:
         self.isVertical = self.pad == rect[2]//2
 
         if self.isVertical:
-            self.bar = VertBar(rect[:2], rect[2], rect[3], colour)
+            self.bar = VertBar(rect, colour)
         else:
-            self.bar = HorizBar(rect[:2], rect[2], rect[3], colour)
+            self.bar = HorizBar(rect, colour)
 
 
     def draw(self, screen, mousePos):
@@ -170,10 +170,10 @@ class Slider:
         return False
 
 class HorizBar:
-    def __init__(self, topLeftPos, width, height, colour, percentage=100, label=''):
-        self.pos = topLeftPos
-        self.width = width
-        self.height = height+height%2
+    def __init__(self, rect, colour, percentage=100, label=''):
+        self.pos = rect[:2]
+        self.width = rect[2]
+        self.height = rect[3]+rect[3]%2
         self.percentage = percentage
         self.colour = colour
         self.label = label
@@ -347,3 +347,24 @@ class TextBox(Button):
             self.text = self.text[:-1]
         elif event.key != pygame.K_RETURN:
             self.text += event.unicode
+
+def scaleRect(rect, screen):
+    '''
+    Scale a rect to a given screen size from a default of 1024x768
+    '''
+    w = screen.get_width()
+    h = screen.get_height()
+
+    x_coeff = w/1024
+    y_coeff = h/768
+
+    rect[0] *= x_coeff
+    rect[1] *= y_coeff
+
+    try:
+        rect[2] *= x_coeff
+        rect[3] *= y_coeff
+    except IndexError:
+        pass
+
+    return [int(a) for a in rect]
