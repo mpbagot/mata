@@ -14,40 +14,44 @@ from mods.default.client.gui.menus import *
 class HUD(Overlay):
     def __init__(self, game):
         super().__init__()
+
+        h = self.screen.get_height()
+
         self.game = game
         self.bars = [
-                        HorizBar([744, 698], 260, 20, (255, 0, 0), self.game.player.health, 'Health'),
-                        HorizBar([744, 728], 260, 20, (0, 102, 255), self.game.player.exp, 'Experience')
+                        HorizBar(scaleRect([744, 698, 260, 20], self.screen), (255, 0, 0), self.game.player.health, 'Health'),
+                        HorizBar(scaleRect([744, 728, 260, 20], self.screen), (0, 102, 255), self.game.player.exp, 'Experience')
                     ]
         equippedItems = self.game.player.inventory.getEquipped()
         self.itemSlots = [
-                            ItemSlot(equippedItems[0], [664, 630], 60),
-                            ItemSlot(equippedItems[1], [664, 700], 60)
+                            ItemSlot(equippedItems[0], scaleRect([664, 630], self.screen), (5*h)//64),
+                            ItemSlot(equippedItems[1], scaleRect([664, 700], self.screen), (5*h)//64)
                          ]
 
     def drawBackgroundLayer(self):
         # Draw the background rectangle
-        pygame.draw.rect(self.screen, (173, 144, 106), [654, 620, 400, 150])
-        pygame.draw.rect(self.screen, (65, 55, 40), [654, 620, 400, 150], 4)
+        pygame.draw.rect(self.screen, (173, 144, 106), scaleRect([654, 620, 400, 150], self.screen))
+        pygame.draw.rect(self.screen, (65, 55, 40), scaleRect([654, 620, 400, 150], self.screen), 4)
 
     def drawForegroundLayer(self, mousePos):
         super().drawForegroundLayer(mousePos)
+
         # Generate a font object
         font = pygame.font.Font('resources/font/main.ttf', 20)
         text = font.render('Username: '+self.game.player.username, True, (255, 255, 255))
-        self.screen.blit(text, [744, 640])
+        self.screen.blit(text, scaleRect([744, 640], self.screen))
 
         # Generate a smaller font object
         font = pygame.font.Font('resources/font/main.ttf', 12)
         text = font.render('Level: '+str(self.game.player.level), True, (255, 255, 255))
-        self.screen.blit(text, [744, 670])
+        self.screen.blit(text, scaleRect([744, 670], self.screen))
 
 class Chat(Overlay):
     def __init__(self, game, tab='global'):
         super().__init__()
         self.game = game
         self.tab = tab
-        self.scrollScreen = Scrollbox([804, 438], [110, 90])
+        self.scrollScreen = Scrollbox(scaleRect([804, 438, 110, 90], self.screen))
 
     def drawForegroundLayer(self, mousePos):
         # Fetch the messages from the mod instance
@@ -57,15 +61,15 @@ class Chat(Overlay):
         overlayScreen = pygame.Surface((824, 558))
         overlayScreen.set_alpha(191)
 
-        pygame.draw.rect(overlayScreen, (140, 140, 140), [0, 0, 824, 558])
-        pygame.draw.rect(overlayScreen, (170, 170, 170), [0, 458, 824, 100])
+        pygame.draw.rect(overlayScreen, (140, 140, 140), scaleRect([0, 0, 824, 558], self.screen))
+        pygame.draw.rect(overlayScreen, (170, 170, 170), scaleRect([0, 458, 824, 100], self.screen))
 
         self.screen.blit(overlayScreen, [100, 80])
 
         # Draw the outline boxes
-        pygame.draw.rect(self.screen, (40, 40, 40), [100, 538, 824, 100], 4)
-        pygame.draw.rect(self.screen, (40, 40, 40), [100, 80, 824, 558], 4)
-        pygame.draw.rect(self.screen, (40, 40, 40), [718, 538, 206, 100], 4)
+        pygame.draw.rect(self.screen, (40, 40, 40), scaleRect([100, 538, 824, 100], self.screen), 4)
+        pygame.draw.rect(self.screen, (40, 40, 40), scaleRect([100, 80, 824, 558], self.screen), 4)
+        pygame.draw.rect(self.screen, (40, 40, 40), scaleRect([718, 538, 206, 100], self.screen), 4)
 
         # Generate a font object
         fontLarge = pygame.font.Font('resources/font/main.ttf', 20)
@@ -88,11 +92,15 @@ class PlayerInventoryScreen(Gui):
     '''
     def __init__(self, game):
         super().__init__()
-        self.backImg = pygame.image.load('resources/textures/background.png').convert()
+
+        w = self.screen.get_width()
+        h = self.screen.get_height()
+
+        self.backImg = pygame.transform.scale(pygame.image.load('resources/textures/background.png'), [w, h]).convert()
         self.game = game
 
         self.buttons = []
-        self.addItem(PlayerImageBox([200, 500], [50, 200], game))
+        self.addItem(PlayerImageBox(scaleRect([200, 500, 50, 200], self.screen), game))
 
         self.inventory = None
 
@@ -124,10 +132,14 @@ class PlayerDrawScreen(Gui):
     '''
     def __init__(self, game):
         super().__init__()
-        self.backImg = pygame.image.load('resources/textures/background.png').convert()
-        self.buttons = [StartGameButton([600, 580, 350, 120])]
-        self.valSliders = [Slider([580, 180+50*a, 390, 20], (255, 0, 0)) for a in range(12)]
-        self.addItem(PlayerImageBox([300, 528], [30, 170], game))
+
+        w = self.screen.get_width()
+        h = self.screen.get_height()
+
+        self.backImg = pygame.transform.scale(pygame.image.load('resources/textures/background.png'), [w, h]).convert()
+        self.buttons = [StartGameButton(scaleRect([600, 580, 350, 120], self.screen))]
+        self.valSliders = [Slider(scaleRect([580, 180+50*a, 390, 20], self.screen), (255, 0, 0)) for a in range(12)]
+        self.addItem(PlayerImageBox(scaleRect([300, 528, 30, 170], self.screen), game))
 
     def drawBackgroundLayer(self):
         self.screen.blit(self.backImg, [0, 0])
@@ -147,11 +159,15 @@ class PlayerDrawScreen(Gui):
 
     def drawMiddleLayer(self, mousePos):
         super().drawMiddleLayer(mousePos)
+
+        w = self.screen.get_width()
+        h = self.screen.get_height()
+
         font = pygame.font.Font('resources/font/main.ttf', 40)
 
         # Draw the title
         text = font.render('Customise your Character', True, (0, 0, 0))
-        self.screen.blit(text, [512-text.get_rect().width//2, 60])
+        self.screen.blit(text, [w//2-text.get_rect().width//2, (h*5)//64])
 
 class GameScreen(Gui):
     def __init__(self, game):
@@ -194,8 +210,8 @@ class GameScreen(Gui):
         '''
         super().drawMiddleLayer(mousePos)
 
-        x = self.screen.get_rect().width
-        y = self.screen.get_rect().height
+        w = self.screen.get_width()
+        h = self.screen.get_height()
 
         # Iterate the players and render any unrendered avatars
         for p, player in enumerate(self.game.world.players):
@@ -218,7 +234,7 @@ class GameScreen(Gui):
             size = player.smallImg.get_rect()
 
             # Adjust position accordingly, and draw to screen
-            pos = [x//2+deltaPos[0]*size.width-size.width//2, y//2+deltaPos[1]*size.height-size.height//2]
+            pos = [w//2+deltaPos[0]*size.width-size.width//2, h//2+deltaPos[1]*size.height-size.height//2]
             self.screen.blit(player.smallImg, pos)
 
         # Draw the entity images to screen
@@ -231,7 +247,7 @@ class GameScreen(Gui):
             size = entityImage.get_rect()
 
             # Adjust position accordingly, and draw to screen
-            pos = [x//2+deltaPos[0]*size.width-size.width//2, y//2+deltaPos[1]*size.height-size.height//2]
+            pos = [w//2+deltaPos[0]*size.width-size.width//2, h//2+deltaPos[1]*size.height-size.height//2]
             self.screen.blit(entityImage, pos)
 
     def drawForegroundLayer(self, mousePos):
@@ -240,7 +256,7 @@ class GameScreen(Gui):
         '''
         super().drawForegroundLayer(mousePos)
 
-        size = self.playerImg.get_rect().width//2
-        x = self.screen.get_rect().width
-        y = self.screen.get_rect().height
-        self.screen.blit(self.playerImg, [x//2-size, y//2-size])
+        size = self.playerImg.get_width()//2
+        w = self.screen.get_width()
+        h = self.screen.get_height()
+        self.screen.blit(self.playerImg, [w//2-size, h//2-size])
