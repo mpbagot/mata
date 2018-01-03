@@ -68,12 +68,12 @@ class Scrollbox:
     def __init__(self, rect):
         self.scrollValue = 0
         self.rect = rect[:2]
-        self.pos = pos[2:]
+        self.pos = rect[2:]
         self.maxHeight = 0
         self.objects = []
-        self.innerScreen = pygame.Surface(rect).convert_alpha()
+        self.innerScreen = pygame.Surface(self.rect).convert_alpha()
 
-        sliderRect = [pos[0]+int(rect[0]*0.97), pos[1]+30, int(rect[0]*0.025), rect[1]-60]
+        sliderRect = [self.pos[0]+int(rect[0]*0.97), self.pos[1]+30, int(rect[0]*0.025), rect[1]-60]
         self.scrollSlider = Slider(sliderRect, (0, 0, 0))
 
     def draw(self, screen, mousePos):
