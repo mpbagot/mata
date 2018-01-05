@@ -79,7 +79,10 @@ class Game:
 
                 # Handle the pygame events
                 for event in pygame.event.get():
-                    if event.type == pygame.KEYDOWN:
+                    if event.type == pygame.QUIT:
+                        self.quit()
+
+                    elif event.type == pygame.KEYDOWN:
                         # Handle a keypress on the gui
                         if self.openGUI[1].currentTextBox is not None:
                             self.openGUI[1].textboxes[self.openGUI[1].currentTextBox].doKeyPress(event)
