@@ -62,12 +62,16 @@ def onPacketReceived(game, packet):
             if player.img == None:
                 game.getModInstance('ClientMod').packetPipeline.sendToServer(FetchPlayerImagePacket(player), util.NON_PRIMARY)
 
-def onDisconnect(game):
+def onDisconnect(game, message):
     '''
     Event Hook: onDisconnect
     Handle the opening of the disconnected screen when the client disconnects
     '''
-    game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, 'Server Connection Reset')
+    # Show the message
+    game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, message)
+    # Flush the connection buffers
+    for conn in game.getModInstance('ClientMod').packetPipeline.connections.keys():
+        game.getModInstance('ClientMod').packetPipeline.connections[conn].connObj.recv(65536)
 
 def onClientConnected(game):
     '''
