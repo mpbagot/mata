@@ -108,9 +108,10 @@ class WorldMP:
         for p in range(len(self.players)):
             if self.players[p].isDead:
                 # If the player has died, disconnect them (because of permadeath)
-                game.modLoader.mods['ServerMod'].packetPipeline.sendToPlayer(
-                DisconnectPacket('You have died'),
-                self.players[p].username)
+                # Close the connection to the client from the server
+                game.getModInstance('ServerMod').packetPipeline.closeConnection(self.players[p].username)
+                game.getModInstance('ServerMod').packetPipeline.sendToPlayer(
+                DisconnectPacket('You have died'), self.players[p].username)
             elif self.players[p].tickDamage:
                 # Trigger on Player Damaged events
                 game.fireEvent('onPlayerDamage', self.players[p], self.players[p].tickDamage)

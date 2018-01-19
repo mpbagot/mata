@@ -83,8 +83,10 @@ class PacketHandler:
                     raise ConnectionResetError
             except ConnectionResetError as e:
                 print(e)
-                self.game.fireEvent('onDisconnect')
-                del self.connections[connIndex]
+                if self.side == util.CLIENT:
+                    self.game.fireEvent('onDisconnect', 'Server Connection Reset')
+                else:
+                    del self.connections[connIndex]
                 return
             except UnicodeDecodeError:
                 pass
@@ -124,9 +126,9 @@ class PacketHandler:
 
                     # Pass the connection list in if a login packet
                     if packet.__name__ == 'LoginPacket':
-                        response = p.onReceive(self.connections[connIndex], self.game, self.connections)
+                        response = p.onReceive(self.connections[connIndex], self.side, self.game, self.connections)
                     else:
-                        response = p.onReceive(self.connections[connIndex], self.game)
+                        response = p.onReceive(self.connections[connIndex], self.side, self.game)
 
                 except Exception as e:
                     print('Packet unable to be handled correctly.')
@@ -144,11 +146,17 @@ class PacketHandler:
                     else:
                         # print('sending packet {} in response to {}'.format(response.__class__.__name__, packet.__name__))
                         self.connections[connIndex].sendPacket(response)
-                if packet.__name__ == 'DisconnectPacket':
-                    self.connections[connIndex].connObj.close()
-                    return
                 break
 
+    def closeConnection(self, username):
+        '''
+        A server-side method for closing a connection to a client
+        '''
+        for conn in self.connections:
+            if self.connections[conn].username == username:
+                self.connections[conn].connObj.close()
+                del self.connections[conn]
+                return
 
     def registerPacket(self, packetClass):
         '''

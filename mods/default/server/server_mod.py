@@ -66,6 +66,8 @@ class KickPlayerCommand(cmd.Command):
             for p in self.game.world.players:
                 # Kick the player if they match
                 if player == p.username:
+                    # Delete the connection from the server to the client
+                    pp.closeConnection(p.username)
                     pp.sendToPlayer(DisconnectPacket('You have been kicked from the server.'), p.username)
                     break
 
