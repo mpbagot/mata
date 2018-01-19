@@ -41,8 +41,10 @@ class Inventory:
         '''
         Duplicate this inventory and return the copy
         '''
+        # Initialise the empty inventory
         newInv = Inventory()
 
+        # Copy the each group into a new inventory
         newInv.items['main'] = list(self.items['main'])
         newInv.items['hotbar'] = list(self.items['hotbar'])
         newInv.items['left'] = self.items['left']
@@ -54,6 +56,7 @@ class Inventory:
         '''
         Collect and sort the entire inventory
         '''
+        # Sort the two sections of the inventory separately
         self.sortGroup('hotbar', compress)
         self.sortGroup('main', compress)
 
@@ -63,6 +66,7 @@ class Inventory:
         '''
         newGroup = []
         used = []
+        # Iterate each item, find duplicate stacks and add them together
         for i, itemstack in enumerate(self.items[name]):
             if i in used or itemstack is None:
                 continue
@@ -74,6 +78,8 @@ class Inventory:
                     newGroup += itemstack.add(item, compress)
                     # self.items[name][i] = result
                     # self.items[name][j] = carryover
+
+        # Sort by item name
         self.items[name] = sorted([a for a in newGroup if a])
 
     @staticmethod
@@ -82,20 +88,28 @@ class Inventory:
         Return an inventory that is the sum of two inventories,
         and an overflow inventory for everything that doesn't fit
         '''
+        # Initialise the inventories
         sumInv = Inventory()
         overflowInv = Inventory()
         sumInv.items = inv1.items
 
+        # Fill the first inventory's main section
+        # with all of the second inventory's contents
         sumInv.items['main'] += inv2.items['hotbar']
         sumInv.items['main'] += inv2.items['main']
         sumInv.items['main'] += [inv2.items['left'], inv2.items['right']]
 
+        # Sort and stack the itemstacks
+        sumInv.sortItems()
+
+        # Check if the inventory needs to overflow
         if not force and len(sumInv.items['main']) > 24:
             # Overflow back into the original second inventory
             print('Inventory needs to overflow here...')
             overflowInv.items['main'] = sumInv.items['main'][24:]
             sumInv.items['main'] = sumInv.items['main'][:24]
 
+        # Sort the inventories
         sumInv.sortItems()
         overflowInv.sortItems()
 

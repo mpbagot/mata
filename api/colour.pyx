@@ -22,15 +22,23 @@ class HueShifter:
         '''
         cosA = cos(radians(degrees))
         sinA = sin(radians(degrees))
-        self.matrix[0][0] = cosA + (1.0 - cosA) / 3.0
-        self.matrix[0][1] = 1./3. * (1.0 - cosA) - sqrt(1./3.) * sinA
-        self.matrix[0][2] = 1./3. * (1.0 - cosA) + sqrt(1./3.) * sinA
-        self.matrix[1][0] = 1./3. * (1.0 - cosA) + sqrt(1./3.) * sinA
-        self.matrix[1][1] = cosA + 1./3.*(1.0 - cosA)
-        self.matrix[1][2] = 1./3. * (1.0 - cosA) - sqrt(1./3.) * sinA
-        self.matrix[2][0] = 1./3. * (1.0 - cosA) - sqrt(1./3.) * sinA
-        self.matrix[2][1] = 1./3. * (1.0 - cosA) + sqrt(1./3.) * sinA
-        self.matrix[2][2] = cosA + 1./3. * (1.0 - cosA)
+
+        # Compute the values and store them
+        val1 = 1./3. * (1.0 - cosA) - sqrt(1./3.) * sinA
+        val2 = 1./3. * (1.0 - cosA) + sqrt(1./3.) * sinA
+        val3 = cosA + 1./3. * (1.0 - cosA)
+
+        self.matrix[0][0] = val3
+        self.matrix[0][1] = val1
+        self.matrix[0][2] = val2
+
+        self.matrix[1][0] = val2
+        self.matrix[1][1] = val3
+        self.matrix[1][2] = val1
+
+        self.matrix[2][0] = val1
+        self.matrix[2][1] = val2
+        self.matrix[2][2] = val3
 
     def apply(self, r, g, b):
         '''

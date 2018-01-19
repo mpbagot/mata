@@ -129,12 +129,14 @@ class WorldMP:
         # TODO Add entities and vehicles to this.
         players, entities = updateBytes.decode().split('$$$')
 
+        # Loop the transferred players
         players = eval(players)
         players = [Player.fromBytes(p) for p in players]
 
         for player in players:
             game.fireEvent("onPlayerUpdate", player, self.players)
 
+        # Loop the transferred entities
         entities = eval(entities)
         entities = [Entity.fromBytes(e, game.modLoader.gameRegistry.entities) for e in entities]
 

@@ -54,6 +54,7 @@ class TileMap:
         Generate the tile type of each square,
         and generate extra details like trees
         '''
+        # Loop the tiles in the world map
         for r in range(len(self.map)):
             for t, tile in enumerate(self.map[r]):
                 # Instantiate the tile

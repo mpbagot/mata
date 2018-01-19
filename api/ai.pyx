@@ -26,6 +26,7 @@ class AIHandler:
         '''
         Run the registered AI tasks for a tick
         '''
+        # Loop each layer and task in order
         for l in range(9, -1, -1):
             for t, task in enumerate(self.registeredAI[l]):
                 # Check if the task should run, and run if able
@@ -53,6 +54,7 @@ class AIHandler:
                 else:
                     raise TypeError('Task status is not a valid execution state')
 
+                # Skip the task if it should
                 if shouldRun == SKIP:
                     self.registeredAI[l][t].skipExecution()
 

@@ -80,8 +80,9 @@ class Scrollbox:
         '''
         Draw the scrollbox to a given screen
         '''
-        # Draw the innerscreen, then draw the slider onto it.
+        # Draw the innerscreen
         while self.objects:
+            # Iterate the objects, and draw with scroll adjustment applied
             obj, pos = self.objects[0]
             pos = list(pos)
             pos[1] -= self.scrollValue
@@ -92,6 +93,7 @@ class Scrollbox:
 
         self.innerScreen = pygame.Surface(self.rect).convert_alpha()
 
+        # Then draw the slider onto it
         self.scrollSlider.draw(screen, mousePos)
 
         self.scrollValue = int(self.scrollSlider.value*self.maxHeight)
@@ -117,8 +119,12 @@ class ItemSlot:
         '''
         Draw the itemslot to a given screen
         '''
+        # Draw the border of the itemslot
         self.button.draw(screen, [0, 0])
+
+        # Draw the item image
         imgRect = screen.blit(self.item.img, self.pos)
+
         if self.button.isHovered(mousePos):
             # Draw a semi transparent square over the itemslot
             square = pygame.Surface([self.button.rect[2]+1 for a in range(2)])
@@ -144,12 +150,14 @@ class Slider:
         '''
         Draw the slider to a given screen
         '''
+        # Update the slider value if the mouse is dragging the circle
         if self.isHovered(mousePos) and pygame.mouse.get_pressed()[0]:
             if self.isVertical:
                 self.value = abs(mousePos[1]-self.rect[1])/self.rect[3]
             else:
                 self.value = abs(mousePos[0]-self.rect[0])/self.rect[2]
 
+        # Draw the bar
         self.bar.draw(screen, mousePos)
 
         # Draw the circle over the top of the bar
@@ -213,7 +221,7 @@ class VertBar(HorizBar):
     def draw(self, screen, mousePos):
         lineLength = self.height-self.width
 
-        # Get the left and right points of the bar's circles
+        # Get the top and bottom points of the bar's circles
         topPos = [self.pos[0]+self.width//2, self.pos[1]+self.width//2]
         bottomPos = [topPos[0], topPos[1]+lineLength]
         # Get the end points of the line
@@ -355,16 +363,20 @@ def scaleRect(rect, screen):
     w = screen.get_width()
     h = screen.get_height()
 
+    # Calculate the x and y scaling coefficients
     x_coeff = w/1024
     y_coeff = h/768
 
+    # Multiply the x and y positions by the respective coefficients
     rect[0] *= x_coeff
     rect[1] *= y_coeff
 
+    # Attempt to multiply the width and height if the input rect is a full rect, not position
     try:
         rect[2] *= x_coeff
         rect[3] *= y_coeff
     except IndexError:
         pass
 
+    # Floor all of the values and return
     return [int(a) for a in rect]
