@@ -2,6 +2,8 @@ from api.entity import Player
 from api.dimension import WorldMP
 from api.biome import TileMap
 
+import util
+
 import time
 
 class Packet:
@@ -33,7 +35,7 @@ class ByteSizePacket(Packet):
     def fromBytes(self, data):
         self.size = int.from_bytes(data, 'big')
 
-    def onReceive(self, connection, game):
+    def onReceive(self, connection, side, game):
         # Set the connection's next receive size to the size gotten from this packet
         connection.setNextPacketSize(self.size)
 
@@ -47,7 +49,7 @@ class LoginPacket(Packet):
     def fromBytes(self, data):
         self.player = Player.fromBytes(data)
 
-    def onReceive(self, connection, game, connections):
+    def onReceive(self, connection, side, game, connections):
 
         # TODO Add password login for certain elevated usernames
 
@@ -83,7 +85,7 @@ class SetupClientPacket(Packet):
         self.size = data[0]
         self.seed = eval(data[1:])
 
-    def onReceive(self, connection, game):
+    def onReceive(self, connection, side, game):
         # Set the seed and biomesize
         game.modLoader.gameRegistry.seed = self.seed
         game.world.dimHandler.biomeSize = self.size
@@ -101,7 +103,7 @@ class ResetPlayerPacket(Packet):
         playerData = data
         self.player = Player.fromBytes(playerData)
 
-    def onReceive(self, connection, game):
+    def onReceive(self, connection, side, game):
         # Sync the player object on the client
         game.player.pos = self.player.pos
         game.player.health = self.player.health
@@ -117,7 +119,7 @@ class SyncPlayerPacket(Packet):
     def fromBytes(self, data):
         self.player = Player.fromBytes(data)
 
-    def onReceive(self, connection, game):
+    def onReceive(self, connection, side, game):
         # Check if the player's motion is not greater than a certain threshold
         # Update their position on the server if it is ok
         # Reset them if it's not
@@ -147,7 +149,7 @@ class WorldUpdatePacket(Packet):
     def fromBytes(self, data):
         self.world = data
 
-    def onReceive(self, connection, game):
+    def onReceive(self, connection, side, game):
         # Update the world on the Client side
         if game.world:
             game.world.handleUpdate(self.world, game)
@@ -162,7 +164,7 @@ class SendCommandPacket(Packet):
     def fromBytes(self, data):
         self.text = data.decode()
 
-    def onReceive(self, connection, game):
+    def onReceive(self, connection, side, game):
         if self.text[0] != '/':
             self.text = '/message global '+self.text
         game.fireCommand(self.text, connection.username)
@@ -175,7 +177,7 @@ class InvalidLoginPacket(Packet):
     def fromBytes(self, data):
         pass
 
-    def onReceive(self, conn, game):
+    def onReceive(self, connection, side, game):
         pass
 
 class DisconnectPacket(Packet):
@@ -188,6 +190,7 @@ class DisconnectPacket(Packet):
     def fromBytes(self, data):
         self.message = data.decode()
 
-    def onReceive(self, connection, game):
+    def onReceive(self, connection, side, game):
+        game.fireEvent('onDisconnect', self.message)
         connection.connObj.close()
         del connection
