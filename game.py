@@ -23,9 +23,15 @@ class Game:
     A class to hold all of the elements of the game together
     '''
     def __init__(self, argHandler):
+        # Initialise the child process value
+        self.child = None
+
+        # Load mods and process cmd args
         self.modLoader = mod.ModLoader(self)
         self.processCommandLineArgs(argHandler)
         self.args = argHandler
+
+        # Initialise the game variables
         self.world = None
         self.openGUI = self.prevGUI = None
         self.openOverlays = []
@@ -48,6 +54,11 @@ class Game:
         '''
         Safely disconnect all players, unload the mods and quit the game
         '''
+        # Terminate the child server process if running a combined game
+        if self.child:
+            # TODO this doesn't work...
+            self.child.terminate()
+        pygame.quit()
         sys.exit()
 
     def run(self):
@@ -252,12 +263,16 @@ class Game:
 
         elif argHandler.getRuntimeType() in [util.CLIENT, util.COMBINED]:
             import mods.default.client.client_mod as client
+
             if argHandler.getRuntimeType() == util.COMBINED:
                 # Fork a new Server process, then set to connect to it immediately
                 serverProcess = multiprocessing.Process(target=forkServer)
                 serverProcess.daemon = True
+                self.child = serverProcess
                 serverProcess.start()
+
                 argHandler.results['address'] = socket.getfqdn()
+
             # Schedule the Client side mods to be loaded here
             self.modLoader.registerMod(client.ClientMod)
 
@@ -284,6 +299,6 @@ def forkServer():
     '''
     Fork a new process to run the server in the background
     '''
-    import mod
+    # import mod
     serverRuntime = Game(util.ArgumentHandler(['--type', 'SERVER']))
     serverRuntime.run()
