@@ -20,6 +20,7 @@ class PacketHandler:
         self.nextSize = 37
         self.game = game
         self.side = side
+
         self.connections = {}
         self.safePackets = [ByteSizePacket, LoginPacket,
                             DisconnectPacket, SyncPlayerPacket,
@@ -104,6 +105,7 @@ class PacketHandler:
             try:
                 x = ('Received '+dataDictionary['type'].decode())
             except KeyError:
+                print(self.connections[connIndex].nextSize)
                 print('[ERROR] Packet corrupted. This is probably an issue with a mod you are using.')
                 continue
 
@@ -118,40 +120,67 @@ class PacketHandler:
 
     def handlePacket(self, dataDictionary, connIndex):
         '''
-        Handle a packet in a separate thread
+        Handle a received packet
         '''
         # Loop through the registered packets and handle the received data accordingly
         for packet in self.safePackets:
             if packet.__name__ == dataDictionary['type'].decode():
-                # Initialise the packet, and handle it accordingly
-                try:
-                    p = packet()
-                    p.fromBytes(dataDictionary['data'])
+                # Fetch the current buffer for this packet type
+                parts = self.connections[connIndex].multipartBuffer.get(dataDictionary['type'], [])
+                if 'part' in dataDictionary.keys():
+                    # If it is part of a multipart packet
+                    packetNum, size = [int(a) for a in dataDictionary['part'].split(b'/')]
+                    # If it's the first part, initialise the parts buffer for this packet type
+                    if parts == []:
+                        parts = [(a+1, '') for a in range(size)]
+                    # Fill in the part in the buffer
+                    try:
+                        parts[packetNum-1] = (packetNum, dataDictionary['data'])
+                    except IndexError:
+                        print(packetNum,'/',size)
 
-                    # Pass the connection list in if a login packet
-                    if packet.__name__ == 'LoginPacket':
-                        response = p.onReceive(self.connections[connIndex], self.side, self.game, self.connections)
-                    else:
-                        response = p.onReceive(self.connections[connIndex], self.side, self.game)
+                    # Update the connection object's buffer
+                    self.connections[connIndex].multipartBuffer[dataDictionary['type']] = parts
 
-                except Exception as e:
-                    print('Packet unable to be handled correctly.')
-                    print('Error is as follow:')
-                    print(e)
-                    return
+                # Check if the buffer is filled (all parts of the packet have been received)
+                bufferData = [parts[a][1] for a in range(len(parts))]
+                if all(bufferData):
+                    # Replace the data with the bufferData if required
+                    if bufferData:
+                        dataDictionary['data'] = b''.join(bufferData)
 
-                self.game.fireEvent('onPacketReceived', p)
+                        # Clear the packet buffer
+                        del self.connections[connIndex].multipartBuffer[dataDictionary['type']]
 
-                # Send packet(s) in response to the received packet
-                if response:
-                    # Send any required response and reset the receive size
-                    if isinstance(response, list):
-                        for res in response:
-                            # print('sending packet {} in response to {}'.format(res.__class__.__name__, packet.__name__))
-                            self.connections[connIndex].sendPacket(res)
-                    else:
-                        # print('sending packet {} in response to {}'.format(response.__class__.__name__, packet.__name__))
-                        self.connections[connIndex].sendPacket(response)
+                    # Initialise the packet, and handle it accordingly
+                    try:
+                        p = packet()
+                        p.fromBytes(dataDictionary['data'])
+
+                        # Pass the connection list in if a login packet
+                        if packet.__name__ == 'LoginPacket':
+                            response = p.onReceive(self.connections[connIndex], self.side, self.game, self.connections)
+                        else:
+                            response = p.onReceive(self.connections[connIndex], self.side, self.game)
+
+                    except Exception as e:
+                        print('Packet unable to be handled correctly.')
+                        print('Error is as follow:')
+                        print(e)
+                        return
+
+                    self.game.fireEvent('onPacketReceived', p)
+
+                    # Send packet(s) in response to the received packet
+                    if response:
+                        # Send any required response and reset the receive size
+                        if isinstance(response, list):
+                            for res in response:
+                                # print('sending packet {} in response to {}'.format(res.__class__.__name__, packet.__name__))
+                                self.connections[connIndex].sendPacket(res)
+                        else:
+                            # print('sending packet {} in response to {}'.format(response.__class__.__name__, packet.__name__))
+                            self.connections[connIndex].sendPacket(response)
                 break
 
     def closeConnection(self, username):
@@ -189,8 +218,13 @@ class PacketHandler:
         if self.side == util.CLIENT:
             print('[WARNING] Cannot send a packet to clients from a client runtime!')
             return
-        for conn in self.connections:
-            self.sendToPlayer(packet, self.connections[conn].username)
+        # Loop and send the packet to each connection
+        try:
+            for conn in self.connections:
+                self.sendToPlayer(packet, self.connections[conn].username)
+        except RuntimeError:
+            # Bail out if a client disappears during the transfer
+            return
 
     def sendToNearby(self, packet, username, radius=16):
         '''
@@ -248,54 +282,64 @@ class Connection:
         self.address = addr
         self.nextSize = 37
 
+        self.multipartBuffer = {}
+
     def sendPacket(self, packet):
         '''
         Send a packet on this connection
         '''
         # print('Sending packet: '+packet.__class__.__name__)
-        # Prepare the packet buffer
-        buf = io.BytesIO()
-        buf.write('{'.encode())
-        buf.write('"type":"{}","data":"'.format(packet.__class__.__name__).encode())
 
-        # Initialise a new buffer
+        # Initialise a new buffer, and write the packet byte data to it
         buf2 = io.BytesIO()
         packet.toBytes(buf2)
-
-        # Sanitise the packet data bytes and append them to the packet buffer
         packetString = buf2.getvalue().decode().replace('"', '\"').encode()
-        buf.write(packetString)
-        buf.write('"}'.encode())
 
-        # Get the packet length to send first
-        byteSize = len(buf.getvalue())
+        # Split the packet if required
+        dataSize = len(packetString)
+        dataList = [packetString[a:a+950] for a in range(0, dataSize, 950)]
 
-        # Initialise the ByteSizePacket and buffer
-        byteBuf = io.BytesIO()
-        sizePacket = ByteSizePacket(byteSize)
+        for p, part in enumerate(dataList):
+            partDetail = '{}/{}'.format(p+1, len(dataList))
 
-        # Write the packet data to the buffer
-        byteBuf.write('{'.encode())
-        byteBuf.write('"type":"{}","data":"'.format(sizePacket.__class__.__name__).encode())
-        sizePacket.toBytes(byteBuf)
-        byteBuf.write('"}'.encode())
+            # Prepare the packet buffer
+            buf = io.BytesIO()
+            buf.write('{'.encode())
+            buf.write('"type":"{}","data":"'.format(packet.__class__.__name__).encode())
 
-        # Run error checks here to stop the server from crashing
-        try:
-            # Sanitise and send the two packets one after the other
-            self.connObj.send(byteBuf.getvalue())
-            self.connObj.send(buf.getvalue())
-        except Exception as e:
-            if isinstance(e, ConnectionResetError):
-                # The client might still be connected
-                print('[ERROR] The Packet Failed To Send For Some Reason.')
-            elif isinstance(e, BrokenPipeError):
-                # The client is completely disconnected
-                print('[WARNING] The Client Has Disconnected Badly. Clearing Connection...')
-                # Disconnect the client
-                del self
-            else:
-                print('[ERROR] An Error Occured!'+str(e))
+            # Write the part, then the part info
+            buf.write(part)
+            buf.write('","part":"{}"'.format(partDetail).encode()+b'}')
+
+            # Get the packet length to send first
+            byteSize = len(buf.getvalue())
+
+            # Initialise the ByteSizePacket and buffer
+            byteBuf = io.BytesIO()
+            sizePacket = ByteSizePacket(byteSize)
+
+            # Write the packet data to the buffer
+            byteBuf.write('{'.encode())
+            byteBuf.write('"type":"{}","data":"'.format(sizePacket.__class__.__name__).encode())
+            sizePacket.toBytes(byteBuf)
+            byteBuf.write('"}'.encode())
+
+            # Run error checks here to stop the server from crashing
+            try:
+                # Sanitise and send the two packets one after the other
+                self.connObj.send(byteBuf.getvalue())
+                self.connObj.send(buf.getvalue())
+            except Exception as e:
+                if isinstance(e, ConnectionResetError):
+                    # The client might still be connected
+                    print('[ERROR] The Packet Failed To Send For Some Reason.')
+                elif isinstance(e, BrokenPipeError):
+                    # The client is completely disconnected
+                    print('[WARNING] The Client Has Disconnected Badly. Clearing Connection...')
+                    # Disconnect the client
+                    del self
+                else:
+                    print('[ERROR] An Error Occured!'+str(e))
 
     def setNextPacketSize(self, size):
         '''
