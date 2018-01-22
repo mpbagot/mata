@@ -116,7 +116,7 @@ class GameRegistry:
         Register a rideable vehicle
         '''
         if self.vehicles.get(vehicleClass.getRegistryName()) is None:
-            self.vehicles[vehicleClass.getRegistryName()] = vehicleClass
+            self.vehicles[vehicleClass.getRegistryName()] = vehicleClass.__class__
             return
         raise KeyError('[ERROR] Registry name {} already in use by another vehicle!'.format(vehicleClass.getRegistryName()))
 
