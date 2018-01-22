@@ -126,7 +126,7 @@ def onEntitySync(game, entity, entities):
     for e in range(len(entities)):
         if entities[e].uuid == entity.uuid:
             # Update vanilla player properties
-            entities[e].hp = entity.hp
+            entities[e].health = entity.health
 
             # Update the modded properties
             props = entities[e].getProperty('worldUpdate')

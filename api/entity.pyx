@@ -3,23 +3,34 @@ from api.ai import AIHandler
 
 from copy import deepcopy
 
-class Player:
+class EntityBase:
+    def __init__(self):
+        self.name = ''
+        self.pos = [0, 0]
+        self.isDead = False
+        self.tickDamage = None
+        self.properties = {}
+        self.health = 100
+        self.dimension = 0
+
+    def setProperty(self, propName, propVal):
+        self.properties[propName] = propVal
+
+    def getProperty(self, propName):
+        return self.properties.get(propName)
+
+class Player(EntityBase):
     '''
     A base class for storing the player information
     '''
     def __init__(self):
+        super().__init__()
         self.username = ''
-        self.pos = [0, 0]
         self.relPos = [0, 0]
-        self.health = 100
         self.level = 1
         self.exp = 0
         self.img = []
         self.inventory = Inventory()
-        self.isDead = False
-        self.tickDamage = None
-        self.dimension = 0
-        self.properties = {}
         self.synced = False
 
     def setInventory(self, inv):
@@ -27,12 +38,6 @@ class Player:
 
     def getInventory(self):
         return self.inventory
-
-    def setProperty(self, propName, propVal):
-        self.properties[propName] = propVal
-
-    def getProperty(self, propName):
-        return self.properties.get(propName)
 
     def getAbsPos(self):
         '''
@@ -68,20 +73,15 @@ class Player:
             p.tickDamage = None
         return p
 
-class Entity:
+class Entity(EntityBase):
     '''
     A base class for new entities
     '''
     def __init__(self):
-        self.name = ''
-        self.isDead = False
-        self.tickDamage = None
-        self.hp = 100
+        super().__init__()
         self.uuid = 0
-        self.pos = [0, 0]
         self.aiHandler = AIHandler()
         self.image = None
-        self.properties = {}
 
     def __str__(self):
         x = super().__repr__()
@@ -107,12 +107,6 @@ class Entity:
     def getRegistryName(self):
         return self.name
 
-    def setProperty(self, propName, propVal):
-        self.properties[propName] = propVal
-
-    def getProperty(self, propName):
-        return self.properties.get(propName)
-
     def getImage(self, resources):
         try:
             return resources[self.image]
@@ -123,7 +117,7 @@ class Entity:
         self.image = image
 
     def toBytes(self):
-        return (str([self.__class__.__name__, self.name, self.uuid, self.pos, self.hp, str(self.tickDamage)]).replace(', ', ',')).encode()
+        return (str([self.__class__.__name__, self.name, self.uuid, self.pos, self.health, str(self.tickDamage)]).replace(', ', ',')).encode()
 
     @staticmethod
     def fromBytes(eBytes, entityClassList):
@@ -131,7 +125,7 @@ class Entity:
         finalEntity = entityClassList.get(entityClass, Entity)()
 
         finalEntity.setRegistryName(entityProps[0])
-        finalEntity.uuid, finalEntity.pos, finalEntity.hp, finalEntity.tickDamage = entityProps[1:]
+        finalEntity.uuid, finalEntity.pos, finalEntity.health, finalEntity.tickDamage = entityProps[1:]
 
         return finalEntity
 
