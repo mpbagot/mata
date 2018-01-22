@@ -25,7 +25,8 @@ class ClientMod(Mod):
         self.worldUpdateProperty = properties.Property(newPos=[0, 0], updateTick=0)
 
         # Initialise the display
-        pygame.display.set_mode((1024, 768))#, pygame.FULLSCREEN)
+        flags = pygame.DOUBLEBUF | pygame.HWSURFACE
+        pygame.display.set_mode((1024, 768), flags)
         pygame.display.set_caption('M.A.T.A: Medieval Attack-Trade-Alliance')
         # pygame.display.set_icon(pygame.image.load('resources/textures/icon.png').convert_alpha())
 
@@ -44,11 +45,13 @@ class ClientMod(Mod):
         self.packetPipeline = network.PacketHandler(self.game, util.CLIENT)
 
         # Register the valid packet classes
-        self.packetPipeline.registerPacket(WorldUpdatePacket)
-        self.packetPipeline.registerPacket(SendInventoryPacket)
-        self.packetPipeline.registerPacket(FetchInventoryPacket)
-        self.packetPipeline.registerPacket(SendPlayerImagePacket)
-        self.packetPipeline.registerPacket(FetchPlayerImagePacket)
+        packets = [
+                    WorldUpdatePacket, SendInventoryPacket,
+                    FetchInventoryPacket, SendPlayerImagePacket,
+                    FetchPlayerImagePacket
+                  ]
+        for packet in packets:
+            self.packetPipeline.registerPacket(packet)
 
         # Register the packet handler with the game
         self.gameRegistry.registerPacketHandler(self.packetPipeline)

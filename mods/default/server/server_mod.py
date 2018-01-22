@@ -21,11 +21,14 @@ class ServerMod(Mod):
         # Initialise the packet pipeline
         self.packetPipeline = network.PacketHandler(self.game, util.SERVER)
         # Register the valid packet classes
-        self.packetPipeline.registerPacket(WorldUpdatePacket)
-        self.packetPipeline.registerPacket(SendInventoryPacket)
-        self.packetPipeline.registerPacket(FetchInventoryPacket)
-        self.packetPipeline.registerPacket(SendPlayerImagePacket)
-        self.packetPipeline.registerPacket(FetchPlayerImagePacket)
+        packets = [
+                    WorldUpdatePacket, SendInventoryPacket,
+                    FetchInventoryPacket, SendPlayerImagePacket,
+                    FetchPlayerImagePacket
+                  ]
+        for packet in packets:
+            self.packetPipeline.registerPacket(packet)
+
         # Register the packet handler with the game
         self.gameRegistry.registerPacketHandler(self.packetPipeline)
 
@@ -77,7 +80,6 @@ class SpawnEntityCommand(cmd.Command):
         try:
             newEntity = self.game.modLoader.gameRegistry.entities[entityName]()
             self.game.world.spawnEntityInWorld(newEntity)
-            # self.game.world.entities.append(deepcopy(self.game.modLoader.gameRegistry.entities[entityName]))
         except KeyError:
             print('[ERROR] Entity does not exist')
 
