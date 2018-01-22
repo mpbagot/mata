@@ -1,6 +1,7 @@
 from math import cos, pi
 
-from api.gui import *
+from api.gui.gui import *
+from api.gui.objects import *
 from api.colour import *
 from mods.default.packets import *
 

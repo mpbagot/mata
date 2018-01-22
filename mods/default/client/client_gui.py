@@ -6,7 +6,8 @@ A module containing the GUI screens of the default client game
 from threading import Thread
 
 # Import the Modding API
-from api.gui import *
+from api.gui.gui import *
+from api.gui.objects import *
 from api.colour import *
 from mods.default.client.gui.extras import *
 from mods.default.client.gui.menus import *

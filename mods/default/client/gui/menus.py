@@ -1,4 +1,5 @@
-from api.gui import *
+from api.gui.gui import *
+from api.gui.objects import *
 from mods.default.client.gui.extras import *
 
 class MainMenu(Gui):
