@@ -11,7 +11,9 @@ from api.biome import *
 from api.entity import *
 
 class DimensionHandler:
-    def __init__(self, biomes, biomeSize):
+    def __init__(self, biomes, biomeSize):#chunkProviderClass, worldClass):
+        # self.chunkProvider = chunkProviderClass()
+        # self.worldObj = worldClass()
         self.biomes = biomes
         self.biomeSize = biomeSize
         self.worldObj = WorldMP(self)
@@ -116,10 +118,11 @@ class WorldMP:
                 # Trigger on Player Damaged events
                 game.fireEvent('onPlayerDamage', self.players[p], self.players[p].tickDamage)
 
-    def getUpdateData(self):
+    def getUpdateData(self, player):
         '''
         Collate the update data into a bytes object
         '''
+        # TODO clip the data based on the user
         return (str([p.toBytes() for p in self.players])+'$$$'+str([e.toBytes() for e in self.entities])).replace('"', "'''").encode()
 
     def handleUpdate(self, updateBytes, game):

@@ -120,7 +120,7 @@ def genWorld(game, props):
     game.player.setProperty('relPos2', props)
 
     # Generate the world
-    world = game.modLoader.gameRegistry.dimensions[game.player.dimension].getWorldObj()
+    world = game.getWorld(game.player.dimension)#game.modLoader.gameRegistry.dimensions[game.player.dimension].getWorldObj()
     worldData = world.generate(preGenPos, game.modLoader.gameRegistry).world.map
     game.world.world.map = worldData
     print('world gen done')

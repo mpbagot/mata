@@ -14,8 +14,8 @@ class FetchInventoryPacket(Packet):
 
     def onReceive(self, connection, side, game):
         # Fetch the inventory of the required player, and send it back
-        players = game.world.players
-        inventory = players[game.getPlayerIndex(self.playername)].getInventory()
+        inventory = game.getPlayer(self.username).getInventory()
+        # inventory = players[game.getPlayerIndex(self.playername)].getInventory()
         return SendInventoryPacket(inventory)
 
 class SendInventoryPacket(Packet):
@@ -43,7 +43,7 @@ class FetchPlayerImagePacket(Packet):
         self.player = data.decode()
 
     def onReceive(self, connection, side, game):
-        player = game.world.players[game.getPlayerIndex(self.player)]
+        player = game.getPlayer(self.player)#world.players[game.getPlayerIndex(self.player)]
         return SendPlayerImagePacket(player)
 
 class SendPlayerImagePacket(Packet):
@@ -62,4 +62,5 @@ class SendPlayerImagePacket(Packet):
 
     def onReceive(self, connection, side, game):
         # Store the image data in the player object
-        game.world.players[game.getPlayerIndex(self.playerName)].img = self.playerImg
+        # game.world.players[game.getPlayerIndex(self.playerName)].img = self.playerImg
+        game.getPlayer(self.playerName).img = self.playerImg

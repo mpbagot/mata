@@ -54,7 +54,14 @@ class ServerMod(Mod):
 def onTick(game, tick):
     if tick%5 == 0:
         # Send server updates to all of the connected clients 6 times a second
-        game.getModInstance('ServerMod').packetPipeline.sendToAll(WorldUpdatePacket(game.world))
+        pp = game.getModInstance('ServerMod').packetPipeline
+        for conn in pp.connections.values():
+            # Customise the packet for each player
+            if conn.username:
+                player = game.getPlayer(conn.username)
+                packet = WorldUpdatePacket(game.getWorld(player.dimension), player.username)
+                pp.sendToPlayer(packet, conn.username)
+        # game.getModInstance('ServerMod').packetPipeline.sendToAll(WorldUpdatePacket(game.world), True)
 
 class KickPlayerCommand(cmd.Command):
     def run(self, username, *args):
@@ -66,20 +73,18 @@ class KickPlayerCommand(cmd.Command):
 
         for player in args:
             # Loop the players, and kick them by deleting the PacketHandler
-            for p in self.game.world.players:
-                # Kick the player if they match
-                if player == p.username:
-                    # Delete the connection from the server to the client
-                    pp.closeConnection(p.username)
-                    pp.sendToPlayer(DisconnectPacket('You have been kicked from the server.'), p.username)
-                    break
+            # Delete the connection from the server to the client
+            pp.closeConnection(player)
+            pp.sendToPlayer(DisconnectPacket('You have been kicked from the server.'), player)
+            break
 
 class SpawnEntityCommand(cmd.Command):
     def run(self, username, *args):
         entityName = args[0]
+        dimensionId = self.game.getPlayer(username).dimension
         try:
             newEntity = self.game.modLoader.gameRegistry.entities[entityName]()
-            self.game.world.spawnEntityInWorld(newEntity)
+            self.game.getWorld(dimensionId).spawnEntityInWorld(newEntity)
         except KeyError:
             print('[ERROR] Entity does not exist')
 

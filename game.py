@@ -48,7 +48,10 @@ class Game:
             self.openGUI[1].textboxes[-1].text = self.args.getConnectingAddress()
 
         # Set the world up
-        self.world = self.modLoader.gameRegistry.getWorld()
+        if self.args.getRuntimeType() != util.SERVER:
+            self.world = self.modLoader.gameRegistry.getWorld()
+        else:
+            del self.world
 
     def quit(self):
         '''
@@ -74,8 +77,12 @@ class Game:
             startTickTime = time.time()
 
             # Tick the world object
-            if self.world and self.args.getRuntimeType() == util.SERVER:
-                self.world.tickUpdate(self)
+            for d in self.modLoader.gameRegistry.dimensions.keys():
+                world = self.getWorld(d)
+                if world and self.args.getRuntimeType() == util.SERVER:
+                    world.tickUpdate(self)
+            # if self.world and self.args.getRuntimeType() == util.SERVER:
+            #     self.world.tickUpdate(self)
 
             # Trigger all of the onTick events
             self.fireEvent('onTick', self.tick)
@@ -236,19 +243,62 @@ class Game:
                 return
         print('[ERROR] Overlay is not currently open.')
 
-    def getPlayerIndex(self, player):
+    def getDimension(self, dimensionId):
         '''
-        Get index of a given player object in the world player list
+        Get the DimensionHandler for the given dimension id
         '''
-        try:
-            if isinstance(player, str):
-                index = [a.username == player for a in self.world.players].index(True)
-            else:
-                    playerList = self.modLoader.gameRegistry.dimensions[player.dimension].getWorldObj().players
-                    index = [a.username == player.username for a in playerList].index(True)
-        except ValueError:
-            raise IndexError('Player is not in the list')
-        return index
+        return self.modLoader.gameRegistry.dimensions.get(dimensionId)
+
+    def getWorld(self, dimensionId):
+        '''
+        Get the world object corresponding to the given dimension id
+        '''
+        dimension = self.getDimension(dimensionId)
+        if dimension:
+            return dimension.getWorldObj()
+        return None
+
+    def getPlayer(self, username):
+        '''
+        Get index of a given player in the world player list
+        '''
+        # If a player object is accidentally passed in, run comparison with the username
+        if isinstance(username, Player):
+            return self.getPlayer(username.username)
+
+        # Iterate the dimensions and find the player
+        for d, dimension in self.modLoader.gameRegistry.dimensions.items():
+            for player in dimension.getWorldObj().players:
+                if player.username == username:
+                    return player
+        return None
+        # raise ValueError('Player with name {} does not exist'.format(username))
+        # try:
+        #     if isinstance(player, str):
+        #         index = [a.username == player for a in self.world.players].index(True)
+        #     else:
+        #             playerList = self.modLoader.gameRegistry.dimensions[player.dimension].getWorldObj().players
+        #             index = [a.username == player.username for a in playerList].index(True)
+        # except ValueError:
+        #     raise IndexError('Player is not in the list')
+        # return index
+
+    def setPlayer(self, player):
+        '''
+        Set the player on the server
+        '''
+        # If the player does not exist, append them to the required dimension's player list
+        if not self.getPlayer(player.username):
+            self.modLoader.gameRegistry.dimensions[player.dimension].getWorldObj().players.append(player)
+            return
+
+        # Iterate the dimensions, and replace the old player
+        for d, dimension in self.modLoader.gameRegistry.dimensions.items():
+            for p, play in enumerate(dimension.getWorldObj().players):
+                if play.username == player.username:
+                    dimension.getWorldObj().players[p] = player
+                    return
+
 
     def processCommandLineArgs(self, argHandler):
         '''

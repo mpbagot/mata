@@ -60,14 +60,14 @@ class LoginPacket(Packet):
         connection.username = self.player.username
 
         # Add the player
-        self.player = game.world.addPlayer(self.player)
+        self.player = game.getWorld(0).addPlayer(self.player)
 
         # Fire a login event
         game.fireEvent('onPlayerLogin', self.player)
         print(self.player.username + ' joined the server!')
         # Sync the player back to the Client
         return [
-                SetupClientPacket(game.world.dimHandler.biomeSize, game.modLoader.gameRegistry.seed),
+                SetupClientPacket(game.getDimension(0).biomeSize, game.modLoader.gameRegistry.seed),
                 ResetPlayerPacket(self.player)
                ]
 
@@ -124,7 +124,7 @@ class SyncPlayerPacket(Packet):
         # Update their position on the server if it is ok
         # Reset them if it's not
         playerList = game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj().players
-        serverPlayer = playerList[game.getPlayerIndex(self.player)]
+        serverPlayer = game.getPlayer(self.player.username)#playerList[game.getPlayerIndex(self.player)]
 
         if abs(self.player.pos[0]-serverPlayer.pos[0]) > 5 or abs(self.player.pos[1]-serverPlayer.pos[1]) > 5:
             return ResetPlayerPacket(serverPlayer)
@@ -136,15 +136,17 @@ class SyncPlayerPacket(Packet):
         #     return ResetPlayerPacket(serverPlayer)
 
         # Sync the player object on the server
-        playerIndex = game.getPlayerIndex(self.player)
-        game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj().players[playerIndex] = self.player
+        game.setPlayer(self.player)
+        # playerIndex = game.getPlayerIndex(self.player)
+        # game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj().players[playerIndex] = self.player
 
 class WorldUpdatePacket(Packet):
-    def __init__(self, world=None):
+    def __init__(self, world=None, username=''):
         self.world = world
+        self.username = username
 
     def toBytes(self, buf):
-        buf.write(self.world.getUpdateData())
+        buf.write(self.world.getUpdateData(self.username))
 
     def fromBytes(self, data):
         self.world = data

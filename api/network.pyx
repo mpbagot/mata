@@ -220,8 +220,8 @@ class PacketHandler:
             return
         # Loop and send the packet to each connection
         try:
-            for conn in self.connections:
-                self.sendToPlayer(packet, self.connections[conn].username)
+            for conn in self.connections.values():
+                self.sendToPlayer(packet, conn.username)
         except RuntimeError:
             # Bail out if a client disappears during the transfer
             return
@@ -237,11 +237,12 @@ class PacketHandler:
         if self.side == util.CLIENT:
             print('[WARNING] Cannot send a packet to clients from a client runtime!')
             return
-        player = self.game.world.players[self.game.getPlayerIndex(username)]
+        player = self.game.getPlayer(username)#self.game.world.players[self.game.getPlayerIndex(username)]
         pos = player.pos
+        dim = player.dimension
 
         # Loop all players and find the distance to the given player
-        for p in self.game.world.players:
+        for p in self.game.getWorld(dim).players:
             print(math.sqrt((p.pos[0]-pos[0])**2 + (p.pos[1]-pos[1])**2))
             if math.sqrt((p.pos[0]-pos[0])**2 + (p.pos[1]-pos[1])**2) <= radius:
                 self.sendToPlayer(packet, p.username)
