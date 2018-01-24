@@ -16,6 +16,9 @@ def onTickGenerateWorld(game, tick):
             # Set the second relative position to start iterating
             props = game.player.getProperty('relPos2')
 
+            if props.props['ready']:
+                return
+
             # Generate the world on the client
             t = Thread(target=genWorld, args=(game, props))
             t.daemon = True
@@ -111,8 +114,6 @@ def genWorld(game, props):
     '''
     Generate the small area of the world
     '''
-    if props.props['ready'] == True:
-        return
     # Set the abs pos of the player
     preGenPos = game.player.getAbsPos()
     print('genning world')
@@ -120,7 +121,7 @@ def genWorld(game, props):
     game.player.setProperty('relPos2', props)
 
     # Generate the world
-    dimension = game.getDimension(game.player.dimension)#game.modLoader.gameRegistry.dimensions[game.player.dimension].getWorldObj()
+    dimension = game.getDimension(game.player.dimension)
     dimension.generate(preGenPos, game.modLoader.gameRegistry)
     game.world.setTileMap(dimension.getWorldObj().getTileMap())
     print('world gen done')
