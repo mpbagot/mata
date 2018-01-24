@@ -48,7 +48,18 @@ class Biome:
         '''
         raise NotImplementedError('This method should be overridden by a subclass')
 
+    def resetTile(self, resources):
+        '''
+        Reset the Pygame surface for this tile
+        '''
+        if self.tileIndex >= 0:
+          self.tileTypes[self.tileIndex] = self.tileTypes[self.tileIndex].__class__(resources)
+
     def setTileType(self, tileNoise, detailNoise, resources):
+        '''
+        Setup the tile type and plant type for this tile
+        '''
+        # Initialise the tile and set the type
         if self.tileTypes:
             i = int(tileNoise*len(self.tileTypes))
             self.tileIndex = i
