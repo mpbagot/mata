@@ -11,12 +11,9 @@ from api.biome import *
 from api.entity import *
 
 class DimensionHandler:
-    def __init__(self, biomes, biomeSize):#chunkProviderClass, worldClass):
-        # self.chunkProvider = chunkProviderClass()
-        # self.worldObj = worldClass()
-        self.biomes = biomes
-        self.biomeSize = biomeSize
-        self.worldObj = WorldMP(self)
+    def __init__(self, chunkProvider, world):
+        self.chunkProvider = chunkProvider
+        self.worldObj = world
 
     def getWorldObj(self):
         '''
@@ -24,49 +21,57 @@ class DimensionHandler:
         '''
         return self.worldObj
 
+    def getBiomeSize(self):
+      '''
+      Get the biome generation size for this DimensionHandler
+      '''
+      return self.chunkProvider.biomeSize
+
+    def generate(self, pos, gameRegistry):
+        '''
+        Generate the world according to the ChunkProvider
+        '''
+        tileMap = self.chunkProvider.generate(pos, gameRegistry)
+        self.worldObj.setTileMap(tileMap)
+
+class ChunkProvider:
+    def __init__(self, biomes, biomeSize):
+        self.biomes = biomes
+        self.biomeSize = biomeSize
+
+    def generate(self, pos, gameRegistry):
+        '''
+        Generate the tile map of the world based on position and preset biomes
+        '''
+        raise NotImplementedError('ChunkProvider has no generate method.')
+
 class WorldMP:
-    def __init__(self, dimensionHandler):
+    def __init__(self):#, dimensionHandler):
         self.entities = []
         self.vehicles = []
         self.players = []
 
-        self.dimHandler = dimensionHandler
+        # self.dimHandler = dimensionHandler
 
-        self.world = None
+        self._world = None
 
-    def generate(self, pos, gameRegistry):
+    def setTileMap(self, tileMap):
         '''
-        Generate the tile map of the world based on the dimensionHandler and position
+        Set the tile map of the world
         '''
-        start = time.time()
-        xPos, yPos = pos
-        xPos = round(xPos)
-        yPos = round(yPos)
+        self._world = tileMap
 
-        # Generate Simplex Noise for the world
-        noiseMap = [[noise.snoise2(x, y, 8, 1.4, 0.45, base=gameRegistry.seed)/2+0.5 for x in range(xPos-150, xPos+151)] for y in range(yPos-105, yPos+106)]
-        biomeSize = self.dimHandler.biomeSize
-        biomeNoise = [[noise.snoise2(x, y, 7, 3, 0.6-(biomeSize*0.1), base=gameRegistry.seed/2)/2+0.5 for x in range(xPos-150, xPos+151)] for y in range(yPos-105, yPos+106)]
-        detailNoise = []
+    def getTileMap(self):
+        '''
+        Return the world tilemap
+        '''
+        return self._world
 
-        biomes = self.dimHandler.biomes
-
-        # Generate an empty starting biome map
-        width, height = (120, 84)
-        biomeMap = TileMap(width, height)
-
-        # Scatter some biomes in
-        for y, row in enumerate(biomeMap.map):
-            for x, tile in enumerate(row):
-                biomeMap.map[y][x] = biomes[round(biomeNoise[y][x]*(len(biomes)-1))]
-
-        # Choose tile types and generate entities, houses, trees, etc in the biomes
-        biomeMap.finalPass(noiseMap, detailNoise, gameRegistry.resources)
-        self.world = biomeMap
-
-        print('Time taken: '+str(time.time()-start)+' seconds')
-
-        return self
+    def isWorldLoaded(self):
+        '''
+        Return whether the world has been generated
+        '''
+        return bool(self._world)
 
     def spawnEntityInWorld(self, entity):
         '''

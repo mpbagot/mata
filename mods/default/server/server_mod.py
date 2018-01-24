@@ -6,6 +6,7 @@ from api.packets import *
 # Import the extra mod data
 from mods.default.packets import *
 from mods.default.biomes import *
+from mods.default.dimension import DefaultChunkProvider
 from mods.default.server.entity import bear
 
 import util
@@ -44,7 +45,8 @@ class ServerMod(Mod):
         # Initialise the biomes
         self.biomes = [Ocean, Forest, City, Desert]
         # Initialise and register the DimensionHandler accordingly
-        dimensionHandler = dimension.DimensionHandler(self.biomes, 3)
+
+        dimensionHandler = dimension.DimensionHandler(DefaultChunkProvider(self.biomes, 3), dimension.WorldMP())#self.biomes, 3)
         self.gameRegistry.registerDimension(dimensionHandler)
 
         # Register the events

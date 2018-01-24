@@ -5,6 +5,7 @@ from api.colour import HueShifter, hueShiftImage
 
 from mods.default.packets import *
 from mods.default.biomes import *
+from mods.default.dimension import DefaultChunkProvider
 from mods.default.client.client_gui import *
 from mods.default.client.events import tick_events, other_events
 from mods.default.server.entity import bear
@@ -26,19 +27,27 @@ class ClientMod(Mod):
 
         # Initialise the display
         flags = pygame.DOUBLEBUF | pygame.HWSURFACE
-        pygame.display.set_mode((1024, 768), flags)
+        pygame.display.set_mode((1024, 576), flags)
         pygame.display.set_caption('M.A.T.A: Medieval Attack-Trade-Alliance')
         # pygame.display.set_icon(pygame.image.load('resources/textures/icon.png').convert_alpha())
 
+        # Register the tile images
         images = ['gravel', 'grass', 'dirt', 'road', 'sand', 'water']
         for i in images:
             img = pygame.image.load('resources/textures/mods/tiles/'+i+'.png').convert()
             self.gameRegistry.registerResource('tile_'+i, img)
 
+        # Register the entity images
         images = ['bear']
         for i in images:
             img = pygame.image.load('resources/textures/mods/entity/'+i+'.png').convert_alpha()
             self.gameRegistry.registerResource('entity_'+i, img)
+
+        # Register the vehicle images
+        images = ['horse']
+        for i in images:
+            img = pygame.image.load('resources/textures/mods/entity/'+i+'.png').convert_alpha()
+            self.gameRegistry.registerResource('vehicle_'+i, img)
 
     def load(self):
         # Initialise the packet pipeline
@@ -81,7 +90,7 @@ class ClientMod(Mod):
         # Initialise the biomes
         self.biomes = [Ocean, Forest, City, Desert]
         # Initialise and register the DimensionHandler accordingly
-        dimensionHandler = dimension.DimensionHandler(self.biomes, 3)
+        dimensionHandler = dimension.DimensionHandler(DefaultChunkProvider(self.biomes, 3), dimension.WorldMP())#self.biomes, 3)
         self.gameRegistry.registerDimension(dimensionHandler)
 
         # Register the events

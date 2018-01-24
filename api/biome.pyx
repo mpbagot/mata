@@ -5,9 +5,6 @@ biome objects contain tile type data, spawnable entity, item and vehicle lists
 '''
 import random
 import math
-#import pygame
-
-#pygame.init()
 
 class Tile:
     def __init__(self, resources):
@@ -43,35 +40,30 @@ class Biome:
         self.tileIndex = -1
         self.plantIndex = -1
 
-        self.setTiles()
+        self.initTiles()
+
+    def initTiles(self):
+        '''
+        Initialise the tile types
+        '''
+        raise NotImplementedError('This method should be overridden by a subclass')
+
+    def setTileType(self, tileNoise, detailNoise, resources):
+        if self.tileTypes:
+            i = int(tileNoise*len(self.tileTypes))
+            self.tileIndex = i
+            try:
+                self.tileTypes[i] = self.tileTypes[i](resources)
+            except TypeError:
+                print(self.tileTypes[i])
+
+        # Set a plant
+        if random.random() > 0.8 and self.plantTypes:
+            i = random.randint(0, len(self.plantTypes)-1)
+            self.plantIndex = i
+            self.plantTypes[i] = self.plantTypes[i]()
+
 
 class TileMap:
     def __init__(self, width, height):
         self.map = [[0 for column in range(width)] for row in range(height)]
-
-    def finalPass(self, tileNoise, detailNoise, resources):
-        '''
-        Generate the tile type of each square,
-        and generate extra details like trees
-        '''
-        # Loop the tiles in the world map
-        for r in range(len(self.map)):
-            for t, tile in enumerate(self.map[r]):
-                # Instantiate the tile
-                tile = tile()
-                # Set a tile type
-                if tile.tileTypes:
-                    i = int(tileNoise[r][t]*len(tile.tileTypes))
-                    tile.tileIndex = i
-                    try:
-                        tile.tileTypes[i] = tile.tileTypes[i](resources)
-                    except TypeError:
-                        print(tile.tileTypes[i])
-
-                # Set a plant
-                if random.random() > 0.8 and tile.plantTypes:
-                    i = random.randint(0, len(tile.plantTypes)-1)
-                    tile.plantIndex = i
-                    tile.plantTypes[i] = tile.plantTypes[i]()
-                # Place the tile into the tilemap
-                self.map[r][t] = tile

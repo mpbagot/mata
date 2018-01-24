@@ -188,13 +188,13 @@ class GameScreen(Gui):
         y -= int(y)
 
         # Check if the world is loaded into memory
-        if self.game.world and self.game.world.world:
+        if self.game.world and self.game.world.isWorldLoaded():
             xPos1 = xPos-20 if xPos >= 20 else 0
             yPos1 = yPos-14 if yPos >= 14 else 0
 
             # Pad the top of the map if applicable
             tileMap = [[0] for a in range(abs(yPos-14))] if yPos < 14 else []
-            for row in self.game.world.world.map[yPos1:yPos+14]:
+            for row in self.game.world.getTileMap().map[yPos1:yPos+14]:
                 # Generate the cropped tilemap of the world
                 padding = [0 for a in range(abs(xPos-20))] if xPos < 20 else []
                 tileMap.append(padding+row[xPos1:xPos+20])

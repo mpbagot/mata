@@ -67,7 +67,7 @@ class LoginPacket(Packet):
         print(self.player.username + ' joined the server!')
         # Sync the player back to the Client
         return [
-                SetupClientPacket(game.getDimension(0).biomeSize, game.modLoader.gameRegistry.seed),
+                SetupClientPacket(game.getDimension(0).getBiomeSize(), game.modLoader.gameRegistry.seed),
                 ResetPlayerPacket(self.player)
                ]
 
@@ -88,7 +88,7 @@ class SetupClientPacket(Packet):
     def onReceive(self, connection, side, game):
         # Set the seed and biomesize
         game.modLoader.gameRegistry.seed = self.seed
-        game.world.dimHandler.biomeSize = self.size
+        game.getDimension(0).biomeSize = self.size
         # Fire the login event
         game.fireEvent('onPlayerLogin', game.player)
 
@@ -132,6 +132,7 @@ class SyncPlayerPacket(Packet):
         # If the player has clipped into a plant, reset their position
         world = game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj()
 
+        # TODO change this later
         # if world.world.map[self.player.pos[1]][self.player.pos[0]].plantIndex < 0:
         #     return ResetPlayerPacket(serverPlayer)
 

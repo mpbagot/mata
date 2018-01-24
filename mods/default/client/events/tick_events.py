@@ -12,7 +12,7 @@ def onTickGenerateWorld(game, tick):
     if game.openGUI[0] == game.getModInstance('ClientMod').gameGui:
         # If the player has moved more than a certain distance, generate the world
         absRelPos = [abs(a) for a in game.player.relPos]
-        if (game.player.synced and not game.world.world) or max(absRelPos) > 26:
+        if (game.player.synced and not game.world.isWorldLoaded()) or max(absRelPos) > 26:
             # Set the second relative position to start iterating
             props = game.player.getProperty('relPos2')
 
@@ -120,9 +120,9 @@ def genWorld(game, props):
     game.player.setProperty('relPos2', props)
 
     # Generate the world
-    world = game.getWorld(game.player.dimension)#game.modLoader.gameRegistry.dimensions[game.player.dimension].getWorldObj()
-    worldData = world.generate(preGenPos, game.modLoader.gameRegistry).world.map
-    game.world.world.map = worldData
+    dimension = game.getDimension(game.player.dimension)#game.modLoader.gameRegistry.dimensions[game.player.dimension].getWorldObj()
+    dimension.generate(preGenPos, game.modLoader.gameRegistry)
+    game.world.setTileMap(dimension.getWorldObj().getTileMap())
     print('world gen done')
 
     # Fetch the player property

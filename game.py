@@ -80,9 +80,11 @@ class Game:
             for d in self.modLoader.gameRegistry.dimensions.keys():
                 world = self.getWorld(d)
                 if world and self.args.getRuntimeType() == util.SERVER:
-                    world.tickUpdate(self)
-            # if self.world and self.args.getRuntimeType() == util.SERVER:
-            #     self.world.tickUpdate(self)
+                    if world.players:
+                        world.tickUpdate(self)
+                    else:
+                        # TODO Fuzzy logic if there are no players inside
+                        pass
 
             # Trigger all of the onTick events
             self.fireEvent('onTick', self.tick)
