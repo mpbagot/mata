@@ -43,6 +43,7 @@ class Game:
         if self.args.getRuntimeType() != util.SERVER:
             # Set the world and player up
             self.world = self.modLoader.gameRegistry.getWorld()
+            self.dimensionId = 0
             self.player = Player()
 
             # Fill in the address to connect to automatically
@@ -92,6 +93,11 @@ class Game:
 
             # If running a client side game then do some extra things
             if self.args.getRuntimeType() != util.SERVER:
+                # Check for dimension change
+                if self.dimensionId != self.player.dimension:
+                    self.dimensionId = self.player.dimension
+                    self.world = self.getWorld(self.player.dimension)
+
                 # Get the mouse position
                 pos = pygame.mouse.get_pos()
 
