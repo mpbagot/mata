@@ -105,7 +105,7 @@ class PacketHandler:
             try:
                 x = ('Received '+dataDictionary['type'].decode())
             except KeyError:
-                print(self.connections[connIndex].nextSize)
+                print(data)
                 print('[ERROR] Packet corrupted. This is probably an issue with a mod you are using.')
                 continue
 
@@ -258,9 +258,9 @@ class PacketHandler:
         if self.side == util.CLIENT:
             print('[WARNING] Cannot send a packet to clients from a client runtime!')
             return
-        for conn in self.connections:
-            if self.connections[conn].username == username:
-                self.connections[conn].sendPacket(packet)
+        for conn in self.connections.values():
+            if conn.username == username:
+                conn.sendPacket(packet)
                 return
 
     def sendToServer(self, packet):
