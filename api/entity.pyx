@@ -6,12 +6,16 @@ from copy import deepcopy
 class EntityBase:
     def __init__(self):
         self.name = ''
+        self.health = 100
         self.pos = [0, 0]
+
         self.isDead = False
         self.tickDamage = None
+
         self.properties = {}
-        self.health = 100
         self.dimension = 0
+
+        self.ridingEntity = None
 
     def setProperty(self, propName, propVal):
         self.properties[propName] = propVal
@@ -45,6 +49,20 @@ class Player(EntityBase):
         '''
         return [round(self.relPos[0]+self.pos[0], 2), round(self.relPos[1]+self.pos[1], 2)]
 
+    def switchDimension(self, dimension, game):
+        '''
+        Switch the current dimension for this player
+        '''
+        # Delete the old player
+        world = game.getWorld(self.dimension)
+        for p, player in enumerate(world.players):
+            if player.username == self.username:
+                del world.players[p]
+
+        # Set the dimension, and replace it
+        self.dimension = dimension
+        game.setPlayer(self)
+
     def setUsername(self, name):
         '''
         Set the player username to a given name
@@ -55,18 +73,19 @@ class Player(EntityBase):
         '''
         Get a string representation of the player object
         '''
-        return (str([self.username, self.pos, self.health, str(self.tickDamage)]).replace(', ', ',')).encode()
+        return (str([self.username, self.pos, self.health, str(self.tickDamage), self.dimension]).replace(', ', ',')).encode()
 
     @staticmethod
     def fromBytes(data):
         '''
         Get a player object from a string representation
         '''
-        uname, pos, health, damage = eval(data.decode())
+        uname, pos, health, damage, dimension = eval(data.decode())
         p = Player()
         p.username = uname
         p.pos = pos
         p.health = health
+        p.dimension = dimension
         if damage:
             p.tickDamage = Damage.fromBytes(damage.encode())
         else:
