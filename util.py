@@ -89,7 +89,4 @@ class ArgumentHandler:
         '''
         Return the address that this client is going to connect to
         '''
-        try:
-            return self.results['address']
-        except KeyError:
-            return None
+        return self.results.get('address', '')
