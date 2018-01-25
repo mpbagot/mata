@@ -190,6 +190,7 @@ class Game:
             commandClass = self.modLoader.gameRegistry.commands.get('/failedCommand')
             args = [command]
         # Instantiate the command
+        self.fireEvent('onCommand', commandClass, username, args)
         commandClass = commandClass(self)
         commandClass.run(username, *args)
 

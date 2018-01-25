@@ -84,9 +84,6 @@ class ClientMod(Mod):
         # Open the main menu on startup
         self.game.openGui(self.mainMenuGui)
 
-        # Register the message override command
-        self.gameRegistry.registerCommand('/message', MessageCommand)
-
         # Initialise the biomes
         self.biomes = [Ocean, Forest, City, Desert]
         # Initialise and register the DimensionHandler accordingly
@@ -100,10 +97,11 @@ class ClientMod(Mod):
 
         self.gameRegistry.registerEventHandler(other_events.onClientConnected, 'onClientConnected')
         self.gameRegistry.registerEventHandler(other_events.onPlayerLogin, 'onPlayerLogin')
+        self.gameRegistry.registerEventHandler(other_events.onCommand, 'onCommand')
         self.gameRegistry.registerEventHandler(other_events.onPacketReceived, 'onPacketReceived')
-        self.gameRegistry.registerEventHandler(other_events.onDisconnect, 'onDisconnect')
         self.gameRegistry.registerEventHandler(other_events.onPlayerUpdate, 'onPlayerUpdate')
         self.gameRegistry.registerEventHandler(other_events.onEntitySync, 'onEntitySync')
+        self.gameRegistry.registerEventHandler(other_events.onDisconnect, 'onDisconnect')
 
         self.gameRegistry.registerEventHandler(other_events.onGameKeyPress, 'onKeyPress')
         self.gameRegistry.registerEventHandler(other_events.onInvKeyPress, 'onKeyPress')
@@ -128,10 +126,3 @@ class ClientMod(Mod):
         # Direction is between 0-3, frame is between 0-2, characteristic is between 0-6, type is between 0-5
         # return [[self.hueShiftImage(imgValues, imageName+'_'+str(a), image) for a in range(3)] for imageName in imageNames]
         return hueShiftImage(imgValues, 'player_avatar_0', image)
-
-class MessageCommand(cmd.Command):
-    def run(self, username, *args):
-        message = ' '.join(args[1:])
-        modInstance = self.game.getModInstance('ClientMod')
-        modInstance.chatMessages[args[0]] = modInstance.chatMessages.get(args[0], []) + [message]
-        print(' '.join(args[1:]))

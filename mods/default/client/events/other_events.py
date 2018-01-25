@@ -38,6 +38,17 @@ def onInvKeyPress(game, event):
         if event.key == pygame.K_ESCAPE:
             game.restoreGui()
 
+def onCommand(game, commandClass, username, args):
+    '''
+    Event Hook: onCommand
+    Extend the default behaviour for some commands
+    '''
+    if commandClass.__name__ == 'MessageCommand':
+        message = ' '.join(args[1:])
+        modInstance = game.getModInstance('ClientMod')
+        modInstance.chatMessages[args[0]] = modInstance.chatMessages.get(args[0], []) + [message]
+        print(' '.join(args[1:]))
+
 def onPacketReceived(game, packet):
     '''
     Event Hook: onPacketReceived

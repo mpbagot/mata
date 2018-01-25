@@ -184,7 +184,6 @@ class SendCommandPacket(Packet):
         if self.text[0] != '/':
             self.text = '/message global '+self.text
         game.fireCommand(self.text, connection.username)
-        game.fireEvent('onCommand', self.text)
 
 class InvalidLoginPacket(Packet):
     def toBytes(self, buf):

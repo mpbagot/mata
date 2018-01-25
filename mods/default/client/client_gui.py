@@ -79,8 +79,10 @@ class Chat(Overlay):
 
         self.scrollScreen.innerScreen.fill(pygame.Color(127, 127, 127, 0))
 
+        messages = [a for a in messages if '\x00' not in a]
         for m, message in enumerate(messages):
             text = fontSmall.render(message, True, (0, 0, 0))
+
             self.scrollScreen.blit(text, [0, 15*m])
 
         self.scrollScreen.draw(self.screen, mousePos)

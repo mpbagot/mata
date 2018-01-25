@@ -6,6 +6,8 @@ from multiprocessing import Process, Queue
 import pygame
 from copy import deepcopy
 
+import util
+
 def onTickGenerateWorld(game, tick):
     '''
     Event Hook: onTick
@@ -14,7 +16,7 @@ def onTickGenerateWorld(game, tick):
     if game.openGUI[0] == game.getModInstance('ClientMod').gameGui:
         # If the player has moved more than a certain distance, generate the world
         absRelPos = [abs(a) for a in game.player.relPos]
-        # TODO this still doesn't work
+        # TODO This still has the lag spikes (probably the thread copying the surfaces is causing it.)
         if (game.player.synced and not game.world.isWorldLoaded()) or max(absRelPos) > 16:
             # Set the second relative position to start iterating
             props = game.player.getProperty('relPos2')
@@ -36,13 +38,14 @@ def onTickHandleMovement(game, tick):
     Event Hook: onTick
     Handle the motion of other players and the main client player
     '''
+    animTicks = util.FPS//6
     if game.openGUI[0] == game.getModInstance('ClientMod').gameGui:
         # Interpolate the movement of the other players
         for p in range(len(game.world.players)):
             props = game.world.players[p].getProperty('worldUpdate')
 
             # Get the number of ticks since the last sync to server
-            moduloTick = 5-(game.tick-props.props['updateTick'])%5
+            moduloTick = animTicks-(game.tick-props.props['updateTick'])%animTicks
 
             # Calculate the change in position
             pos = game.world.players[p].pos
@@ -58,7 +61,7 @@ def onTickHandleMovement(game, tick):
             props = game.world.entities[e].getProperty('worldUpdate')
 
             # Get the number of ticks since the last sync to server
-            moduloTick = 5-(game.tick-props.props['updateTick'])%5
+            moduloTick = animTicks-(game.tick-props.props['updateTick'])%animTicks
 
             # Calculate the change in position
             pos = game.world.entities[e].pos
@@ -132,7 +135,7 @@ def handleProcess(game, queue):
         elif data != "end":
             for y, row in enumerate(data.map):
                 for x, tile in enumerate(row):
-                    data.map[y][x].resetTile(game.modLoader.gameRegistry.resources)#noiseMap[y][x], 0, game.modLoader.gameRegistry.resources)
+                    data.map[y][x].resetTile(game.modLoader.gameRegistry.resources)
 
             game.world.setTileMap(data)
             queue.put(game.player.getProperty('relPos2'))

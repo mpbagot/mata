@@ -51,10 +51,11 @@ class ServerMod(Mod):
 
         # Register the events
         self.gameRegistry.registerEventHandler(onTick, 'onTick')
+        self.gameRegistry.registerEventHandler(onCommand, 'onCommand')
         self.gameRegistry.registerEventHandler(onDisconnect, 'onDisconnect')
 
 def onTick(game, tick):
-    if tick%5 == 0:
+    if tick%(util.FPS//6) == 0:
         # Send server updates to all of the connected clients 6 times a second
         pp = game.getModInstance('ServerMod').packetPipeline
         for conn in pp.connections.values():
@@ -63,7 +64,24 @@ def onTick(game, tick):
                 player = game.getPlayer(conn.username)
                 packet = WorldUpdatePacket(game.getWorld(player.dimension), player.username)
                 pp.sendToPlayer(packet, conn.username)
-        # game.getModInstance('ServerMod').packetPipeline.sendToAll(WorldUpdatePacket(game.world), True)
+
+def onCommand(game, commandClass, username, args):
+    '''
+    Event Hook: onCommand
+    Extend the default behaviour for some commands
+    '''
+    pp = game.getModInstance('ServerMod').packetPipeline
+    if commandClass.__name__ == 'MessageCommand':
+        # Send messages back to one or more clients based on the message mode
+        mode = args[0]
+        if mode == 'global':
+            pp.sendToAll(SendCommandPacket('/message '+' '.join(args)))
+        elif mode == 'local':
+            pp.sendToNearby(SendCommandPacket('/message '+' '.join(args)), username)
+        else:
+            pp.sendToPlayer(SendCommandPacket('/message '+' '.join(args)), args[0])
+    elif commandClass.__name__ == 'FailedCommand':
+        pp.sendToPlayer(SendCommandPacket('/message global '+args[0]+' is not a valid command.'), username)
 
 class KickPlayerCommand(cmd.Command):
     def run(self, username, *args):
