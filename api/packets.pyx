@@ -65,6 +65,7 @@ class LoginPacket(Packet):
         # Fire a login event
         game.fireEvent('onPlayerLogin', self.player)
         print(self.player.username + ' joined the server!')
+
         # Sync the player back to the Client
         return [
                 SetupClientPacket(game.getDimension(0).getBiomeSize(), game.modLoader.gameRegistry.seed),
@@ -93,8 +94,15 @@ class SetupClientPacket(Packet):
         game.fireEvent('onPlayerLogin', game.player)
 
 class ResetPlayerPacket(Packet):
-    def __init__(self, player=''):
+    def __init__(self, player='', currentPlayer='' ,pos=True, hp=True, dimension=True):
         self.player = player
+        if not pos:
+            self.player.pos = currentPlayer.pos
+            self.player.relPos = currentPlayer.relPos
+        if not hp:
+            self.player.health = currentPlayer.health
+        if not dimension:
+            self.player.dimension = currentPlayer.dimension
 
     def toBytes(self, buf):
         buf.write(self.player.toBytes())
@@ -108,6 +116,7 @@ class ResetPlayerPacket(Packet):
         game.player.pos = self.player.pos
         game.player.health = self.player.health
         game.player.relPos = [0, 0]
+        game.player.dimension = self.player.dimension
 
 class SyncPlayerPacket(Packet):
     def __init__(self, player=''):
@@ -123,11 +132,15 @@ class SyncPlayerPacket(Packet):
         # Check if the player's motion is not greater than a certain threshold
         # Update their position on the server if it is ok
         # Reset them if it's not
-        playerList = game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj().players
-        serverPlayer = game.getPlayer(self.player.username)#playerList[game.getPlayerIndex(self.player)]
+        playerList = game.getWorld(self.player.dimension)
+        serverPlayer = game.getPlayer(self.player.username)
 
         if abs(self.player.pos[0]-serverPlayer.pos[0]) > 5 or abs(self.player.pos[1]-serverPlayer.pos[1]) > 5:
             return ResetPlayerPacket(serverPlayer)
+
+        if self.player.dimension != serverPlayer.dimension:
+            # TODO check if it's possible for the change to have occured
+            return ResetPlayerPacket(serverPlayer, self.player, pos=False)
 
         # If the player has clipped into a plant, reset their position
         world = game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj()
