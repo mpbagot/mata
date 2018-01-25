@@ -46,12 +46,10 @@ class ChunkProvider:
         raise NotImplementedError('ChunkProvider has no generate method.')
 
 class WorldMP:
-    def __init__(self):#, dimensionHandler):
+    def __init__(self):
         self.entities = []
         self.vehicles = []
         self.players = []
-
-        # self.dimHandler = dimensionHandler
 
         self._world = None
 
@@ -114,11 +112,8 @@ class WorldMP:
         # Loop through the players and update them
         for p in range(len(self.players)):
             if self.players[p].isDead:
-                # If the player has died, disconnect them (because of permadeath)
-                # Close the connection to the client from the server
-                game.getModInstance('ServerMod').packetPipeline.closeConnection(self.players[p].username)
-                game.getModInstance('ServerMod').packetPipeline.sendToPlayer(
-                DisconnectPacket('You have died'), self.players[p].username)
+                # If the player has died, fire an onDeath event
+                game.fireEvent('onPlayerDeath', self.players[p])
             elif self.players[p].tickDamage:
                 # Trigger on Player Damaged events
                 game.fireEvent('onPlayerDamage', self.players[p], self.players[p].tickDamage)

@@ -52,6 +52,7 @@ class ServerMod(Mod):
         # Register the events
         self.gameRegistry.registerEventHandler(onTick, 'onTick')
         self.gameRegistry.registerEventHandler(onCommand, 'onCommand')
+        self.gameRegistry.registerEventHandler(onPlayerDeath, 'onPlayerDeath')
         self.gameRegistry.registerEventHandler(onDisconnect, 'onDisconnect')
 
 def onTick(game, tick):
@@ -107,6 +108,16 @@ class SpawnEntityCommand(cmd.Command):
             self.game.getWorld(dimensionId).spawnEntityInWorld(newEntity)
         except KeyError:
             print('[ERROR] Entity does not exist')
+
+def onPlayerDeath(game, player):
+    '''
+    Event Hook: onPlayerDeath
+    Close the connection to the client and
+    '''
+    # Close the connection to the client from the server
+    pp = game.getModInstance('ServerMod').packetPipeline
+    pp.sendToPlayer(DisconnectPacket('You have died'), player.username)
+    game.getModInstance('ServerMod').packetPipeline.closeConnection(pp.username)
 
 def onDisconnect(game):
     '''
