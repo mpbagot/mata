@@ -1,6 +1,6 @@
 # Import the API modules
 from mod import Mod
-from api import network, biome, cmd, dimension, entity, item, properties, vehicle
+from api import network, cmd, dimension, item, vehicle
 from api.packets import *
 
 # Import the extra mod data
@@ -46,7 +46,7 @@ class ServerMod(Mod):
         self.biomes = [Ocean, Forest, City, Desert]
         # Initialise and register the DimensionHandler accordingly
 
-        dimensionHandler = dimension.DimensionHandler(DefaultChunkProvider(self.biomes, 3), dimension.WorldMP())#self.biomes, 3)
+        dimensionHandler = dimension.DimensionHandler(DefaultChunkProvider(self.biomes, 3), dimension.WorldMP())
         self.gameRegistry.registerDimension(dimensionHandler)
 
         # Register the events

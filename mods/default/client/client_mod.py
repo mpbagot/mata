@@ -1,7 +1,7 @@
 from mod import Mod
-from api import audio, network, biome, cmd, dimension, entity, gui, item, properties, vehicle
+from api import audio, network, cmd, dimension, item, properties, vehicle
 from api.packets import *
-from api.colour import HueShifter, hueShiftImage
+from api.colour import hueShiftImage
 
 from mods.default.packets import *
 from mods.default.biomes import *
@@ -90,7 +90,7 @@ class ClientMod(Mod):
         # Initialise the biomes
         self.biomes = [Ocean, Forest, City, Desert]
         # Initialise and register the DimensionHandler accordingly
-        dimensionHandler = dimension.DimensionHandler(DefaultChunkProvider(self.biomes, 3), dimension.WorldMP())#self.biomes, 3)
+        dimensionHandler = dimension.DimensionHandler(DefaultChunkProvider(self.biomes, 3), dimension.WorldMP())
         self.gameRegistry.registerDimension(dimensionHandler)
 
         # Register the events

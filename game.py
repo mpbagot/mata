@@ -8,6 +8,7 @@ import time
 import multiprocessing
 import socket
 import sys
+import os
 
 if 'SERVER' not in sys.argv:
     import pygame
@@ -28,11 +29,10 @@ class Game:
 
         # Load mods and process cmd args
         self.modLoader = mod.ModLoader(self)
-        self.processCommandLineArgs(argHandler)
+        self.processCmdArgs(argHandler)
         self.args = argHandler
 
-        # Initialise the game variables
-        self.world = None
+        # Initialise the GUI variables
         self.openGUI = self.prevGUI = None
         self.openOverlays = []
         self.prevOverlays = []
@@ -40,18 +40,13 @@ class Game:
         # Load all of the registered mods
         self.modLoader.loadRegisteredMods()
 
-        # Load into the main menu or loading screen gui on startup
         if self.args.getRuntimeType() != util.SERVER:
-            self.player = Player()
-        # Fill in the address to connect to automatically
-        if self.args.getRuntimeType() == util.COMBINED:
-            self.openGUI[1].textboxes[-1].text = self.args.getConnectingAddress()
-
-        # Set the world up
-        if self.args.getRuntimeType() != util.SERVER:
+            # Set the world and player up
             self.world = self.modLoader.gameRegistry.getWorld()
-        else:
-            del self.world
+            self.player = Player()
+
+            # Fill in the address to connect to automatically
+            self.openGUI[1].textboxes[-1].text = self.args.getConnectingAddress()
 
     def quit(self):
         '''
@@ -59,8 +54,14 @@ class Game:
         '''
         # Terminate the child server process if running a combined game
         if self.child:
-            # TODO this doesn't work...
+            # Ask the process to die nicely...
             self.child.terminate()
+            if self.child.is_alive():
+                # o_o
+                # -_-
+                # Drastic times call for drastic measures...
+                if sys.platform == 'linux':
+                    os.system('kill -KILL {}'.format(self.child.pid))
         pygame.quit()
         sys.exit()
 
@@ -131,7 +132,7 @@ class Game:
 
             # Get the time that the tick took to run
             deltaTime = time.time()-startTickTime
-            # Sleep if running faster than 30 ticks per second
+            # Sleep if running faster than preset tps/fps
             if deltaTime < 1/util.FPS:
                 time.sleep((1/util.FPS)-deltaTime)
 
@@ -274,16 +275,6 @@ class Game:
                 if player.username == username:
                     return player
         return None
-        # raise ValueError('Player with name {} does not exist'.format(username))
-        # try:
-        #     if isinstance(player, str):
-        #         index = [a.username == player for a in self.world.players].index(True)
-        #     else:
-        #             playerList = self.modLoader.gameRegistry.dimensions[player.dimension].getWorldObj().players
-        #             index = [a.username == player.username for a in playerList].index(True)
-        # except ValueError:
-        #     raise IndexError('Player is not in the list')
-        # return index
 
     def setPlayer(self, player):
         '''
@@ -291,21 +282,21 @@ class Game:
         '''
         # If the player does not exist, append them to the required dimension's player list
         if not self.getPlayer(player.username):
-            self.modLoader.gameRegistry.dimensions[player.dimension].getWorldObj().players.append(player)
+            self.getWorld(player.dimension).players.append(player)
             return
 
-        # Iterate the dimensions, and replace the old player
-        for d, dimension in self.modLoader.gameRegistry.dimensions.items():
-            for p, play in enumerate(dimension.getWorldObj().players):
-                if play.username == player.username:
-                    dimension.getWorldObj().players[p] = player
-                    return
+        # Fetch the dimension, iterate the players, and replace the corresponding object
+        world = self.getWorld(player.dimension)
+        for p, play in enumerate(world.players):
+            if play.username == player.username:
+                world.players[p] = player
+                return
 
-
-    def processCommandLineArgs(self, argHandler):
+    def processCmdArgs(self, argHandler):
         '''
-        Process the Command Line Arguments for the game
+        Process the command line arguments for the game
         '''
+        # TODO this is all wrong, it shouldn't import the default mods as they are supposed to be overrideable
         import mods.default.server.server_mod as server
         import mods.default.neural_net as nn
 
@@ -351,6 +342,5 @@ def forkServer():
     '''
     Fork a new process to run the server in the background
     '''
-    # import mod
     serverRuntime = Game(util.ArgumentHandler(['--type', 'SERVER']))
     serverRuntime.run()

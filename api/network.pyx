@@ -237,7 +237,7 @@ class PacketHandler:
         if self.side == util.CLIENT:
             print('[WARNING] Cannot send a packet to clients from a client runtime!')
             return
-        player = self.game.getPlayer(username)#self.game.world.players[self.game.getPlayerIndex(username)]
+        player = self.game.getPlayer(username)
         pos = player.pos
         dim = player.dimension
 
