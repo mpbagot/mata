@@ -268,7 +268,7 @@ def getErrorBox(message, mousePos):
     text = font.render(message, True, (0, 0, 0))
     box.blit(text, [width//4-text.get_width()//2, height//4-text.get_height()//2])
 
-    # TODO Draw a button to say okay
+    # Draw a button to say okay
     errorButton = Button([width//8, height//3, width//4, width//10], 'Close')
     errorButton.draw(box, mousePos)
 
