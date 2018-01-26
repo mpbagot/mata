@@ -23,6 +23,16 @@ class EntityBase:
     def getProperty(self, propName):
         return self.properties.get(propName)
 
+    def hasAttribute(self, name):
+          '''
+          Return whether the class (and classes which extend this) has a given attribute
+          '''
+          try:
+              a = self.__getattribute__(name)
+              return True
+          except AttributeError:
+              return False
+
 class Player(EntityBase):
     '''
     A base class for storing the player information
@@ -109,16 +119,6 @@ class Entity(EntityBase):
     def __repr__(self):
         x = super().__repr__()
         return x.split()[-1][:-1] + ' {} {} {}'.format(self.name, self.uuid, self.pos)
-
-    def hasAttribute(self, name):
-          '''
-          Return whether the class (and classes which extend this) has a given attribute
-          '''
-          try:
-              a = self.__getattribute__(name)
-              return True
-          except AttributeError:
-              return False
 
     def setRegistryName(self, name):
         self.name = name
