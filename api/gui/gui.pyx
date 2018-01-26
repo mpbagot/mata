@@ -1,5 +1,44 @@
 import pygame
 
+class GUIState:
+    def __init__(self, game):
+        self.game = game
+        self.gui = None
+        self.overlays = []
+
+    def openGui(self, guiID, *args):
+        '''
+        Set the open GUI for this GUI state.
+        '''
+        self.gui = [guiID, self.game.modLoader.gameRegistry.guis[guiID](*args)]
+
+    def openOverlay(self, guiID, *args):
+        '''
+        Add an overlay to be drawn to the screen
+        '''
+        if not self.isOverlayOpen(guiID):
+            self.overlays.append([guiID, self.game.modLoader.gameRegistry.guis[guiID](*args)])
+
+    def isOverlayOpen(self, guiID):
+        '''
+        Return whether a given overlay is open in this gui state
+        '''
+        for overlay in self.overlays:
+            if overlay[0] == guiID:
+                return True
+        return False
+
+    def closeOverlay(self, guiID):
+        '''
+        Close the overlay with the given id
+        '''
+        index = None
+        for i, overlay in enumerate(self.overlays):
+            if overlay[0] == guiID:
+                del self.overlays[i]
+                return
+        print('[WARNING] Overlay is not currently open.')
+
 class Gui:
     def __init__(self):
         self.screen = pygame.display.get_surface()

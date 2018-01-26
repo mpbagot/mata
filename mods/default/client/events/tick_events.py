@@ -13,7 +13,7 @@ def onTickGenerateWorld(game, tick):
     Event Hook: onTick
     Handles the generation of the world when necessary
     '''
-    if game.openGUI[0] == game.getModInstance('ClientMod').gameGui:
+    if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
         # If the player has moved more than a certain distance, generate the world
         absRelPos = [abs(a) for a in game.player.relPos]
         # TODO This still has the lag spikes (probably the thread copying the surfaces is causing it.)
@@ -39,7 +39,7 @@ def onTickHandleMovement(game, tick):
     Handle the motion of other players and the main client player
     '''
     animTicks = util.FPS//6
-    if game.openGUI[0] == game.getModInstance('ClientMod').gameGui:
+    if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
         # Interpolate the movement of the other players
         for p in range(len(game.world.players)):
             props = game.world.players[p].getProperty('worldUpdate')

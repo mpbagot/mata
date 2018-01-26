@@ -9,16 +9,16 @@ def onGameKeyPress(game, event):
     Event Hook: onKeyPress
     Handle the opening and closing of the messaging overlay
     '''
-    if game.openGUI[0] == game.getModInstance('ClientMod').gameGui:
+    if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
         chatOverlay = game.getModInstance('ClientMod').chatOverlay
 
-        if not game.isOverlayOpen(chatOverlay):
+        if not game.getGUIState().isOverlayOpen(chatOverlay):
             if event.key == pygame.K_t:
                 game.openOverlay(chatOverlay, game)
             elif event.key == pygame.K_u:
                 game.openOverlay(chatOverlay, game, 'local')
         elif event.key == pygame.K_ESCAPE:
-            game.closeOverlay(chatOverlay)
+            game.getGUIState().closeOverlay(chatOverlay)
 
         if event.key == pygame.K_e:
             game.openGui(game.getModInstance('ClientMod').inventoryGui, game)
@@ -34,7 +34,7 @@ def onInvKeyPress(game, event):
     Event Hook: onKeyPress
     Handle the key press events while in the inventory screen
     '''
-    if game.openGUI[0] == game.getModInstance('ClientMod').inventoryGui:
+    if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').inventoryGui:
         if event.key == pygame.K_ESCAPE:
             game.restoreGui()
 
@@ -65,7 +65,7 @@ def onPacketReceived(game, packet):
     elif packet.__class__.__name__ == 'InvalidLoginPacket':
         # Tell the player that their username is already taken
         game.openGui(game.getModInstance('ClientMod').mainMenuGui)
-        game.openGUI[1].error = 'That Username Is Already Taken.'
+        game.getGui()[1].error = 'That Username Is Already Taken.'
 
     elif packet.__class__.__name__ == 'WorldUpdatePacket':
         # Fetch images of new players

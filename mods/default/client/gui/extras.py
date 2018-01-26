@@ -11,7 +11,7 @@ class StartGameButton(Button):
 
     def onClick(self, game):
         # Generate the image values array
-        values = game.openGUI[1].valSliders
+        values = game.getGui()[1].valSliders
         playerImg = [round(slider.value*360-180, 1) for slider in values]
 
         # Set it and sync it to the server
@@ -28,8 +28,8 @@ class PlayButton(Button):
 
     def onClick(self, game):
         # Grab the variables from the textboxes
-        username = game.openGUI[1].textboxes[0].text
-        address = game.openGUI[1].textboxes[1].text
+        username = game.getGui()[1].textboxes[0].text
+        address = game.getGui()[1].textboxes[1].text
 
         # Set the player username
         game.player.setUsername(username)
@@ -41,8 +41,8 @@ class PlayButton(Button):
         # Display an error if it fails for any reason
         if error:
             game.openGui(game.getModInstance('ClientMod').mainMenuGui)
-            game.openGUI[1].error = error
-            game.openGUI[1].textboxes[0].text = username
+            game.getGui()[1].error = error
+            game.getGui()[1].textboxes[0].text = username
 
 class ExitButton(Button):
     def __init__(self, rect):

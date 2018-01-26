@@ -13,6 +13,7 @@ import os
 if 'SERVER' not in sys.argv:
     import pygame
     pygame.init()
+    from api.gui.gui import GUIState
 
 # Import the game's modules
 import util
@@ -33,9 +34,8 @@ class Game:
         self.args = argHandler
 
         # Initialise the GUI variables
-        self.openGUI = self.prevGUI = None
-        self.openOverlays = []
-        self.prevOverlays = []
+        self.currentGUIState = None
+        self.prevGUIState = None
 
         # Load all of the registered mods
         self.modLoader.loadRegisteredMods()
@@ -47,7 +47,7 @@ class Game:
             self.player = Player()
 
             # Fill in the address to connect to automatically
-            self.openGUI[1].textboxes[-1].text = self.args.getConnectingAddress()
+            self.getGui()[1].textboxes[-1].text = self.args.getConnectingAddress()
 
     def quit(self):
         '''
@@ -72,6 +72,7 @@ class Game:
         '''
         self.fireEvent('onGameLaunch')
         self.tick = 0
+        self.deltaTime = 0
         # Run at 30 ticks per second
         while True:
             self.tick += 1
@@ -84,9 +85,9 @@ class Game:
                 if world and self.args.getRuntimeType() == util.SERVER:
                     if world.players:
                         world.tickUpdate(self)
-                    else:
-                        # TODO Fuzzy logic if there are no players inside
-                        pass
+                    elif (self.tick+d)%(5*util.FPS) == True:
+                        # TODO Fuzzy/slow logic if there are no players inside
+                        world.tickUpdate(self)
 
             # Trigger all of the onTick events
             self.fireEvent('onTick', self.tick)
@@ -95,6 +96,7 @@ class Game:
             if self.args.getRuntimeType() != util.SERVER:
                 # Check for dimension change
                 if self.dimensionId != self.player.dimension:
+                    self.fireEvent('onDimensionChange', self.player, self.player.dimension, dimensionId)
                     self.dimensionId = self.player.dimension
                     self.world = self.getWorld(self.player.dimension)
 
@@ -109,38 +111,40 @@ class Game:
                     if event.type == pygame.QUIT:
                         self.quit()
 
-                    elif event.type == pygame.KEYDOWN:
-                        # Handle a keypress on the gui
-                        if self.openGUI[1].currentTextBox is not None:
-                            self.openGUI[1].textboxes[self.openGUI[1].currentTextBox].doKeyPress(event)
-                        else:
-                            # If the keypress is not applicable to the gui, revert to the overlays
-                            for i, overlay in enumerate(self.openOverlays):
-                                self.openOverlays[i][1].doKeyPress(event)
+                    elif self.getGui():
+                        if event.type == pygame.KEYDOWN:
+                            # Handle a keypress on the gui
+                            if self.getGui()[1].currentTextBox is not None:
+                                self.getGui()[1].textboxes[self.getGui()[1].currentTextBox].doKeyPress(event)
+                            else:
+                                # If the keypress is not applicable to the gui, revert to the overlays
+                                for i, overlay in enumerate(self.getOverlays()):
+                                    self.getOverlays()[i][1].doKeyPress(event)
 
-                        # Finally, trigger any registered event functions
-                        self.fireEvent('onKeyPress', event)
+                            # Finally, trigger any registered event functions
+                            self.fireEvent('onKeyPress', event)
 
-                    elif event.type == pygame.MOUSEBUTTONDOWN:
-                        # Handle a mouse click on buttons
-                        for button in self.openGUI[1].buttons:
-                            if button.isHovered(pos):
-                                button.onClick(self)
+                        elif event.type == pygame.MOUSEBUTTONDOWN:
+                            # Handle a mouse click on buttons
+                            for button in self.getGui()[1].buttons:
+                                if button.isHovered(pos):
+                                    button.onClick(self)
 
-                        # Then, handle a mouse click on a text box
-                        self.openGUI[1].currentTextBox = None
-                        for t, textbox in enumerate(self.openGUI[1].textboxes):
-                            if textbox.isHovered(pos):
-                                self.openGUI[1].currentTextBox = t
+                            # Then, handle a mouse click on a text box
+                            self.getGui()[1].currentTextBox = None
+                            for t, textbox in enumerate(self.getGui()[1].textboxes):
+                                if textbox.isHovered(pos):
+                                    self.getGui()[1].currentTextBox = t
 
-                        # Finally, trigger any registered event functions
-                        self.fireEvent('onMouseClick', event)
+                            # Finally, trigger any registered event functions
+                            self.fireEvent('onMouseClick', event)
 
             # Get the time that the tick took to run
-            deltaTime = time.time()-startTickTime
+            self.deltaTime = time.time()-startTickTime
             # Sleep if running faster than preset tps/fps
-            if deltaTime < 1/util.FPS:
-                time.sleep((1/util.FPS)-deltaTime)
+            if self.deltaTime < 1/util.FPS:
+                time.sleep((1/util.FPS)-self.deltaTime)
+                self.deltaTime = 1/util.FPS
 
     def drawClientGame(self, pos):
         '''
@@ -149,17 +153,17 @@ class Game:
         pygame.display.get_surface().fill((255, 255, 255))
 
         # Draw the current gui
-        if self.openGUI is not None:
-            self.openGUI[1].drawBackgroundLayer()
-            self.openGUI[1].drawMiddleLayer(pos)
-            self.openGUI[1].drawForegroundLayer(pos)
+        if self.getGui() is not None:
+            self.getGui()[1].drawBackgroundLayer()
+            self.getGui()[1].drawMiddleLayer(pos)
+            self.getGui()[1].drawForegroundLayer(pos)
 
         # Draw each of the active overlays
-        for id, overlay in self.openOverlays:
+        for id, overlay in self.getOverlays():
             overlay.drawBackgroundLayer()
-        for id, overlay in self.openOverlays:
+        for id, overlay in self.getOverlays():
             overlay.drawMiddleLayer(pos)
-        for id, overlay in self.openOverlays:
+        for id, overlay in self.getOverlays():
             overlay.drawForegroundLayer(pos)
 
         # Draw the graphics to the screen
@@ -194,64 +198,65 @@ class Game:
         commandClass = commandClass(self)
         commandClass.run(username, *args)
 
+    def getGui(self):
+        '''
+        Return the currently open gui
+        '''
+        if self.currentGUIState:
+            return self.currentGUIState.gui
+        return None
+
+    def getOverlays(self):
+        '''
+        Return a list of the currently open overlays
+        '''
+        if self.currentGUIState:
+            return self.currentGUIState.overlays
+        return []
+
+    def getGUIState(self):
+        '''
+        Return the current GUIState of the game
+        '''
+        return self.currentGUIState
+
+    def loadGUIState(self, guiState):
+        '''
+        Load a given GUIState into the game
+        '''
+        self.prevGUIState = self.currentGUIState
+        self.currentGUIState = guiState
+
     def openGui(self, guiID, *args):
         '''
         Open the GUI with the given id for this client
         '''
-        if isinstance(self.openGUI, list):
-            self.prevGUI = [self.openGUI[0], self.openGUI[1]]
-        else:
-            self.prevGUI = self.openGUI
-        self.prevOverlays = list(self.openOverlays)
+        if self.currentGUIState:
+            self.prevGUIState = self.currentGUIState
 
-        self.openOverlays = []
-        self.openGUI = [guiID, self.modLoader.gameRegistry.guis[guiID](*args)]
+        newGUIState = GUIState(self)
+        self.currentGUIState = newGUIState
+        self.currentGUIState.openGui(guiID, *args)
+
+    def openOverlay(self, guiID, *args):
+        if self.currentGUIState:
+            self.currentGUIState.openOverlay(guiID, *args)
 
     def restoreGui(self):
         '''
         Restore the previous GUI state for the client
         '''
-        if isinstance(self.prevGUI, list):
-            self.openGUI = [self.prevGUI[0], self.prevGUI[1]]
-        else:
-            self.openGUI = self.prevGUI
-        # self.openGUI = list(self.prevGUI)
-        self.openOverlays = list(self.prevOverlays)
-        self.prevGUI = None
-        self.prevOverlays = []
+        if self.prevGUIState:
+            self.currentGUIState = self.prevGUIState
 
-    def openOverlay(self, guiID, *args):
-        '''
-        Add an overlay to be drawn to the screen
-        '''
-        self.openOverlays.append([guiID, self.modLoader.gameRegistry.guis[guiID](*args)])
-
-    def isOverlayOpen(self, guiID):
-        '''
-        Return whether or not the given overlay is currently open
-        '''
-        for overlay in self.openOverlays:
-            if overlay[0] == guiID:
-                return True
-        return False
+        self.prevGUIState = None
 
     def closeGui(self):
         '''
         Close the currently open gui
         '''
-        self.prevGUI = self.openGUI
-        self.openGUI = None
-
-    def closeOverlay(self, guiID):
-        '''
-        Close the overlay with the given id
-        '''
-        index = None
-        for i, overlay in enumerate(self.openOverlays):
-            if overlay[0] == guiID:
-                del self.openOverlays[i]
-                return
-        print('[ERROR] Overlay is not currently open.')
+        self.prevGUIState = self.currentGUIState
+        self.currentGUIState = None
 
     def getDimension(self, dimensionId):
         '''
