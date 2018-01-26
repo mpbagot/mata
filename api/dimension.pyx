@@ -15,6 +15,12 @@ class DimensionHandler:
         self.chunkProvider = chunkProvider
         self.worldObj = world
 
+    def getName(self):
+        '''
+        Return a name for the dimension
+        '''
+        return ''
+
     def getWorldObj(self):
         '''
         Return a World Object for the dimension

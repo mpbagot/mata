@@ -69,6 +69,7 @@ class ClientMod(Mod):
         self.gameGui = self.gameRegistry.registerGUI(GameScreen)
         self.playerDrawGui = self.gameRegistry.registerGUI(PlayerDrawScreen)
         self.loadingGui = self.gameRegistry.registerGUI(LoadingScreen)
+        self.enteringGui = self.gameRegistry.registerGUI(DimLoadingScreen)
         self.mainMenuGui = self.gameRegistry.registerGUI(MainMenu)
         self.inventoryGui = self.gameRegistry.registerGUI(PlayerInventoryScreen)
         self.disconnectMessageGui = self.gameRegistry.registerGUI(DisconnectMessage)
@@ -101,6 +102,7 @@ class ClientMod(Mod):
         self.gameRegistry.registerEventHandler(other_events.onPacketReceived, 'onPacketReceived')
         self.gameRegistry.registerEventHandler(other_events.onPlayerUpdate, 'onPlayerUpdate')
         self.gameRegistry.registerEventHandler(other_events.onEntitySync, 'onEntitySync')
+        self.gameRegistry.registerEventHandler(other_events.onDimensionChange, 'onDimensionChange')
         self.gameRegistry.registerEventHandler(other_events.onDisconnect, 'onDisconnect')
 
         self.gameRegistry.registerEventHandler(other_events.onGameKeyPress, 'onKeyPress')

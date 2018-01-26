@@ -1,6 +1,9 @@
 from api.dimension import *
 
 class DefaultChunkProvider(ChunkProvider):
+    def getName(self):
+        return 'the Overworld'
+
     def generate(self, pos, gameRegistry):
         start = time.time()
         xPos, yPos = pos

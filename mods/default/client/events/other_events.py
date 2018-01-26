@@ -3,6 +3,7 @@ from copy import deepcopy
 
 import util
 from api.packets import SendCommandPacket, LoginPacket
+from api.entity import Player
 
 def onGameKeyPress(game, event):
     '''
@@ -149,3 +150,13 @@ def onEntitySync(game, entity, entities):
 
     entity.setProperty('worldUpdate', deepcopy(game.getModInstance('ClientMod').worldUpdateProperty))
     entities.append(entity)
+
+def onDimensionChange(game, entity, oldDimension, newDimension):
+    '''
+    Event Hook: onDimensionChange
+    Run logic when an entity changes dimension
+    '''
+    if isinstance(entity, Player) and entity.username == game.player.username:
+        # Check if it's the client player switching dimension
+        message = 'Entering '+game.getDimension(newDimension).getName()
+        game.openGui(game.getModInstance('ClientMod').enteringGui, message)

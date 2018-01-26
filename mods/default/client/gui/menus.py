@@ -59,6 +59,21 @@ class MessageScreen(Gui):
         text = font.render(self.message, True, (0, 0, 0))
         self.screen.blit(text, [w//2-text.get_rect().width//2, h//2-54])
 
+class DimLoadingScreen(MessageScreen):
+    def __init__(self, message, game):
+        super().__init__(message)
+        self.game = game
+
+    def drawForegroundLayer(self, mousePos):
+        super().drawForegroundLayer(mousePos)
+
+        pygame.display.flip()
+
+        dimension = self.game.getDimension(self.game.player.dimension)
+        dimension.generate(self.game.player.getAbsPos(), self.game.modLoader.gameRegistry)
+
+        self.game.restoreGui()
+
 class DisconnectMessage(MessageScreen):
     def __init__(self, message):
         super().__init__(message)
