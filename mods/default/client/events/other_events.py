@@ -18,11 +18,11 @@ def onGameKeyPress(game, event):
                 game.openOverlay(chatOverlay, game)
             elif event.key == pygame.K_u:
                 game.openOverlay(chatOverlay, game, 'local')
+            elif event.key == pygame.K_e:
+                game.openGui(game.getModInstance('ClientMod').inventoryGui, game)
+
         elif event.key == pygame.K_ESCAPE:
             game.getGUIState().closeOverlay(chatOverlay)
-
-        if event.key == pygame.K_e:
-            game.openGui(game.getModInstance('ClientMod').inventoryGui, game)
 
         if event.key == pygame.K_m:
             game.getModInstance('ClientMod').packetPipeline.sendToServer(SendCommandPacket('/message global random test message'))

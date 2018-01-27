@@ -293,3 +293,59 @@ class TextBox(Button):
             self.text = self.text[:-1]
         elif event.key != pygame.K_RETURN:
             self.text += event.unicode
+
+class TextArea:
+    def __init__(self, rect, colour):
+        self.rect = rect
+        self.colour = colour
+        self.text = ''
+        self.font = pygame.font.Font('resources/font/main.ttf', 20)
+
+    def draw(self, screen, mousePos):
+        # Set up the background of the textarea
+        background = pygame.Surface(self.rect[2:]).convert_alpha()
+        background.fill(pygame.Color(*self.colour))
+
+        # Draw the lines of text
+        lines = self.getLines()
+        for l, line in enumerate(lines):
+            line = self.font.render(line, True, (0, 0, 0))
+            background.blit(line, [10, 10+20*l])
+
+        # draw the textarea to the screen
+        screen.blit(background, self.rect[:2])
+
+    def doKeyPress(self, event):
+        '''
+        Handle a key press event on this textbox
+        '''
+        if event.key == pygame.K_BACKSPACE:
+            self.text = self.text[:-1]
+        elif event.key != pygame.K_RETURN:
+            self.text += event.unicode
+
+    def getLines(self):
+        '''
+        Split the text within this textarea into lines
+        '''
+        lines = []
+        i = 0
+        text = self.text
+        # loop the text and split it into lines
+        while text:
+            i += 1
+            if self.getTextWidth(text[:i]) >= self.rect[2]-20:
+                # Add the line, crop the text and reset the iterator
+                lines.append(text[:i-1])
+                text = text[i-1:]
+                i = 0
+            elif text[:i] == text:
+                # Add a flashing bar to the end of the text entry
+                text += '|' if (pygame.time.get_ticks()//300)%2 else ''
+                lines.append(text)
+                break
+
+        return lines
+
+    def getTextWidth(self, text):
+        return self.font.render(text, True, (0, 0, 0)).get_width()

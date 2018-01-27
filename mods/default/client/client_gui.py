@@ -9,6 +9,9 @@ from threading import Thread
 from api.gui.gui import *
 from api.gui.objects import *
 from api.colour import *
+from api.packets import SendCommandPacket
+
+# Import stuff from the mod modules
 from mods.default.client.gui.extras import *
 from mods.default.client.gui.menus import *
 
@@ -53,6 +56,7 @@ class Chat(Overlay):
         self.game = game
         self.tab = tab
         self.scrollScreen = Scrollbox(scaleRect([804, 438, 110, 90], self.screen))
+        self.textarea = TextArea(scaleRect([100, 538, 618, 100], self.screen), (255, 255, 255, 127))
 
     def drawForegroundLayer(self, mousePos):
         # Fetch the messages from the mod instance
@@ -66,6 +70,8 @@ class Chat(Overlay):
         pygame.draw.rect(overlayScreen, (170, 170, 170), scaleRect([0, 458, 824, 100], self.screen))
 
         self.screen.blit(overlayScreen, scaleRect([100, 80], self.screen))
+
+        self.textarea.draw(self.screen, mousePos)
 
         # Draw the outline boxes
         pygame.draw.rect(self.screen, (40, 40, 40), scaleRect([100, 538, 824, 100], self.screen), 4)
@@ -88,6 +94,21 @@ class Chat(Overlay):
         self.scrollScreen.draw(self.screen, mousePos)
 
         super().drawForegroundLayer(mousePos)
+
+    def doKeyPress(self, event):
+        if event.key == pygame.K_RETURN:
+            # Adjust the message
+            message = self.textarea.text
+            if message[0] != '/':
+                message = '/message '+self.tab+' '+message
+
+            # Create the packet
+            # Send the message
+            packet = SendCommandPacket(message)
+            self.game.getModInstance('ClientMod').packetPipeline.sendToServer(packet)
+            self.textarea.text = ''
+        # Pass the button press to the textarea
+        self.textarea.doKeyPress(event)
 
 class PlayerInventoryScreen(Gui):
     '''

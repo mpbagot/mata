@@ -116,10 +116,9 @@ class Game:
                             # Handle a keypress on the gui
                             if self.getGui()[1].currentTextBox is not None:
                                 self.getGui()[1].textboxes[self.getGui()[1].currentTextBox].doKeyPress(event)
-                            else:
-                                # If the keypress is not applicable to the gui, revert to the overlays
-                                for i, overlay in enumerate(self.getOverlays()):
-                                    self.getOverlays()[i][1].doKeyPress(event)
+                            # If the keypress is not applicable to the gui, revert to the overlays
+                            for i, overlay in enumerate(self.getOverlays()):
+                                self.getOverlays()[i][1].doKeyPress(event)
 
                             # Finally, trigger any registered event functions
                             self.fireEvent('onKeyPress', event)
@@ -153,10 +152,11 @@ class Game:
         pygame.display.get_surface().fill((255, 255, 255))
 
         # Draw the current gui
-        if self.getGui() is not None:
-            self.getGui()[1].drawBackgroundLayer()
-            self.getGui()[1].drawMiddleLayer(pos)
-            self.getGui()[1].drawForegroundLayer(pos)
+        gui = self.getGui()
+        if gui is not None:
+            gui[1].drawBackgroundLayer()
+            gui[1].drawMiddleLayer(pos)
+            gui[1].drawForegroundLayer(pos)
 
         # Draw each of the active overlays
         for id, overlay in self.getOverlays():
