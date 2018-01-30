@@ -75,6 +75,7 @@ def onCommand(game, commandClass, username, args):
     if commandClass.__name__ == 'MessageCommand':
         # Send messages back to one or more clients based on the message mode
         mode = args[0]
+        args = [args[0], '<{}>'.format(username)]+args[1:]
         if mode == 'global':
             pp.sendToAll(SendCommandPacket('/message '+' '.join(args)))
         elif mode == 'local':
