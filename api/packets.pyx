@@ -132,6 +132,10 @@ class SyncPlayerPacket(Packet):
         # Check if the player's motion is not greater than a certain threshold
         # Update their position on the server if it is ok
         # Reset them if it's not
+        if connection.username and self.player.username != connection.username:
+            # This is someone trying to mess with another player, do nothing
+            return
+
         playerList = game.getWorld(self.player.dimension)
         serverPlayer = game.getPlayer(self.player.username)
 
@@ -139,7 +143,7 @@ class SyncPlayerPacket(Packet):
             return ResetPlayerPacket(serverPlayer)
 
         if self.player.dimension != serverPlayer.dimension:
-            # TODO check if it's possible for the change to have occured
+            # TODO check if it's possible for the dimension shift to have occured
             return ResetPlayerPacket(serverPlayer, self.player, pos=False)
 
         # If the player has clipped into a plant, reset their position

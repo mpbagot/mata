@@ -14,7 +14,7 @@ class FetchInventoryPacket(Packet):
 
     def onReceive(self, connection, side, game):
         # Fetch the inventory of the required player, and send it back
-        inventory = game.getPlayer(self.username).getInventory()
+        inventory = game.getPlayer(self.playername).getInventory()
         return SendInventoryPacket(inventory)
 
 class SendInventoryPacket(Packet):
@@ -28,6 +28,7 @@ class SendInventoryPacket(Packet):
         self.inventory = Inventory.fromBytes(data)
 
     def onReceive(self, connection, side, game):
+        # TODO This is super dodgy, something else needs to be done with this inventory.
         # Store the inventory in the client side player
         game.player.setInventory(self.inventory)
 
