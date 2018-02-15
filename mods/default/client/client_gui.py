@@ -258,7 +258,7 @@ class GameScreen(Gui):
             size = player.smallImg.get_rect()
 
             # Adjust position accordingly, and draw to screen
-            pos = [w//2+deltaPos[0]*size.width-size.width//2, h//2+deltaPos[1]*size.height-size.height//2]
+            pos = [w//2+deltaPos[0]*40-size.width//2, h//2+deltaPos[1]*40-size.height//2]
             self.screen.blit(player.smallImg, pos)
 
         # Draw the entity images to screen

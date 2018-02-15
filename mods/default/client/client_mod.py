@@ -105,6 +105,8 @@ class ClientMod(Mod):
         self.gameRegistry.registerEventHandler(other_events.onDimensionChange, 'onDimensionChange')
         self.gameRegistry.registerEventHandler(other_events.onDisconnect, 'onDisconnect')
 
+        self.gameRegistry.registerEventHandler(other_events.onGameMouseClick, 'onMouseClick')
+
         self.gameRegistry.registerEventHandler(other_events.onGameKeyPress, 'onKeyPress')
         self.gameRegistry.registerEventHandler(other_events.onInvKeyPress, 'onKeyPress')
 

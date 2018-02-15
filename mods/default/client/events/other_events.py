@@ -5,6 +5,55 @@ import util
 from api.packets import SendCommandPacket, LoginPacket
 from api.entity import Player
 
+def onGameMouseClick(game, mousePos, event):
+    '''
+    Event Hook: onMouseClick
+    Handle a mouse click on vehicles, players and entities
+    '''
+    if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
+
+        screen = game.getGui()[1].screen
+
+        w = screen.get_width()
+        h = screen.get_height()
+
+        # Get the main player's position, to calculate the screen positions of the other players
+        mainAbsPos = game.player.getAbsPos()
+
+        # Check for mousepress on vehicles first
+        for vehicle in game.world.vehicles:
+            # Get the difference in position
+            deltaPos = [vehicle.pos[a]-mainAbsPos[a] for a in range(2)]
+            # Get the player image size
+            size = vehicle.getImage(game.modLoader.gameRegistry.resources).get_rect()
+            # Adjust position accordingly
+            pos = [w//2+deltaPos[0]*40-size.width//2, h//2+deltaPos[1]*40-size.height//2]
+
+            # Create a rect based on the vehicle image
+            rect = pygame.Rect(pos+[size.width, size.height])
+            if rect.collidepoint(mousePos):
+                # User has clicked on the vehicle
+                vehicle.mountRider(game.player)
+                return
+
+        # Then check for mousepress on players
+        for player in game.world.players:
+            # Get the difference in position
+            deltaPos = [player.pos[a]-mainAbsPos[a] for a in range(2)]
+            # Get the player image size
+            size = player.smallImg.get_rect()
+            # Adjust position accordingly
+            pos = [w//2+deltaPos[0]*40-size.width//2, h//2+deltaPos[1]*40-size.height//2]
+
+            # Create a rect based on the player image
+            rect = pygame.Rect(pos+[size.width, size.height])
+            if rect.collidepoint(mousePos):
+                # User has clicked on the player
+                chatOverlay = game.getModInstance('ClientMod').chatOverlay
+                if not game.getGUIState().isOverlayOpen(chatOverlay):
+                    game.openOverlay(chatOverlay, game, player.username)
+                return
+
 def onGameKeyPress(game, event):
     '''
     Event Hook: onKeyPress
