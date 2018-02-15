@@ -6,6 +6,22 @@ class GUIState:
         self.gui = None
         self.overlays = []
 
+    def draw(self, mousePos):
+        '''
+        Draw the GUIState to the given screen
+        '''
+        # Draw the main gui
+        if self.gui:
+          self.gui[1].draw(mousePos)
+
+        # Draw each of the active overlays
+        for id, overlay in self.overlays:
+            overlay.drawBackgroundLayer()
+        for id, overlay in self.overlays:
+            overlay.drawMiddleLayer(mousePos)
+        for id, overlay in self.overlays:
+            overlay.drawForegroundLayer(mousePos)
+
     def openGui(self, guiID, *args):
         '''
         Set the open GUI for this GUI state.
@@ -49,6 +65,14 @@ class Gui:
         self.itemSlots = []
         self.extraItems = []
         self.currentTextBox = None
+
+    def draw(self, mousePos):
+        '''
+        Draw the gui to screen
+        '''
+        self.drawBackgroundLayer()
+        self.drawMiddleLayer(mousePos)
+        self.drawForegroundLayer(mousePos)
 
     def drawBackgroundLayer(self):
         '''

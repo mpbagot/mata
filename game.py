@@ -136,7 +136,7 @@ class Game:
                                     self.getGui()[1].currentTextBox = t
 
                             # Finally, trigger any registered event functions
-                            self.fireEvent('onMouseClick', event)
+                            self.fireEvent('onMouseClick', pos, event)
 
             # Get the time that the tick took to run
             self.deltaTime = time.time()-startTickTime
@@ -151,20 +151,9 @@ class Game:
         '''
         pygame.display.get_surface().fill((255, 255, 255))
 
-        # Draw the current gui
-        gui = self.getGui()
-        if gui is not None:
-            gui[1].drawBackgroundLayer()
-            gui[1].drawMiddleLayer(pos)
-            gui[1].drawForegroundLayer(pos)
-
-        # Draw each of the active overlays
-        for id, overlay in self.getOverlays():
-            overlay.drawBackgroundLayer()
-        for id, overlay in self.getOverlays():
-            overlay.drawMiddleLayer(pos)
-        for id, overlay in self.getOverlays():
-            overlay.drawForegroundLayer(pos)
+        # Draw the GUIState to screen
+        if self.currentGUIState:
+            self.currentGUIState.draw(pos)
 
         # Draw the graphics to the screen
         pygame.display.flip()
