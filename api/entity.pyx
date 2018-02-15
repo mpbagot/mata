@@ -9,6 +9,8 @@ class EntityBase:
         self.health = 100
         self.pos = [0, 0]
 
+        self.speed = 0.2
+
         self.isDead = False
         self.tickDamage = None
 

@@ -129,8 +129,7 @@ class SyncPlayerPacket(Packet):
         self.player = Player.fromBytes(data)
 
     def onReceive(self, connection, side, game):
-        # Check if the player's motion is not greater than a certain threshold
-        # Update their position on the server if it is ok
+        # Update their status on the server if everything is ok
         # Reset them if it's not
         if connection.username and self.player.username != connection.username:
             # This is someone trying to mess with another player, do nothing
@@ -139,7 +138,9 @@ class SyncPlayerPacket(Packet):
         playerList = game.getWorld(self.player.dimension)
         serverPlayer = game.getPlayer(self.player.username)
 
-        if abs(self.player.pos[0]-serverPlayer.pos[0]) > 5 or abs(self.player.pos[1]-serverPlayer.pos[1]) > 5:
+        # Check if the player's motion is not greater than a certain threshold
+        threshold = serverPlayer.speed*4
+        if abs(self.player.pos[0]-serverPlayer.pos[0]) > threshold or abs(self.player.pos[1]-serverPlayer.pos[1]) > threshold:
             return ResetPlayerPacket(serverPlayer)
 
         if self.player.dimension != serverPlayer.dimension:
