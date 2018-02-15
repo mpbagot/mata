@@ -19,6 +19,16 @@ class EntityBase:
 
         self.ridingEntity = None
 
+    def getSpeed(self):
+        '''
+        Get the movement speed of this entity
+        '''
+        # If riding in a vehicle, use its speed
+        if self.ridingEntity:
+            return self.ridingEntity.getSpeed(self)
+        # Otherwise, use the player's speed
+        return self.speed
+
     def setProperty(self, propName, propVal):
         self.properties[propName] = propVal
 

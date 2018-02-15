@@ -74,7 +74,7 @@ def onTickHandleMovement(game, tick):
 
         # Handle player movement
         keys = pygame.key.get_pressed()
-        speed = game.player.speed
+        speed = game.player.getSpeed()
 
         # Update the secondary relative position
         props = game.player.getProperty('relPos2')
