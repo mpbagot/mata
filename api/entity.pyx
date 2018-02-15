@@ -47,6 +47,9 @@ class Player(EntityBase):
         self.inventory = Inventory()
         self.synced = False
 
+    def __eq__(self, other):
+        return isinstance(other, Player) and self.username == other.username
+
     def setInventory(self, inv):
         self.inventory = inv
 
@@ -112,6 +115,9 @@ class Entity(EntityBase):
         self.aiHandler = AIHandler()
         self.image = None
 
+    def __eq__(self, other):
+        return isinstance(other, Entity) and self.uuid == other.uuid
+
     def __str__(self):
         x = super().__repr__()
         return x.split()[-1][:-1] + ' {} {}'.format(self.name, self.uuid)
@@ -168,7 +174,6 @@ class Damage:
             return True
         except AttributeError:
             return False
-
 
     @staticmethod
     def fromBytes(data):
