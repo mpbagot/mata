@@ -42,7 +42,7 @@ class Game:
 
         if self.args.getRuntimeType() != util.SERVER:
             # Set the world and player up
-            self.world = self.modLoader.gameRegistry.getWorld()
+            self.world = self.getWorld(0)
             self.dimensionId = 0
             self.player = Player()
 
@@ -262,17 +262,45 @@ class Game:
             return dimension.getWorldObj()
         return None
 
+    def getEntity(self, uuid):
+        '''
+        Get an entity object by its uuid
+        '''
+        # Loop each dimension
+        for dimensionId in self.modLoader.gameRegistry.dimensions:
+            world = self.getWorld(dimensionId)
+            # Loop the entities in the dimension
+            for entity in world.entities:
+                # Check if its the correct one, and if so, return it
+                if entity.uuid == uuid:
+                    return entity
+        return None
+
+    def getVehicle(self, uuid):
+        '''
+        Get a vehicle object by its uuid
+        '''
+        # Loop each dimension
+        for dimensionId in self.modLoader.gameRegistry.dimensions:
+            world = self.getWorld(dimensionId)
+            # Loop the vehicles in the dimension
+            for entity in world.vehicles:
+                # Check if its the correct one, and if so, return it
+                if entity.uuid == uuid:
+                    return entity
+        return None
+
     def getPlayer(self, username):
         '''
-        Get index of a given player in the world player list
+        Get a given player in the world player list
         '''
         # If a player object is accidentally passed in, run comparison with the username
         if isinstance(username, Player):
             return self.getPlayer(username.username)
 
         # Iterate the dimensions and find the player
-        for d, dimension in self.modLoader.gameRegistry.dimensions.items():
-            for player in dimension.getWorldObj().players:
+        for d in self.modLoader.gameRegistry.dimensions:
+            for player in self.getWorld(d).players:
                 if player.username == username:
                     return player
         return None
