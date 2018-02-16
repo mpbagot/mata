@@ -106,6 +106,7 @@ class SpawnEntityCommand(cmd.Command):
         dimensionId = self.game.getPlayer(username).dimension
         try:
             newEntity = self.game.modLoader.gameRegistry.entities[entityName]()
+            self.game.modLoader.getUUIDForEntity(newEntity)
             self.game.getWorld(dimensionId).spawnEntityInWorld(newEntity)
         except KeyError:
             print('[ERROR] Entity does not exist')
