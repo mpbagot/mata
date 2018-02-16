@@ -14,6 +14,19 @@ class ModLoader:
         self.game = game
         self.gameRegistry = GameRegistry()
 
+    def getUUIDForEntity(self, entity):
+        '''
+        Generate and assign a unique id for a new entity to place in the world
+        '''
+        # Get the current number of entities and vehicles in all the dimensions
+        entity_length = 0
+        for dimension in self.gameRegistry.dimensions:
+            world = self.game.getWorld(dimension)
+            entity_length += len(world.entities)+len(world.vehicles)
+
+        # Hash and set the uuid
+        entity.uuid = str(hash(entity.name+str(entity_length)))
+
     def registerModByName(self, name):
         '''
         Search the mod folder for a mod with the given mod name, and load it
@@ -75,16 +88,6 @@ class GameRegistry:
         self.EVENT_BUS = {}
         self.properties = {}
         self.seed = 0
-
-    def getWorld(self):
-        '''
-        Return a world object that contains all of the data of the world
-        It contains a list of players, a list of entities and the tile data of the world
-        '''
-        try:
-            return self.dimensions[0].getWorldObj()
-        except KeyError:
-            raise Exception('At least one DimensionHandler is required to be registered.')
 
     def registerItem(self, itemClass):
         '''
