@@ -80,9 +80,16 @@ class WorldMP:
     def spawnEntityInWorld(self, entity):
         '''
         Spawn a new entity instance into the world
+        Return whether successful or not
         '''
-        entity.uuid = len(self.entities)
+        if not isinstance(entity, EntityBase) or not isinstance(entity.uuid, str):
+            print('[WARNING] Invalid entity. Did you forget to set the UUID?')
+            return False
+        elif not entity.uuid.isnumeric():
+            print('[WARNING] Invalid entity UUID. You forgot to run getUUIDForEntity in ModLoader')
+            return False
         self.entities.append(entity)
+        return True
 
     def tickUpdate(self, game):
         '''
