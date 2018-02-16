@@ -6,6 +6,7 @@ from copy import deepcopy
 class EntityBase:
     def __init__(self):
         self.name = ''
+        self.uuid = 0
         self.health = 100
         self.pos = [0, 0]
 
@@ -123,7 +124,6 @@ class Entity(EntityBase):
     '''
     def __init__(self):
         super().__init__()
-        self.uuid = 0
         self.aiHandler = AIHandler()
         self.image = None
 
