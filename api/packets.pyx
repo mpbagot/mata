@@ -1,4 +1,5 @@
 from api.entity import Player
+from api.vehicle import Vehicle
 from api.dimension import WorldMP
 from api.biome import TileMap
 
@@ -150,14 +151,69 @@ class SyncPlayerPacket(Packet):
         # If the player has clipped into a plant, reset their position
         world = game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj()
 
-        # TODO change this later
+        # TODO Add check for player collision with plants, buildings etc
         # if world.world.map[self.player.pos[1]][self.player.pos[0]].plantIndex < 0:
         #     return ResetPlayerPacket(serverPlayer)
 
         # Sync the player object on the server
         game.setPlayer(self.player)
-        # playerIndex = game.getPlayerIndex(self.player)
-        # game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj().players[playerIndex] = self.player
+
+class MountPacket(Packet):
+    def __init__(self, vehicle=None, player=None):
+        if isinstance(vehicle, Vehicle):
+            vehicle = vehicle.uuid
+        if isinstance(player, Player):
+            player = player.username
+
+        self.entity = str(vehicle)
+        self.player = player
+
+    def toBytes(self, buf):
+        buf.write(self.entity.encode()+b'|')
+        buf.write(self.player.encode())
+
+    def fromBytes(self, data):
+        self.entity, self.player = data.decode().split('|')
+
+    def onReceive(self, connection, side, game):
+        # Set up the entity and player values
+        print(self.entity)
+        if self.entity != 'None':
+            self.entity = game.getVehicle(self.entity)
+        else:
+            self.entity = None
+
+        self.player = game.getPlayer(self.player)
+
+        # Adjust on the client
+        if side != util.SERVER:
+            # Accept the changes without question
+            game.player.ridingEntity = self.entity
+            if self.entity is not None:
+                self.entity.mountRider(game.player)
+
+        # Adjust on the server
+        elif side == util.SERVER:
+            # Attempt to connect a player to a vehicle
+            if self.entity is not None:
+                print('Mounting player {} to vehicle {}'.format(self.player.username, self.entity.uuid))
+                # Calculate the distance between the player and vehicle
+                pos = [(self.entity.pos[a]-self.player.pos[a])**2 for a in [0, 1]]
+                dist = sum(pos)**.5
+                # Check for equal dimension and distance
+                if self.entity.dimension == self.player.dimension and dist < 8:
+                    # If all prerequisites are met, connect the player to the vehicle
+                    self.entity.mountRider(self.player)
+                    self.player.ridingEntity = self.entity.uuid
+                else:
+                  return MountPacket()
+
+            else:
+                print('dismounting player from entity')
+                # Dismount the entity/player
+                if self.player.ridingEntity:
+                    self.player.ridingEntity.unmountRider(self.player)
+                self.player.ridingEntity = None
 
 class WorldUpdatePacket(Packet):
     def __init__(self, world=None, username=''):

@@ -25,7 +25,8 @@ class PacketHandler:
         self.safePackets = [ByteSizePacket, LoginPacket,
                             DisconnectPacket, SyncPlayerPacket,
                             ResetPlayerPacket, InvalidLoginPacket,
-                            SetupClientPacket, SendCommandPacket
+                            SetupClientPacket, SendCommandPacket,
+                            MountPacket
                            ]
 
         self.socket = socket.socket()
@@ -338,9 +339,13 @@ class Connection:
                     # The client is completely disconnected
                     print('[WARNING] The Client Has Disconnected Badly. Clearing Connection...')
                     # Disconnect the client
+                    self.connObj.close()
                     del self
+                    return
                 else:
-                    print('[ERROR] An Error Occured!'+str(e))
+                    if str(e) == "[Errno 9] Bad file descriptor":
+                        return
+                    print('[ERROR] An Error Occured! '+str(e))
 
     def setNextPacketSize(self, size):
         '''

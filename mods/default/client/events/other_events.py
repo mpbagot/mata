@@ -2,7 +2,7 @@ import pygame
 from copy import deepcopy
 
 import util
-from api.packets import SendCommandPacket, LoginPacket
+from api.packets import SendCommandPacket, LoginPacket, MountPacket
 from api.entity import Player
 
 def onGameMouseClick(game, mousePos, event):
@@ -33,6 +33,9 @@ def onGameMouseClick(game, mousePos, event):
             rect = pygame.Rect(pos+[size.width, size.height])
             if rect.collidepoint(mousePos):
                 # User has clicked on the vehicle
+                # Send MountPacket to server to sync this change there.
+                packet = MountPacket(vehicle.uuid, game.player.username)
+                game.getModInstance('ClientMod').packetPipeline.sendToServer(packet)
                 vehicle.mountRider(game.player)
                 return
 
@@ -150,7 +153,7 @@ def onPlayerLogin(game, player):
     Open the player customisation screen when the client logs into the server
     '''
     # Show the player customisation screen
-    # TODO Change this later
+    # TODO Switch this back to the playerDrawGui once assets have been created
     game.openGui(game.getModInstance('ClientMod').gameGui, game)
     # game.openGui(game.getModInstance('ClientMod').playerDrawGui, game)
 
