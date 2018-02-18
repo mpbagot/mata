@@ -280,13 +280,14 @@ class Game:
         '''
         Get a vehicle object by its uuid
         '''
+        uuid = str(uuid)
         # Loop each dimension
         for dimensionId in self.modLoader.gameRegistry.dimensions:
             world = self.getWorld(dimensionId)
             # Loop the vehicles in the dimension
             for entity in world.vehicles:
                 # Check if its the correct one, and if so, return it
-                if entity.uuid == uuid:
+                if str(entity.uuid) == uuid:
                     return entity
         return None
 
