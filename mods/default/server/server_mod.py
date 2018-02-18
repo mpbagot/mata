@@ -8,6 +8,7 @@ from mods.default.packets import *
 from mods.default.biomes import *
 from mods.default.dimension import DefaultChunkProvider
 from mods.default.server.entity import bear
+from mods.default.server.vehicle import horse
 
 import util
 from copy import deepcopy
@@ -35,6 +36,7 @@ class ServerMod(Mod):
 
         # Register the entities
         self.gameRegistry.registerEntity(bear.Bear())
+        self.gameRegistry.registerEntity(horse.Horse())
 
     def postLoad(self):
         # Register the commands
