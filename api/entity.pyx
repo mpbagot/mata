@@ -22,13 +22,13 @@ class EntityBase:
 
         self.ridingEntity = None
 
-    def getSpeed(self):
+    def getSpeed(self, game):
         '''
         Get the movement speed of this entity
         '''
         # If riding in a vehicle, use its speed
         if self.ridingEntity:
-            return self.ridingEntity.getSpeed(self)
+            return game.getVehicle(self.ridingEntity).getSpeed(game)
         # Otherwise, use the player's speed
         return self.speed
 
@@ -153,7 +153,7 @@ class Entity(EntityBase):
 
     def getImage(self, resources):
         try:
-            return resources[self.image]
+            return resources.get(self.image)
         except KeyError:
             raise KeyError('Image "{}" has not been registered in the Game Registry'.format(self.image))
 
