@@ -299,6 +299,11 @@ class Game:
         if isinstance(username, Player):
             return self.getPlayer(username.username)
 
+        # Check the main player if running on the client
+        if self.args.getRuntimeType() != util.SERVER:
+            if self.player.username == username:
+                return self.player
+
         # Iterate the dimensions and find the player
         for d in self.modLoader.gameRegistry.dimensions:
             for player in self.getWorld(d).players:
