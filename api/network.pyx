@@ -85,7 +85,6 @@ class PacketHandler:
                 if not data:
                     raise ConnectionResetError
             except ConnectionResetError as e:
-                print(e)
                 # Properly disconnect if the connection is reset from the other side
                 if self.side == util.CLIENT:
                     self.game.fireEvent('onDisconnect', 'Server Connection Reset')
