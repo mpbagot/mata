@@ -17,18 +17,15 @@ def onTickGenerateWorld(game, tick):
     '''
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
         # If the player has moved more than a certain distance, generate the world
-        absRelPos = [abs(a) for a in game.player.relPos]
+        deltaPos = [abs(game.player.pos[a] - game.getModInstance('ClientMod').oldPlayerPos[a]) for a in (0, 1)]
         # TODO This still has the lag spikes (probably the thread copying the surfaces is causing it.)
-        if (game.player.synced and not game.world.isWorldLoaded()) or max(absRelPos) > 16:
-            # Set the second relative position to start iterating
-            props = game.player.getProperty('relPos2')
-
-            if props.props['ready']:
+        if (game.player.synced and not game.world.isWorldLoaded()) or max(deltaPos) > 16:
+            if game.getModInstance('ClientMod').genLock:
                 return
 
             # Generate the world on the client
             queue = Queue()
-            p = Process(target=genWorld, args=(game, props, queue))
+            p = Process(target=genWorld, args=(game, queue))
             t = Thread(target=handleProcess, args=(game, queue))
             p.daemon = True
             t.daemon = True
@@ -72,28 +69,15 @@ def onTickHandleMovement(game, tick):
         keys = pygame.key.get_pressed()
         speed = game.player.getSpeed()
 
-        # Update the secondary relative position
-        props = game.player.getProperty('relPos2')
-        if props.props['ready']:
-            if keys[pygame.K_UP]:
-                props.props['pos'][1] -= speed
-            if keys[pygame.K_DOWN]:
-                props.props['pos'][1] += speed
-            if keys[pygame.K_LEFT]:
-                props.props['pos'][0] -= speed
-            if keys[pygame.K_RIGHT]:
-                props.props['pos'][0] += speed
-            game.player.setProperty('relPos2', props)
-
         # Update the relative position
         if keys[pygame.K_UP]:
-            game.player.relPos[1] -= speed
+            game.player.pos[1] -= speed
         if keys[pygame.K_DOWN]:
-            game.player.relPos[1] += speed
+            game.player.pos[1] += speed
         if keys[pygame.K_LEFT]:
-            game.player.relPos[0] -= speed
+            game.player.pos[0] -= speed
         if keys[pygame.K_RIGHT]:
-            game.player.relPos[0] += speed
+            game.player.pos[0] += speed
 
 def onTickSyncPlayer(game, tick):
     '''
@@ -105,13 +89,12 @@ def onTickSyncPlayer(game, tick):
         # Sync player data back to the server periodically
         if tick%(util.FPS//20) == 0:
             # Check if the player has moved
-            if game.player.relPos != game.getModInstance('ClientMod').oldPlayerPos:
+            if game.player.pos != game.getModInstance('ClientMod').oldPlayerPos:
                 game.player.synced = False
                 # Duplicate the player and set the position
                 playerCopy = deepcopy(game.player)
-                playerCopy.pos = list(game.player.getAbsPos())
                 # Store the current relative position in the mod instance for later comparison
-                game.getModInstance('ClientMod').oldPlayerPos = list(game.player.relPos)
+                game.getModInstance('ClientMod').oldPlayerPos = list(game.player.pos)
                 # Send the copy of the player object in the packet
                 game.getModInstance('ClientMod').packetPipeline.sendToServer(SyncPlayerPacket(playerCopy))
                 print('syncing player')
@@ -120,14 +103,13 @@ def handleProcess(game, queue):
     '''
     Handle the genWorld queue and link it back into the main thread
     '''
+    # Enable the world generation lock
+    game.getModInstance('ClientMod').genLock = True
     while True:
         data = queue.get()
-        # If it's a player property, update the player
-        if isinstance(data, Property):
-            game.player.setProperty('relPos2', data)
-        # If it's a player, update the whole player
-        elif isinstance(data, Player):
-            game.player = data
+        # If it's a list, update the world centre pos
+        if isinstance(data, list):
+            game.world.centrePos = data
         # If it's a tilemap, update that
         elif data != "end":
             for y, row in enumerate(data.map):
@@ -135,21 +117,20 @@ def handleProcess(game, queue):
                     data.map[y][x].resetTile(game.modLoader.gameRegistry.resources)
 
             game.world.setTileMap(data)
-            queue.put(game.player.getProperty('relPos2'))
 
         # Otherwise, end the thread
         else:
+            # Disable the world generation lock again
+            game.getModInstance('ClientMod').genLock = False
             return
 
-def genWorld(game, props, queue):
+def genWorld(game, queue):
     '''
     Generate the small area of the world
     '''
     # Set the abs pos of the player
     preGenPos = game.player.getAbsPos()
     print('genning world')
-    props.props['ready'] = True
-    queue.put(props)
 
     # Generate the world
     dimension = game.getDimension(game.player.dimension)
@@ -157,20 +138,4 @@ def genWorld(game, props, queue):
     # Fix the pygame surface breaking when sent through the Queue
     queue.put(dimension.getWorldObj().getTileMap())
     print('world gen done')
-
-    # Fetch the player property
-    props = queue.get()
-    #props = game.player.getProperty('relPos2')
-
-    # Move the player
-    game.player.pos = preGenPos
-    game.player.relPos = list(props.props['pos'])
-    queue.put(game.player)
-
-    # Update the player property
-    props.props['ready'] = False
-    props.props['pos'] = [0, 0]
-
-    # Set the property back into the player
-    queue.put(props)
-    queue.put('end')
+    queue.put(preGenPos)

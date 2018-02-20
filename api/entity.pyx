@@ -1,6 +1,8 @@
 from api.item import Inventory
 from api.ai import AIHandler
 
+import util
+
 from copy import deepcopy
 
 class EntityBase:
@@ -53,7 +55,6 @@ class Player(EntityBase):
     def __init__(self):
         super().__init__()
         self.username = ''
-        self.relPos = [0, 0]
         self.level = 1
         self.exp = 0
         self.img = []
@@ -69,11 +70,17 @@ class Player(EntityBase):
     def getInventory(self):
         return self.inventory
 
+    def setPos(self, pos):
+        '''
+        Set a new absolute position
+        '''
+        self.pos = list(pos)
+
     def getAbsPos(self):
         '''
         Get the absolute position of the player, rounded to 2 decimal places
         '''
-        return [round(self.relPos[0]+self.pos[0], 2), round(self.relPos[1]+self.pos[1], 2)]
+        return [round(self.pos[0], 2), round(self.pos[1], 2)]
 
     def switchDimension(self, dimension, game):
         '''

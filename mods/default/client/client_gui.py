@@ -204,7 +204,7 @@ class GameScreen(Gui):
 
     def drawBackgroundLayer(self):
         # Draw the tile map in the area around the player
-        x, y = self.game.player.relPos
+        x, y = [self.game.player.pos[a] - self.game.world.centrePos[a] for a in (0, 1)]
         xPos = int(x)+75
         yPos = int(y)+45
         x -= int(x)

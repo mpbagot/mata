@@ -57,6 +57,8 @@ class WorldMP:
         self.vehicles = []
         self.players = []
 
+        self.centrePos = [0, 1]
+
         self._world = None
 
     def setTileMap(self, tileMap):
@@ -136,14 +138,17 @@ class WorldMP:
         Collate the update data into a bytes object
         '''
         # TODO clip the data based on the user
-        return (str([p.toBytes() for p in self.players])+'$$$'+str([e.toBytes() for e in self.entities])).replace('"', "'''").encode()
+        playerData = str([p.toBytes() for p in self.players])
+        entityData = str([e.toBytes() for e in self.entities])
+        vehicleData = str([v.toBytes() for v in self.vehicles])
+        return '{}$$${}$$${}'.format(playerData, entityData, vehicleData).replace('"', "'''").encode()
 
     def handleUpdate(self, updateBytes, game):
         '''
         Use the binary data to update the world
         '''
         # TODO Add entities and vehicles to this.
-        players, entities = updateBytes.decode().split('$$$')
+        players, entities, vehicles = updateBytes.decode().split('$$$')
 
         # Loop the transferred players
         players = eval(players)
@@ -158,6 +163,13 @@ class WorldMP:
 
         for entity in entities:
             game.fireEvent('onEntitySync', entity, self.entities)
+
+        # Loop the transferred entities
+        vehicles = eval(vehicles)
+        vehicles = [Vehicle.fromBytes(v, game.modLoader.gameRegistry.vehicles) for v in vehicles]
+
+        for vehicle in vehicles:
+            game.fireEvent('onVehicleSync', vehicle, self.vehicles)
 
     def addPlayer(self, player):
         '''

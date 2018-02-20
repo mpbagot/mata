@@ -19,10 +19,9 @@ class ClientMod(Mod):
 
     def preLoad(self):
         self.oldPlayerPos = [0, 0]
-        self.readyToStart = False
+        self.genLock = False
         self.chatMessages = {"global" : [], "faction" : []}
 
-        self.relPos2Property = properties.Property(pos=[0, 0], ready=False)
         self.worldUpdateProperty = properties.Property(newPos=[0, 0], updateTick=0)
 
         # Initialise the display
