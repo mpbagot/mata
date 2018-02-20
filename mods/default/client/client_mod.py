@@ -9,6 +9,7 @@ from mods.default.dimension import DefaultChunkProvider
 from mods.default.client.client_gui import *
 from mods.default.client.events import tick_events, other_events
 from mods.default.server.entity import bear
+from mods.default.server.vehicle import horse
 
 import util
 
@@ -79,6 +80,7 @@ class ClientMod(Mod):
 
         # Register the entities
         self.gameRegistry.registerEntity(bear.Bear())
+        self.gameRegistry.registerVehicle(horse.Horse())
 
     def postLoad(self):
         # Open the main menu on startup
@@ -99,8 +101,9 @@ class ClientMod(Mod):
         self.gameRegistry.registerEventHandler(other_events.onPlayerLogin, 'onPlayerLogin')
         self.gameRegistry.registerEventHandler(other_events.onCommand, 'onCommand')
         self.gameRegistry.registerEventHandler(other_events.onPacketReceived, 'onPacketReceived')
-        self.gameRegistry.registerEventHandler(other_events.onPlayerUpdate, 'onPlayerUpdate')
+        self.gameRegistry.registerEventHandler(other_events.onPlayerSync, 'onPlayerSync')
         self.gameRegistry.registerEventHandler(other_events.onEntitySync, 'onEntitySync')
+        self.gameRegistry.registerEventHandler(other_events.onVehicleSync, 'onVehicleSync')
         self.gameRegistry.registerEventHandler(other_events.onDimensionChange, 'onDimensionChange')
         self.gameRegistry.registerEventHandler(other_events.onDisconnect, 'onDisconnect')
 

@@ -155,7 +155,7 @@ class WorldMP:
         players = [Player.fromBytes(p) for p in players]
 
         for player in players:
-            game.fireEvent("onPlayerUpdate", player, self.players)
+            game.fireEvent("onPlayerSync", player, self.players)
 
         # Loop the transferred entities
         entities = eval(entities)

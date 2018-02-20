@@ -26,7 +26,11 @@ def onGameMouseClick(game, mousePos, event):
             deltaPos = [obj.pos[a]-mainAbsPos[a] for a in range(2)]
 
             # Get the object image size
-            size = obj.smallImg.get_rect() if isinstance(obj, Player) else obj.getImage(game.modLoader.gameRegistry.resources).get_rect()
+            size = obj.smallImg if isinstance(obj, Player) else obj.getImage(game.modLoader.gameRegistry.resources)
+            if size is None:
+                continue
+
+            size = size.get_rect()
 
             # Adjust position accordingly
             pos = [w//2+deltaPos[0]*40-size.width//2, h//2+deltaPos[1]*40-size.height//2]
@@ -147,9 +151,9 @@ def onPlayerLogin(game, player):
     game.openGui(game.getModInstance('ClientMod').gameGui, game)
     # game.openGui(game.getModInstance('ClientMod').playerDrawGui, game)
 
-def onPlayerUpdate(game, player, oldPlayers):
+def onPlayerSync(game, player, oldPlayers):
     '''
-    Event Hook: onPlayerUpdate
+    Event Hook: onPlayerSync
     Apply the updates to other player attributes from the server
     '''
     # If the player being updated is the client player, skip it
@@ -198,7 +202,7 @@ def onVehicleSync(game, vehicle, vehicles):
     Event Hook: onVehicleSync
     Apply the updates to the given vehicle from the server
     '''
-    # If the player being updated is the client player, skip it
+    # Iterate and update the vehicles
     for v in range(len(vehicles)):
         if vehicles[v].uuid == vehicle.uuid:
             # Update the modded properties
