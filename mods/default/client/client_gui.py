@@ -210,17 +210,20 @@ class GameScreen(Gui):
         x -= int(x)
         y -= int(y)
 
+        w = (self.screen.get_width()+200)//80
+        h = (self.screen.get_height()+200)//80
+
         # Check if the world is loaded into memory
         if self.game.world and self.game.world.isWorldLoaded():
-            xPos1 = xPos-20 if xPos >= 20 else 0
-            yPos1 = yPos-14 if yPos >= 14 else 0
+            xPos1 = xPos-w if xPos >= w else 0
+            yPos1 = yPos-h if yPos >= h else 0
 
             # Pad the top of the map if applicable
-            tileMap = [[0] for a in range(abs(yPos-14))] if yPos < 14 else []
-            for row in self.game.world.getTileMap().map[yPos1:yPos+14]:
+            tileMap = [[0] for a in range(abs(yPos-h))] if yPos < h else []
+            for row in self.game.world.getTileMap().map[yPos1:yPos+h]:
                 # Generate the cropped tilemap of the world
-                padding = [0 for a in range(abs(xPos-20))] if xPos < 20 else []
-                tileMap.append(padding+row[xPos1:xPos+20])
+                padding = [0 for a in range(abs(xPos-w))] if xPos < w else []
+                tileMap.append(padding+row[xPos1:xPos+w])
 
             # Iterate and blit the tiles to screen
             for r, row in enumerate(tileMap):
