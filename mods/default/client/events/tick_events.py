@@ -1,5 +1,7 @@
 from api.packets import *
 from api.properties import *
+from api.entity import Entity, Player
+from api.vehicle import Vehicle
 
 from threading import Thread
 from multiprocessing import Process, Queue
@@ -40,37 +42,31 @@ def onTickHandleMovement(game, tick):
     '''
     animTicks = util.FPS//6
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
-        # Interpolate the movement of the other players
-        for p in range(len(game.world.players)):
-            props = game.world.players[p].getProperty('worldUpdate')
+        # Concatenate everything into a single list
+        everythingList = game.world.players+game.world.entities+game.world.vehicles
+        # Interpolate the movement of every entity
+        for o, obj in enumerate(everythingList):
+            props = obj.getProperty('worldUpdate')
+
+            if not props:
+                continue
 
             # Get the number of ticks since the last sync to server
             moduloTick = animTicks-(game.tick-props.props['updateTick'])%animTicks
 
             # Calculate the change in position
-            pos = game.world.players[p].pos
+            pos = obj.pos
             deltaPos = [props.props['newPos'][a]-pos[a] for a in (0, 1)]
             deltaPos = [deltaPos[0]/moduloTick, deltaPos[1]/moduloTick]
 
             # Apply the position transform to the player
             pos = [pos[a]+deltaPos[a] for a in (0, 1)]
-            game.world.players[p].pos = deepcopy(pos)
+            everythingList[o].pos = deepcopy(pos)
 
-        # Interpolate the movement of the entities
-        for e in range(len(game.world.entities)):
-            props = game.world.entities[e].getProperty('worldUpdate')
-
-            # Get the number of ticks since the last sync to server
-            moduloTick = animTicks-(game.tick-props.props['updateTick'])%animTicks
-
-            # Calculate the change in position
-            pos = game.world.entities[e].pos
-            deltaPos = [props.props['newPos'][a]-pos[a] for a in (0, 1)]
-            deltaPos = [deltaPos[0]/moduloTick, deltaPos[1]/moduloTick]
-
-            # Apply the position transform to the player
-            pos = [pos[a]+deltaPos[a] for a in (0, 1)]
-            game.world.entities[e].pos = deepcopy(pos)
+        # Split the objects into their respective lists again
+        game.world.players = [a for a in everythingList if isinstance(a, Player)]
+        game.world.entities = [a for a in everythingList if isinstance(a, Entity)]
+        game.world.vehicles = [a for a in everythingList if isinstance(a, Vehicle)]
 
         # Handle player movement
         keys = pygame.key.get_pressed()
@@ -107,7 +103,7 @@ def onTickSyncPlayer(game, tick):
     # Check if this client has connected to a server
     if game.getModInstance('ClientMod').packetPipeline.connections:
         # Sync player data back to the server periodically
-        if tick%3 == 0:
+        if tick%(util.FPS//20) == 0:
             # Check if the player has moved
             if game.player.relPos != game.getModInstance('ClientMod').oldPlayerPos:
                 game.player.synced = False
@@ -118,6 +114,7 @@ def onTickSyncPlayer(game, tick):
                 game.getModInstance('ClientMod').oldPlayerPos = list(game.player.relPos)
                 # Send the copy of the player object in the packet
                 game.getModInstance('ClientMod').packetPipeline.sendToServer(SyncPlayerPacket(playerCopy))
+                print('syncing player')
 
 def handleProcess(game, queue):
     '''

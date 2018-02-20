@@ -4,6 +4,7 @@ from copy import deepcopy
 import util
 from api.packets import SendCommandPacket, LoginPacket, MountPacket
 from api.entity import Player
+from api.vehicle import Vehicle
 
 def onGameMouseClick(game, mousePos, event):
     '''
@@ -20,41 +21,31 @@ def onGameMouseClick(game, mousePos, event):
         # Get the main player's position, to calculate the screen positions of the other players
         mainAbsPos = game.player.getAbsPos()
 
-        # Check for mousepress on vehicles first
-        for vehicle in game.world.vehicles:
+        for obj in game.world.vehicles+game.world.players:
             # Get the difference in position
-            deltaPos = [vehicle.pos[a]-mainAbsPos[a] for a in range(2)]
-            # Get the player image size
-            size = vehicle.getImage(game.modLoader.gameRegistry.resources).get_rect()
+            deltaPos = [obj.pos[a]-mainAbsPos[a] for a in range(2)]
+
+            # Get the object image size
+            size = obj.smallImg.get_rect() if isinstance(obj, Player) else obj.getImage(game.modLoader.gameRegistry.resources).get_rect()
+
             # Adjust position accordingly
             pos = [w//2+deltaPos[0]*40-size.width//2, h//2+deltaPos[1]*40-size.height//2]
 
             # Create a rect based on the vehicle image
             rect = pygame.Rect(pos+[size.width, size.height])
             if rect.collidepoint(mousePos):
-                # User has clicked on the vehicle
-                # Send MountPacket to server to sync this change there.
-                packet = MountPacket(vehicle.uuid, game.player.username)
-                game.getModInstance('ClientMod').packetPipeline.sendToServer(packet)
-                vehicle.mountRider(game.player)
-                return
+                if isinstance(obj, Vehicle):
+                    # User has clicked on the vehicle
+                    # Send MountPacket to server to sync this change there.
+                    packet = MountPacket(obj.uuid, game.player.username)
+                    game.getModInstance('ClientMod').packetPipeline.sendToServer(packet)
+                    obj.mountRider(game.player, game)
 
-        # Then check for mousepress on players
-        for player in game.world.players:
-            # Get the difference in position
-            deltaPos = [player.pos[a]-mainAbsPos[a] for a in range(2)]
-            # Get the player image size
-            size = player.smallImg.get_rect()
-            # Adjust position accordingly
-            pos = [w//2+deltaPos[0]*40-size.width//2, h//2+deltaPos[1]*40-size.height//2]
-
-            # Create a rect based on the player image
-            rect = pygame.Rect(pos+[size.width, size.height])
-            if rect.collidepoint(mousePos):
-                # User has clicked on the player
-                chatOverlay = game.getModInstance('ClientMod').chatOverlay
-                if not game.getGUIState().isOverlayOpen(chatOverlay):
-                    game.openOverlay(chatOverlay, game, player.username)
+                elif isinstance(obj, Player):
+                    # User has clicked on the player
+                    chatOverlay = game.getModInstance('ClientMod').chatOverlay
+                    if not game.getGUIState().isOverlayOpen(chatOverlay):
+                        game.openOverlay(chatOverlay, game, obj.username)
                 return
 
 def onGameKeyPress(game, event):
@@ -189,7 +180,7 @@ def onEntitySync(game, entity, entities):
     # If the player being updated is the client player, skip it
     for e in range(len(entities)):
         if entities[e].uuid == entity.uuid:
-            # Update vanilla player properties
+            # Update vanilla entity properties
             entities[e].health = entity.health
 
             # Update the modded properties
@@ -202,6 +193,25 @@ def onEntitySync(game, entity, entities):
 
     entity.setProperty('worldUpdate', deepcopy(game.getModInstance('ClientMod').worldUpdateProperty))
     entities.append(entity)
+
+def onVehicleSync(game, vehicle, vehicles):
+    '''
+    Event Hook: onVehicleSync
+    Apply the updates to the given vehicle from the server
+    '''
+    # If the player being updated is the client player, skip it
+    for v in range(len(vehicles)):
+        if vehicles[v].uuid == vehicle.uuid:
+            # Update the modded properties
+            props = vehicles[v].getProperty('worldUpdate')
+            props.props['newPos'] = vehicle.pos
+            props.props['updateTick'] = game.tick
+            vehicles[v].setProperty('worldUpdate', props)
+
+            return
+
+    vehicle.setProperty('worldUpdate', deepcopy(game.getModInstance('ClientMod').worldUpdateProperty))
+    vehicles.append(vehicle)
 
 def onDimensionChange(game, entity, oldDimension, newDimension):
     '''
