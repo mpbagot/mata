@@ -250,7 +250,7 @@ class GameScreen(Gui):
                 self.game.world.players[p].smallImg = self.game.getModInstance('ClientMod').calculateAvatar(player.img)
 
         p = self.game.player
-        mainAbsPos = p.getAbsPos()
+        mainAbsPos = p.pos
 
         # Draw the player images to screen
         for player in self.game.world.players:

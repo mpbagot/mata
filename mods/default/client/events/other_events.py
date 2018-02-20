@@ -19,7 +19,7 @@ def onGameMouseClick(game, mousePos, event):
         h = screen.get_height()
 
         # Get the main player's position, to calculate the screen positions of the other players
-        mainAbsPos = game.player.getAbsPos()
+        mainAbsPos = game.player.pos
 
         for obj in game.world.vehicles+game.world.players:
             # Get the difference in position

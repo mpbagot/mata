@@ -76,9 +76,9 @@ class Player(EntityBase):
         '''
         self.pos = list(pos)
 
-    def getAbsPos(self):
+    def getPos(self):
         '''
-        Get the absolute position of the player, rounded to 2 decimal places
+        Get the position of the player, rounded to 2 decimal places
         '''
         return [round(self.pos[0], 2), round(self.pos[1], 2)]
 
@@ -106,7 +106,7 @@ class Player(EntityBase):
         '''
         Get a string representation of the player object
         '''
-        return (str([self.username, self.pos, self.health, str(self.tickDamage), self.dimension]).replace(', ', ',')).encode()
+        return (str([self.username, self.getPos(), self.health, str(self.tickDamage), self.dimension]).replace(', ', ',')).encode()
 
     @staticmethod
     def fromBytes(data):

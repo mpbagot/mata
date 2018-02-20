@@ -70,7 +70,7 @@ class DimLoadingScreen(MessageScreen):
         pygame.display.flip()
 
         dimension = self.game.getDimension(self.game.player.dimension)
-        dimension.generate(self.game.player.getAbsPos(), self.game.modLoader.gameRegistry)
+        dimension.generate(self.game.player.pos, self.game.modLoader.gameRegistry)
 
         self.game.restoreGui()
 

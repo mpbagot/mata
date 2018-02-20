@@ -129,7 +129,7 @@ def genWorld(game, queue):
     Generate the small area of the world
     '''
     # Set the abs pos of the player
-    preGenPos = game.player.getAbsPos()
+    preGenPos = game.player.pos
     print('genning world')
 
     # Generate the world
