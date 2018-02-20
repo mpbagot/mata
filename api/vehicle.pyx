@@ -9,7 +9,7 @@ class Vehicle(EntityBase):
 
         self.isDestroyed = False
 
-    def mountRider(self, entity):
+    def mountRider(self, entity, game):
         '''
         Attempt to add a rider to this vehicle
         Returns True if successful, False if not
@@ -21,8 +21,10 @@ class Vehicle(EntityBase):
         # Check for rider quantity overflow
         if len(self.riders['other']) >= self.getMaxRiders():
             return False
+
         # If everything is ok, mount the entity in the appropriate position
-        entity.pos = self.pos
+        game.getPlayer(entity.username).setPos(self.pos)
+
         if entity.username in self.riders['other'] or self.riders['driver'] == entity.username:
             return False
         if not self.riders['driver']:
@@ -78,7 +80,7 @@ class Vehicle(EntityBase):
 
     def getImage(self, resources):
         try:
-            return resources[self.image]
+            return resources.get(self.image)
         except KeyError:
             raise KeyError('Image "{}" has not been registered in the Game Registry'.format(self.image))
 

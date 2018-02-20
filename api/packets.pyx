@@ -99,7 +99,6 @@ class ResetPlayerPacket(Packet):
         self.player = player
         if not pos:
             self.player.pos = currentPlayer.pos
-            self.player.relPos = currentPlayer.relPos
         if not hp:
             self.player.health = currentPlayer.health
         if not dimension:
@@ -116,7 +115,6 @@ class ResetPlayerPacket(Packet):
         # Sync the player object on the client
         game.player.pos = self.player.pos
         game.player.health = self.player.health
-        game.player.relPos = [0, 0]
         game.player.dimension = self.player.dimension
 
 class SyncPlayerPacket(Packet):
@@ -140,7 +138,7 @@ class SyncPlayerPacket(Packet):
         serverPlayer = game.getPlayer(self.player.username)
 
         # Check if the player's motion is not greater than a certain threshold
-        threshold = serverPlayer.speed*4
+        threshold = serverPlayer.getSpeed(game)*4
         if abs(self.player.pos[0]-serverPlayer.pos[0]) > threshold or abs(self.player.pos[1]-serverPlayer.pos[1]) > threshold:
             return ResetPlayerPacket(serverPlayer)
 
@@ -166,7 +164,7 @@ class MountPacket(Packet):
             player = player.username
 
         self.entity = str(vehicle)
-        self.player = player
+        self.player = str(player)
 
     def toBytes(self, buf):
         buf.write(self.entity.encode()+b'|')
@@ -190,10 +188,14 @@ class MountPacket(Packet):
             # Accept the changes without question
             game.player.ridingEntity = self.entity
             if self.entity is not None:
-                self.entity.mountRider(game.player)
+                self.entity.mountRider(game.player, game)
+                game.fireEvent('onPlayerMount', self.player, self.entity, 'mount')
+            else:
+                self.entity.unmountRider(game.player)
+                game.fireEvent('onPlayerMount', self.player, self.entity, 'dismount')
 
         # Adjust on the server
-        elif side == util.SERVER:
+        elif side == util.SERVER and self.player:
             # Attempt to connect a player to a vehicle
             if self.entity is not None:
                 print('Mounting player {} to vehicle {}'.format(self.player.username, self.entity.uuid))
@@ -203,8 +205,9 @@ class MountPacket(Packet):
                 # Check for equal dimension and distance
                 if self.entity.dimension == self.player.dimension and dist < 8:
                     # If all prerequisites are met, connect the player to the vehicle
-                    self.entity.mountRider(self.player)
+                    self.entity.mountRider(self.player, game)
                     self.player.ridingEntity = self.entity.uuid
+                    game.fireEvent('onPlayerMount', self.player, self.entity, 'mount')
                 else:
                   return MountPacket()
 
@@ -214,6 +217,7 @@ class MountPacket(Packet):
                 if self.player.ridingEntity:
                     self.player.ridingEntity.unmountRider(self.player)
                 self.player.ridingEntity = None
+                game.fireEvent('onPlayerMount', self.player, self.entity, 'dismount')
 
 class WorldUpdatePacket(Packet):
     def __init__(self, world=None, username=''):
