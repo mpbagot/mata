@@ -36,7 +36,7 @@ class ServerMod(Mod):
 
         # Register the entities
         self.gameRegistry.registerEntity(bear.Bear())
-        self.gameRegistry.registerEntity(horse.Horse())
+        self.gameRegistry.registerVehicle(horse.Horse())
 
     def postLoad(self):
         # Register the commands
@@ -55,6 +55,7 @@ class ServerMod(Mod):
         self.gameRegistry.registerEventHandler(onTick, 'onTick')
         self.gameRegistry.registerEventHandler(onCommand, 'onCommand')
         self.gameRegistry.registerEventHandler(onPlayerDeath, 'onPlayerDeath')
+        self.gameRegistry.registerEventHandler(onPlayerMount, 'onPlayerMount')
         self.gameRegistry.registerEventHandler(onDisconnect, 'onDisconnect')
 
 def onTick(game, tick):
@@ -87,6 +88,38 @@ def onCommand(game, commandClass, username, args):
     elif commandClass.__name__ == 'FailedCommand':
         pp.sendToPlayer(SendCommandPacket('/message global '+args[0]+' is not a valid command.'), username)
 
+def onPlayerMount(game, player, entity, mode):
+    '''
+    Event Hook: onPlayerMount
+    Sync the new player position to the client when the player mounts an entity
+    '''
+    # If the player is mounting an entity (as opposed to dismounting)
+    if mode == 'mount':
+        # Set the player position
+        player.setPos(entity.pos)
+
+        # Create the sync packet
+        packet = ResetPlayerPacket(player)
+        # Send the packet
+        game.getModInstance('ServerMod').packetPipeline.sendToPlayer(packet, player.username)
+
+def onPlayerDeath(game, player):
+    '''
+    Event Hook: onPlayerDeath
+    Close the connection to the client and
+    '''
+    # Close the connection to the client from the server
+    pp = game.getModInstance('ServerMod').packetPipeline
+    pp.sendToPlayer(DisconnectPacket('You have died'), player.username)
+    game.getModInstance('ServerMod').packetPipeline.closeConnection(pp.username)
+
+def onDisconnect(game):
+    '''
+    Event Hook: onDisconnect
+    Print a little message in the server console
+    '''
+    print('A Client has disconnected')
+
 class KickPlayerCommand(cmd.Command):
     def run(self, username, *args):
         pp = self.game.getModInstance('ServerMod').packetPipeline
@@ -112,20 +145,3 @@ class SpawnEntityCommand(cmd.Command):
             self.game.getWorld(dimensionId).spawnEntityInWorld(newEntity)
         except KeyError:
             print('[ERROR] Entity does not exist')
-
-def onPlayerDeath(game, player):
-    '''
-    Event Hook: onPlayerDeath
-    Close the connection to the client and
-    '''
-    # Close the connection to the client from the server
-    pp = game.getModInstance('ServerMod').packetPipeline
-    pp.sendToPlayer(DisconnectPacket('You have died'), player.username)
-    game.getModInstance('ServerMod').packetPipeline.closeConnection(pp.username)
-
-def onDisconnect(game):
-    '''
-    Event Hook: onDisconnect
-    Print a little message in the server console
-    '''
-    print('A Client has disconnected')
