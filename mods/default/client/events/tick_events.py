@@ -65,9 +65,15 @@ def onTickHandleMovement(game, tick):
         game.world.entities = [a for a in everythingList if isinstance(a, Entity)]
         game.world.vehicles = [a for a in everythingList if isinstance(a, Vehicle)]
 
+        for v in range(len(game.world.vehicles)):
+            if game.world.vehicles[v].riders['driver'] is not None:
+                p = game.getPlayer(game.world.vehicles[v].riders['driver'])
+                if p:
+                    game.world.vehicles[v].pos = list(p.pos)
+
         # Handle player movement
         keys = pygame.key.get_pressed()
-        speed = game.player.getSpeed()
+        speed = game.player.getSpeed(game)
 
         # Update the relative position
         if keys[pygame.K_UP]:
