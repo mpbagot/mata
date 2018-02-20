@@ -84,7 +84,10 @@ def onCommand(game, commandClass, username, args):
         elif mode == 'local':
             pp.sendToNearby(SendCommandPacket('/message '+' '.join(args)), username)
         else:
-            pp.sendToPlayer(SendCommandPacket('/message '+' '.join(args)), args[0])
+            # Send /message <username> message here to the user
+            # Send /message <user> message here to username
+            pp.sendToPlayer(SendCommandPacket('/message '+' '.join(args)), username)
+            pp.sendToPlayer(SendCommandPacket('/message {} {}'.format(username, ' '.join(args[1:]))), args[0])
     elif commandClass.__name__ == 'FailedCommand':
         pp.sendToPlayer(SendCommandPacket('/message global '+args[0]+' is not a valid command.'), username)
 
@@ -141,7 +144,7 @@ class SpawnEntityCommand(cmd.Command):
         dimensionId = self.game.getPlayer(username).dimension
         try:
             newEntity = self.game.modLoader.gameRegistry.entities[entityName]()
-            self.game.modLoader.getUUIDForEntity(newEntity)
+            newEntity.uuid = self.game.modLoader.getUUIDForEntity(newEntity)
             self.game.getWorld(dimensionId).spawnEntityInWorld(newEntity)
         except KeyError:
             print('[ERROR] Entity does not exist')
