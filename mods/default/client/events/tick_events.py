@@ -40,7 +40,7 @@ def onTickHandleMovement(game, tick):
     animTicks = util.FPS//6
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
         # Concatenate everything into a single list
-        everythingList = game.world.players+game.world.entities+game.world.vehicles
+        everythingList = game.world.players+game.world.entities
         # Interpolate the movement of every entity
         for o, obj in enumerate(everythingList):
             props = obj.getProperty('worldUpdate')
@@ -63,13 +63,33 @@ def onTickHandleMovement(game, tick):
         # Split the objects into their respective lists again
         game.world.players = [a for a in everythingList if isinstance(a, Player)]
         game.world.entities = [a for a in everythingList if isinstance(a, Entity)]
-        game.world.vehicles = [a for a in everythingList if isinstance(a, Vehicle)]
 
-        for v in range(len(game.world.vehicles)):
+        # Iterate and update the vehicle positions
+        for v, vehicle in enumerate(game.world.vehicles):
+            # If someone is driving, lock the vehicle to the driver position
             if game.world.vehicles[v].riders['driver'] is not None:
                 p = game.getPlayer(game.world.vehicles[v].riders['driver'])
                 if p:
                     game.world.vehicles[v].pos = list(p.pos)
+
+            # Otherwise, interpolate the position based on the change since the last update
+            else:
+                props = vehicle.getProperty('worldUpdate')
+
+                if not props:
+                    continue
+
+                # Get the number of ticks since the last sync to server
+                moduloTick = animTicks-(game.tick-props.props['updateTick'])%animTicks
+
+                # Calculate the change in position
+                pos = vehicle.pos
+                deltaPos = [props.props['newPos'][a]-pos[a] for a in (0, 1)]
+                deltaPos = [deltaPos[0]/moduloTick, deltaPos[1]/moduloTick]
+
+                # Apply the position transform to the player
+                pos = [pos[a]+deltaPos[a] for a in (0, 1)]
+                game.world.vehicles[v].pos = deepcopy(pos)
 
         # Handle player movement
         keys = pygame.key.get_pressed()
@@ -103,7 +123,6 @@ def onTickSyncPlayer(game, tick):
                 game.getModInstance('ClientMod').oldPlayerPos = list(game.player.pos)
                 # Send the copy of the player object in the packet
                 game.packetPipeline.sendToServer(SyncPlayerPacket(playerCopy))
-                print('syncing player')
 
 def handleProcess(game, queue):
     '''
