@@ -79,7 +79,7 @@ class WorldMP:
         '''
         return bool(self._world)
 
-    def spawnEntityInWorld(self, entity):
+    def spawnEntityInWorld(self, entity, objType='entity'):
         '''
         Spawn a new entity instance into the world
         Return whether successful or not
@@ -91,7 +91,10 @@ class WorldMP:
             print(entity.uuid)
             print('[WARNING] Invalid entity UUID. You forgot to run getUUIDForEntity in ModLoader')
             return False
-        self.entities.append(entity)
+        if objType == 'entity':
+            self.entities.append(entity)
+        elif objType == 'vehicle':
+            self.vehicles.append(entity)
         return True
 
     def tickUpdate(self, game):

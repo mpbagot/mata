@@ -39,7 +39,7 @@ class ServerMod(Mod):
 
     def postLoad(self):
         # Register the commands
-        self.commands = [('/kick', KickPlayerCommand), ('/spawn', SpawnEntityCommand)]
+        self.commands = [('/kick', KickPlayerCommand), ('/spawn', SpawnEntityCommand), ('/create', ConstructVehicleCommand)]
         for comm in self.commands:
             self.gameRegistry.registerCommand(*comm)
 
@@ -126,3 +126,15 @@ class SpawnEntityCommand(cmd.Command):
             self.game.getWorld(dimensionId).spawnEntityInWorld(newEntity)
         except KeyError:
             print('[ERROR] Entity does not exist')
+
+
+class ConstructVehicleCommand(cmd.Command):
+    def run(self, username, *args):
+        vehicleName = args[0]
+        dimensionId = self.game.getPlayer(username).dimension
+        try:
+            newVehicle = self.game.modLoader.gameRegistry.vehicles[vehicleName]()
+            newVehicle.uuid = self.game.modLoader.getUUIDForEntity(newVehicle)
+            self.game.getWorld(dimensionId).spawnEntityInWorld(newVehicle, 'vehicle')
+        except KeyError:
+            print('[ERROR] Vehicle does not exist')
