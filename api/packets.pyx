@@ -174,7 +174,9 @@ class SyncPlayerPacket(Packet):
         #     return ResetPlayerPacket(serverPlayer)
 
         # Sync the player object on the server
-        game.setPlayer(self.player)
+        serverPlayer.pos = self.player.pos
+        serverPlayer.dimension = self.player.dimension
+        serverPlayer.health = self.player.health
 
 class MountPacket(Packet):
     def __init__(self, vehicle=None, player=None):
@@ -218,25 +220,23 @@ class MountPacket(Packet):
         elif side == util.SERVER and self.player:
             # Attempt to connect a player to a vehicle
             if self.entity is not None:
-                print('Mounting player {} to vehicle {}'.format(self.player.username, self.entity.uuid))
                 # Calculate the distance between the player and vehicle
                 pos = [(self.entity.pos[a]-self.player.pos[a])**2 for a in [0, 1]]
                 dist = sum(pos)**.5
                 # Check for equal dimension and distance
                 if self.entity.dimension == self.player.dimension and dist < 8:
+                    print('Mounting player {} to vehicle {}'.format(self.player.username, self.entity.uuid))
                     # If all prerequisites are met, connect the player to the vehicle
                     self.entity.mountRider(self.player, game)
-                    self.player.ridingEntity = self.entity.uuid
                     game.fireEvent('onPlayerMount', self.player, self.entity, 'mount')
                 else:
-                  return MountPacket()
+                    return MountPacket()
 
             else:
                 print('dismounting player from entity')
                 # Dismount the entity/player
                 if self.player.ridingEntity:
-                    self.player.ridingEntity.unmountRider(self.player)
-                self.player.ridingEntity = None
+                    game.getVehicle(self.player.ridingEntity).unmountRider(self.player)
                 game.fireEvent('onPlayerMount', self.player, self.entity, 'dismount')
 
 class WorldUpdatePacket(Packet):
