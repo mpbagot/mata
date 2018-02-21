@@ -87,6 +87,7 @@ class Game:
             for d in self.modLoader.gameRegistry.dimensions.keys():
                 world = self.getWorld(d)
                 if world and self.args.getRuntimeType() == util.SERVER:
+                    # If there are players in the world, update the world every tick
                     if world.players:
                         world.tickUpdate(self)
                     elif (self.tick+d)%(5*util.FPS) == True:
