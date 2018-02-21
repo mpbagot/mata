@@ -31,6 +31,7 @@ class Vehicle(EntityBase):
             self.riders['driver'] = entity.username
         else:
             self.riders['other'].append(entity.username)
+        entity.ridingEntity = self.uuid
         return True
 
     def unmountRider(self, entity):
@@ -46,6 +47,7 @@ class Vehicle(EntityBase):
         for r, rider in enumerate(self.riders['other']):
             if entity == rider:
                 self.riders['other'].pop(r)
+                entity.ridingEntity = None
                 return
 
     def getSpeed(self, rider):
