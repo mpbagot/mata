@@ -1,4 +1,4 @@
-from api.entity import EntityBase
+from api.entity import EntityBase, Player
 
 class Vehicle(EntityBase):
     def __init__(self):
@@ -48,6 +48,23 @@ class Vehicle(EntityBase):
                 self.riders['other'].pop(r)
                 return
 
+    def getSpeed(self, rider):
+        '''
+        Get the movement speed of this entity riding this vehicle
+        '''
+        # If the rider is a player
+        if isinstance(rider, Player):
+            # Return either the vehicle speed, or 0 which rider we are checking
+            if rider.username == self.riders['driver']:
+                return self.speed
+            elif rider.username in self.riders['other']:
+                return 0
+        else:
+            if rider.uuid == self.riders['driver']:
+                return self.speed
+            elif rider.uuid in self.riders['other']:
+                return 0
+
     def getMaxRiders(self):
         '''
         Return the maximum number of riders this vehicle can hold
@@ -88,10 +105,7 @@ class Vehicle(EntityBase):
         self.image = image
 
     def toBytes(self):
-        # riders = self.riders
-        # if riders['driver']:
-        #     riders['driver'] =
-        return (str([self.__class__.__name__, self.name, self.pos]).replace(', ', ',')).encode()
+        return (str([self.__class__.__name__, self.name, self.uuid, self.pos, self.riders]).replace(', ', ',')).encode()
 
     @staticmethod
     def fromBytes(vBytes, vehicleClassList):
@@ -99,6 +113,8 @@ class Vehicle(EntityBase):
         finalVehicle = vehicleClassList.get(vehicleClass, Vehicle)()
 
         finalVehicle.setRegistryName(vehicleProps[0])
-        finalVehicle.pos = vehicleProps[1]
+        finalVehicle.uuid = vehicleProps[1]
+        finalVehicle.pos = vehicleProps[2]
+        finalVehicle.riders = vehicleProps[3]
 
         return finalVehicle

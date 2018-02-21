@@ -28,7 +28,7 @@ class EntityBase:
         '''
         # If riding in a vehicle, use its speed
         if self.ridingEntity:
-            return game.getVehicle(self.ridingEntity).getSpeed(game)
+            return game.getVehicle(self.ridingEntity).getSpeed(self)
         # Otherwise, use the player's speed
         return self.speed
 
