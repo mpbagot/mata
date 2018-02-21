@@ -16,7 +16,7 @@ from threading import Thread
 from multiprocessing import Process
 
 class PacketHandler:
-    def __init__(self, game, side):
+    def __init__(self, game, side, port=util.DEFAULT_PORT):
         self.nextSize = 37
         self.game = game
         self.side = side
@@ -33,17 +33,17 @@ class PacketHandler:
 
         # Bind the socket if the PacketHandler is server-side
         if side == util.SERVER:
-            self.socket.bind(('0.0.0.0', util.DEFAULT_PORT))
+            self.socket.bind(('0.0.0.0', port))
             connPoll = Thread(target=self.pollForConnections)
             connPoll.daemon = True
             connPoll.start()
 
-    def connectToServer(self, address):
+    def connectToServer(self, address, port=util.DEFAULT_PORT):
         '''
         A client-side method to connect to a chosen server
         '''
         try:
-            self.socket.connect((address, util.DEFAULT_PORT))
+            self.socket.connect((address, port))
         except socket.gaierror:
             return 'Invalid Hostname or IP Address'
         except ConnectionRefusedError:
@@ -275,6 +275,26 @@ class PacketHandler:
             print('[WARNING] Cannot send a packet to server from a server runtime!')
             return
         self.connections[1].sendPacket(packet)
+
+class VanillaPacketHandler(PacketHandler):
+    def connectToServer(self, address):
+        '''
+        A client-side method to connect to a chosen server
+        '''
+        try:
+            self.socket.connect((address, util.DEFAULT_PORT+1))
+        except socket.gaierror:
+            return 'Invalid Hostname or IP Address'
+        except ConnectionRefusedError:
+            return 'Connection Refused By Server'
+        except OSError:
+            pass
+
+        self.connections[max(self.connections, default=0)+1] = Connection(self.socket, address)
+        # Fork a connection handling thread
+        t = Thread(target=self.handleConn, args=(max(self.connections, default=0),))
+        t.daemon = True
+        t.start()
 
 class Connection:
     def __init__(self, conn, addr):

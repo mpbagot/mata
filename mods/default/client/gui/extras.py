@@ -36,6 +36,7 @@ class PlayButton(Button):
         game.openGui(game.getModInstance('ClientMod').loadingGui)
 
         # Try to connect
+        game.establishConnection(address)
         error = game.getModInstance('ClientMod').packetPipeline.connectToServer(address)
 
         # Display an error if it fails for any reason

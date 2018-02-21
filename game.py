@@ -19,6 +19,7 @@ if 'SERVER' not in sys.argv:
 import util
 import mod
 from api.entity import Player
+from api import network
 
 class Game:
     '''
@@ -39,6 +40,9 @@ class Game:
 
         # Load all of the registered mods
         self.modLoader.loadRegisteredMods()
+
+        # Create a default packetPipeline for the game instance
+        self.packetPipeline = network.VanillaPacketHandler(self, self.args.getRuntimeType(), util.DEFAULT_PORT+1)
 
         if self.args.getRuntimeType() != util.SERVER:
             # Set the world and player up
@@ -326,6 +330,12 @@ class Game:
             if play.username == player.username:
                 world.players[p] = player
                 return
+
+    def establishConnection(self, address):
+        '''
+        Connect the default pipeline to the server
+        '''
+        self.packetPipeline.connectToServer(address)
 
     def processCmdArgs(self, argHandler):
         '''
