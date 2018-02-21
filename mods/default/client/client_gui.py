@@ -105,7 +105,7 @@ class Chat(Overlay):
             # Create the packet
             # Send the message
             packet = SendCommandPacket(message)
-            self.game.getModInstance('ClientMod').packetPipeline.sendToServer(packet)
+            self.game.packetPipeline.sendToServer(packet)
             self.textarea.text = ''
         # Pass the button press to the textarea
         self.textarea.doKeyPress(event)

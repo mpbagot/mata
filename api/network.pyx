@@ -26,7 +26,8 @@ class PacketHandler:
                             DisconnectPacket, SyncPlayerPacket,
                             ResetPlayerPacket, InvalidLoginPacket,
                             SetupClientPacket, SendCommandPacket,
-                            MountPacket
+                            MountPacket, SetupConnPacket,
+                            WorldUpdatePacket
                            ]
 
         self.socket = socket.socket()
@@ -56,6 +57,10 @@ class PacketHandler:
         t = Thread(target=self.handleConn, args=(max(self.connections, default=0),))
         t.daemon = True
         t.start()
+
+        # Send a login packet
+        self.game.packetPipeline.sendToServer(LoginPacket(self.game.player))
+
         # Fire the login event
         self.game.fireEvent('onClientConnected')
 
@@ -158,7 +163,7 @@ class PacketHandler:
                         p.fromBytes(dataDictionary['data'])
 
                         # Pass the connection list in if a login packet
-                        if packet.__name__ == 'LoginPacket':
+                        if packet.__name__ in ['LoginPacket', 'SetupConnPacket']:
                             response = p.onReceive(self.connections[connIndex], self.side, self.game, self.connections)
                         else:
                             response = p.onReceive(self.connections[connIndex], self.side, self.game)
@@ -214,6 +219,7 @@ class PacketHandler:
         if not self.isPacketSafe(packet):
             # Reject the packet
             print('[ERROR] Packet was not sent to clients because it was not registered.')
+            print(packet)
             return
         if self.side == util.CLIENT:
             print('[WARNING] Cannot send a packet to clients from a client runtime!')
@@ -233,6 +239,7 @@ class PacketHandler:
         if not self.isPacketSafe(packet):
             # Reject the packet
             print('[ERROR] Packet was not sent to clients because it was not registered.')
+            print(packet)
             return
         if self.side == util.CLIENT:
             print('[WARNING] Cannot send a packet to clients from a client runtime!')
@@ -254,6 +261,7 @@ class PacketHandler:
         if not self.isPacketSafe(packet):
             # Reject the packet
             print('[ERROR] Packet was not sent to clients because it was not registered.')
+            print(packet)
             return
         if self.side == util.CLIENT:
             print('[WARNING] Cannot send a packet to clients from a client runtime!')
@@ -270,6 +278,7 @@ class PacketHandler:
         if not self.isPacketSafe(packet):
             # Reject the packet
             print('[ERROR] Packet was not sent to server because it was not registered.')
+            print(packet)
             return
         if self.side == util.SERVER:
             print('[WARNING] Cannot send a packet to server from a server runtime!')
@@ -295,6 +304,9 @@ class VanillaPacketHandler(PacketHandler):
         t = Thread(target=self.handleConn, args=(max(self.connections, default=0),))
         t.daemon = True
         t.start()
+
+        # Send a login packet
+        self.game.packetPipeline.sendToServer(LoginPacket(self.game.player))
 
 class Connection:
     def __init__(self, conn, addr):

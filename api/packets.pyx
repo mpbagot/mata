@@ -73,6 +73,26 @@ class LoginPacket(Packet):
                 ResetPlayerPacket(self.player)
                ]
 
+class SetupConnPacket(Packet):
+    def __init__(self, player=None):
+        self.player = player
+
+    def toBytes(self, buf):
+        buf.write(self.player.toBytes())
+
+    def fromBytes(self, data):
+        self.player = Player.fromBytes(data)
+
+    def onReceive(self, connection, side, game, connections):
+        # Check if this has already been done in this pipeline
+        for conn in connections:
+            if connections[conn].username == self.player.username:
+                return InvalidLoginPacket()
+
+        # If not, set the connection username
+        connection.username = self.player.username
+
+
 class SetupClientPacket(Packet):
     def __init__(self, biomeSize=0, seed=0):
         self.seed = seed

@@ -2,7 +2,7 @@ import pygame
 from copy import deepcopy
 
 import util
-from api.packets import SendCommandPacket, LoginPacket, MountPacket
+from api.packets import SendCommandPacket, SetupConnPacket, MountPacket
 from api.entity import Player
 from api.vehicle import Vehicle
 
@@ -42,7 +42,7 @@ def onGameMouseClick(game, mousePos, event):
                     # User has clicked on the vehicle
                     # Send MountPacket to server to sync this change there.
                     packet = MountPacket(obj.uuid, game.player.username)
-                    game.getModInstance('ClientMod').packetPipeline.sendToServer(packet)
+                    game.packetPipeline.sendToServer(packet)
                     obj.mountRider(game.player, game)
 
                 elif isinstance(obj, Player):
@@ -72,10 +72,10 @@ def onGameKeyPress(game, event):
             game.getGUIState().closeOverlay(chatOverlay)
 
         if event.key == pygame.K_m:
-            game.getModInstance('ClientMod').packetPipeline.sendToServer(SendCommandPacket('/message global random test message'))
+            game.packetPipeline.sendToServer(SendCommandPacket('/message global random test message'))
 
         if event.key == pygame.K_b:
-            game.getModInstance('ClientMod').packetPipeline.sendToServer(SendCommandPacket('/spawn Bear'))
+            game.packetPipeline.sendToServer(SendCommandPacket('/spawn Bear'))
 
 def onInvKeyPress(game, event):
     '''
@@ -138,7 +138,7 @@ def onClientConnected(game):
     Apply the extra property to the client player when the connection to the server is established
     '''
     # Send a login packet
-    game.getModInstance('ClientMod').packetPipeline.sendToServer(LoginPacket(game.player))
+    game.getModInstance('ClientMod').packetPipeline.sendToServer(SetupConnPacket(game.player))
     print('connection to server established')
 
 def onPlayerLogin(game, player):

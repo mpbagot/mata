@@ -102,7 +102,7 @@ def onTickSyncPlayer(game, tick):
                 # Store the current relative position in the mod instance for later comparison
                 game.getModInstance('ClientMod').oldPlayerPos = list(game.player.pos)
                 # Send the copy of the player object in the packet
-                game.getModInstance('ClientMod').packetPipeline.sendToServer(SyncPlayerPacket(playerCopy))
+                game.packetPipeline.sendToServer(SyncPlayerPacket(playerCopy))
                 print('syncing player')
 
 def handleProcess(game, queue):

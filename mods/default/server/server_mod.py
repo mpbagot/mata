@@ -24,9 +24,8 @@ class ServerMod(Mod):
         self.packetPipeline = network.PacketHandler(self.game, util.SERVER)
         # Register the valid packet classes
         packets = [
-                    WorldUpdatePacket, SendInventoryPacket,
-                    FetchInventoryPacket, SendPlayerImagePacket,
-                    FetchPlayerImagePacket
+                    FetchPlayerImagePacket, SendInventoryPacket,
+                    FetchInventoryPacket, SendPlayerImagePacket
                   ]
         for packet in packets:
             self.packetPipeline.registerPacket(packet)
@@ -53,7 +52,6 @@ class ServerMod(Mod):
 
         # Register the events
         self.gameRegistry.registerEventHandler(onTick, 'onTick')
-        self.gameRegistry.registerEventHandler(onCommand, 'onCommand')
         self.gameRegistry.registerEventHandler(onPlayerDeath, 'onPlayerDeath')
         self.gameRegistry.registerEventHandler(onPlayerMount, 'onPlayerMount')
         self.gameRegistry.registerEventHandler(onDisconnect, 'onDisconnect')
@@ -61,35 +59,14 @@ class ServerMod(Mod):
 def onTick(game, tick):
     if tick%(util.FPS//6) == 0:
         # Send server updates to all of the connected clients 6 times a second
-        pp = game.getModInstance('ServerMod').packetPipeline
-        for conn in pp.connections.values():
+        pp = game.packetPipeline
+        connections = pp.connections.values()
+        for conn in connections:
             # Customise the packet for each player
             if conn.username:
                 player = game.getPlayer(conn.username)
                 packet = WorldUpdatePacket(game.getWorld(player.dimension), player.username)
                 pp.sendToPlayer(packet, conn.username)
-
-def onCommand(game, commandClass, username, args):
-    '''
-    Event Hook: onCommand
-    Extend the default behaviour for some commands
-    '''
-    pp = game.getModInstance('ServerMod').packetPipeline
-    if commandClass.__name__ == 'MessageCommand':
-        # Send messages back to one or more clients based on the message mode
-        mode = args[0]
-        args = [args[0], '<{}>'.format(username)]+args[1:]
-        if mode == 'global':
-            pp.sendToAll(SendCommandPacket('/message '+' '.join(args)))
-        elif mode == 'local':
-            pp.sendToNearby(SendCommandPacket('/message '+' '.join(args)), username)
-        else:
-            # Send /message <username> message here to the user
-            # Send /message <user> message here to username
-            pp.sendToPlayer(SendCommandPacket('/message '+' '.join(args)), username)
-            pp.sendToPlayer(SendCommandPacket('/message {} {}'.format(username, ' '.join(args[1:]))), args[0])
-    elif commandClass.__name__ == 'FailedCommand':
-        pp.sendToPlayer(SendCommandPacket('/message global '+args[0]+' is not a valid command.'), username)
 
 def onPlayerMount(game, player, entity, mode):
     '''
@@ -104,7 +81,7 @@ def onPlayerMount(game, player, entity, mode):
         # Create the sync packet
         packet = ResetPlayerPacket(player)
         # Send the packet
-        game.getModInstance('ServerMod').packetPipeline.sendToPlayer(packet, player.username)
+        game.packetPipeline.sendToPlayer(packet, player.username)
 
 def onPlayerDeath(game, player):
     '''
@@ -112,8 +89,9 @@ def onPlayerDeath(game, player):
     Close the connection to the client and
     '''
     # Close the connection to the client from the server
-    pp = game.getModInstance('ServerMod').packetPipeline
+    pp = game.packetPipeline
     pp.sendToPlayer(DisconnectPacket('You have died'), player.username)
+    game.packetPipeline.closeConnection(pp.username)
     game.getModInstance('ServerMod').packetPipeline.closeConnection(pp.username)
 
 def onDisconnect(game):
@@ -125,7 +103,7 @@ def onDisconnect(game):
 
 class KickPlayerCommand(cmd.Command):
     def run(self, username, *args):
-        pp = self.game.getModInstance('ServerMod').packetPipeline
+        pp = self.game.packetPipeline
         # Send a failure message if the user doesn't have elevated privileges
         if username not in open('mods/default/server/elevated_users').read().split('\n')[:-1]:
             pp.sendToPlayer(SendCommandPacket('/message You do not have permission to use that command'), username)
