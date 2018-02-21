@@ -87,7 +87,8 @@ class WorldMP:
         if not isinstance(entity, EntityBase) or not isinstance(entity.uuid, str):
             print('[WARNING] Invalid entity. Did you forget to set the UUID?')
             return False
-        elif not entity.uuid.isnumeric():
+        elif not entity.uuid.isnumeric() and not entity.uuid[1:].isnumeric():
+            print(entity.uuid)
             print('[WARNING] Invalid entity UUID. You forgot to run getUUIDForEntity in ModLoader')
             return False
         self.entities.append(entity)
