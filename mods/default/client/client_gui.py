@@ -262,7 +262,8 @@ class GameScreen(Gui):
 
             # Adjust position accordingly, and draw to screen
             pos = [w//2+deltaPos[0]*40-size.width//2, h//2+deltaPos[1]*40-size.height//2]
-            self.screen.blit(player.smallImg, pos)
+            if max(pos) < max(w, h):
+                self.screen.blit(player.smallImg, pos)
 
         # Draw the entity images to screen
         for ent in self.game.world.entities:
@@ -275,7 +276,8 @@ class GameScreen(Gui):
 
             # Adjust position accordingly, and draw to screen
             pos = [w//2+deltaPos[0]*40-size.width//2, h//2+deltaPos[1]*40-size.height//2]
-            self.screen.blit(entityImage, pos)
+            if max(pos) < max(w, h):
+                self.screen.blit(entityImage, pos)
 
         # Draw the vehicle images to screen
         for vehicle in self.game.world.vehicles:
@@ -288,7 +290,8 @@ class GameScreen(Gui):
 
             # Adjust position accordingly, and draw to screen
             pos = [w//2+deltaPos[0]*40-size.width//2, h//2+deltaPos[1]*40-size.height//2]
-            self.screen.blit(vehicleImage, pos)
+            if max(pos) < max(w, h):
+                self.screen.blit(vehicleImage, pos)
 
 
     def drawForegroundLayer(self, mousePos):
