@@ -5,6 +5,7 @@ from api.biome import TileMap
 
 import util
 
+from datetime import datetime
 import time
 
 class Packet:
@@ -157,8 +158,18 @@ class SyncPlayerPacket(Packet):
         playerList = game.getWorld(self.player.dimension)
         serverPlayer = game.getPlayer(self.player.username)
 
+        # Get the deltaTime, and deltaTicks since last synchronisation
+        if isinstance(serverPlayer.synced, datetime):
+            deltaTime = int((datetime.now()-serverPlayer.synced).total_seconds()*1000)
+        else:
+            deltaTime = 4000/util.FPS
+        deltaTicks = int(deltaTime*(util.FPS/1000))
+
+        # Write the new sync time (in case we need to reset)
+        serverPlayer.synced = datetime.now()
+
         # Check if the player's motion is not greater than a certain threshold
-        threshold = serverPlayer.getSpeed(game)*4
+        threshold = serverPlayer.getSpeed(game)*(deltaTicks+2)
         if abs(self.player.pos[0]-serverPlayer.pos[0]) > threshold or abs(self.player.pos[1]-serverPlayer.pos[1]) > threshold:
             return ResetPlayerPacket(serverPlayer)
 
