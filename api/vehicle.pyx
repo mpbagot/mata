@@ -19,8 +19,11 @@ class Vehicle(EntityBase):
             print('[WARNING] Invalid rider for vehicle')
             return False
         # Check for rider quantity overflow
-        if len(self.riders['other']) >= self.getMaxRiders():
+        if len(self.riders['other'])+int(bool(self.riders['driver'])) >= self.getMaxRiders():
             return False
+        # Check if rider is mounted to another vehicle
+        if entity.ridingEntity:
+            game.getVehicle(entity.ridingEntity).unmountRider(entity)
 
         # If everything is ok, mount the entity in the appropriate position
         game.getPlayer(entity.username).setPos(self.pos)
@@ -40,12 +43,12 @@ class Vehicle(EntityBase):
         '''
         # Check the main driver
         driver = self.riders.get('driver')
-        if entity == driver:
+        if entity.username == driver:
             self.riders['driver'] = None
             return
         # Iterate the other connected riders, compare the entity and remove it if possible
         for r, rider in enumerate(self.riders['other']):
-            if entity == rider:
+            if entity.username == rider:
                 self.riders['other'].pop(r)
                 entity.ridingEntity = None
                 return
@@ -55,17 +58,8 @@ class Vehicle(EntityBase):
         Get the movement speed of this entity riding this vehicle
         '''
         # If the rider is a player
-        if isinstance(rider, Player):
-            # Return either the vehicle speed, or 0 which rider we are checking
-            if rider.username == self.riders['driver']:
-                return self.speed
-            elif rider.username in self.riders['other']:
-                return 0
-        else:
-            if rider.uuid == self.riders['driver']:
-                return self.speed
-            elif rider.uuid in self.riders['other']:
-                return 0
+        # Return the speed, multiplied by 1 or 0 for whether player is the driver
+        return self.speed * int(self.isDriver(rider))
 
     def getMaxRiders(self):
         '''
@@ -73,13 +67,33 @@ class Vehicle(EntityBase):
         '''
         return 1
 
+    def isDriver(self, obj):
+        '''
+        Return if the given Entity is the driver
+        '''
+        if obj.isPlayer():
+            return obj.username == self.riders['driver']
+        else:
+            return obj.uuid == self.riders['driver']
+
+    def isPassenger(self, obj):
+        '''
+        Return if the given entity is a passenger
+        '''
+        if obj.isPlayer():
+            return obj.username in self.riders['other']
+        else:
+            return obj.uuid in self.riders['other']
+
     def onVehicleUpdate(self, game):
         '''
         Update this vehicle
         '''
         # TODO Update vehicle method with more logic
         if self.riders['driver'] is not None:
-            self.pos = game.getPlayer(self.riders['driver']).pos
+            self.pos = list(game.getPlayer(self.riders['driver']).pos)
+        for ridername in self.riders['other']:
+            game.getPlayer(ridername).pos = list(self.pos)
 
     def hasAttribute(self, name):
           '''
