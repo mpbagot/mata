@@ -277,7 +277,7 @@ class Game:
             # Loop the entities in the dimension
             for entity in world.entities:
                 # Check if its the correct one, and if so, return it
-                if entity.uuid == uuid:
+                if str(entity.uuid) == str(uuid):
                     return entity
         return None
 
@@ -285,14 +285,13 @@ class Game:
         '''
         Get a vehicle object by its uuid
         '''
-        uuid = str(uuid)
         # Loop each dimension
         for dimensionId in self.modLoader.gameRegistry.dimensions:
             world = self.getWorld(dimensionId)
             # Loop the vehicles in the dimension
             for entity in world.vehicles:
                 # Check if its the correct one, and if so, return it
-                if str(entity.uuid) == uuid:
+                if str(entity.uuid) == str(uuid):
                     return entity
         return None
 
