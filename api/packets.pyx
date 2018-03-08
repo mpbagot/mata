@@ -221,11 +221,11 @@ class MountPacket(Packet):
             # Accept the changes without question
             game.player.ridingEntity = self.entity
             if self.entity is not None:
-                self.entity.mountRider(game.player, game)
-                game.fireEvent('onPlayerMount', self.player, self.entity, 'mount')
+                success = self.entity.mountRider(game.player, game)
+                game.fireEvent('onPlayerMount', self.player, self.entity, success, 'mount')
             else:
-                self.entity.unmountRider(game.player)
-                game.fireEvent('onPlayerMount', self.player, self.entity, 'dismount')
+                success = self.entity.unmountRider(game.player)
+                game.fireEvent('onPlayerMount', self.player, self.entity, success, 'dismount')
 
         # Adjust on the server
         elif side == util.SERVER and self.player:
@@ -238,8 +238,8 @@ class MountPacket(Packet):
                 if self.entity.dimension == self.player.dimension and dist < 8:
                     print('Mounting player {} to vehicle {}'.format(self.player.username, self.entity.uuid))
                     # If all prerequisites are met, connect the player to the vehicle
-                    self.entity.mountRider(self.player, game)
-                    game.fireEvent('onPlayerMount', self.player, self.entity, 'mount')
+                    success = self.entity.mountRider(self.player, game)
+                    game.fireEvent('onPlayerMount', self.player, self.entity, success, 'mount')
                 else:
                     return MountPacket()
 
@@ -247,8 +247,8 @@ class MountPacket(Packet):
                 print('dismounting player from entity')
                 # Dismount the entity/player
                 if self.player.ridingEntity:
-                    game.getVehicle(self.player.ridingEntity).unmountRider(self.player)
-                game.fireEvent('onPlayerMount', self.player, self.entity, 'dismount')
+                    success = game.getVehicle(self.player.ridingEntity).unmountRider(self.player)
+                game.fireEvent('onPlayerMount', self.player, self.entity, success, 'dismount')
 
 class WorldUpdatePacket(Packet):
     def __init__(self, world=None, username=''):

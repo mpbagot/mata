@@ -60,21 +60,24 @@ def onTick(game, tick):
     if tick%(util.FPS//6) == 0:
         # Send server updates to all of the connected clients 6 times a second
         pp = game.packetPipeline
-        connections = pp.connections.values()
-        for conn in connections:
+        connections = pp.connections.keys()
+        for c in connections:
+            conn = pp.connections.get(c)
+            if not conn:
+                continue
             # Customise the packet for each player
             if conn.username:
                 player = game.getPlayer(conn.username)
                 packet = WorldUpdatePacket(game.getWorld(player.dimension), player.username)
                 pp.sendToPlayer(packet, conn.username)
 
-def onPlayerMount(game, player, entity, mode):
+def onPlayerMount(game, player, entity, success, mode):
     '''
     Event Hook: onPlayerMount
     Sync the new player position to the client when the player mounts an entity
     '''
     # If the player is mounting an entity (as opposed to dismounting)
-    if mode == 'mount':
+    if success and mode == 'mount':
         # Set the player position
         player.setPos(entity.pos)
 
