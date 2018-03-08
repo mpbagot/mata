@@ -9,3 +9,9 @@ class Horse(Vehicle):
         self.setImage('vehicle_horse')
         self.pos = [randint(-5, 5), randint(-5, 5)]
         self.speed = 1
+
+    def getMaxRiders(self):
+        '''
+        Return the number of players that can ride a horse at one time
+        '''
+        return 2
