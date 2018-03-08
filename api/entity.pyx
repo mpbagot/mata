@@ -48,6 +48,12 @@ class EntityBase:
           except AttributeError:
               return False
 
+    def isPlayer(self):
+        '''
+        Return whether this object is a player
+        '''
+        return False
+
 class Player(EntityBase):
     '''
     A base class for storing the player information
@@ -59,10 +65,19 @@ class Player(EntityBase):
         self.exp = 0
         self.img = []
         self.inventory = Inventory()
+
+        # Boolean for synchronisation status on client
+        # Timestamp for last synchronisation on server
         self.synced = False
 
     def __eq__(self, other):
         return isinstance(other, Player) and self.username == other.username
+
+    def isPlayer(self):
+        '''
+        Return whether this object is a player
+        '''
+        return True
 
     def setInventory(self, inv):
         self.inventory = inv
