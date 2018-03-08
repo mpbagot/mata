@@ -156,19 +156,35 @@ def onPlayerSync(game, player, oldPlayers):
     Event Hook: onPlayerSync
     Apply the updates to other player attributes from the server
     '''
-    # If the player being updated is the client player, skip it
+    # If the player being updated is the client player, handle it differently
+    isRiding = False
+    if game.player.ridingEntity:
+        vehicle = game.getVehicle(game.player.ridingEntity)
+        if vehicle:
+            isRiding = game.player.username in vehicle.riders['other']
+        else:
+            print(game.player.ridingEntity)
+
     if player.username == game.player.username:
+        if isRiding:
+            game.player.health = player.health
+            game.player.pos = player.pos
         return
+
     for p in range(len(oldPlayers)):
         if oldPlayers[p].username == player.username:
             # Update vanilla player properties
             oldPlayers[p].health = player.health
 
-            # Update the modded properties
-            props = oldPlayers[p].getProperty('worldUpdate')
-            props.props['newPos'] = player.pos
-            props.props['updateTick'] = game.tick
-            oldPlayers[p].setProperty('worldUpdate', props)
+            # Check if the player is riding on an entity
+            if oldPlayers[p].ridingEntity:
+                oldPlayers[p].pos = game.getVehicle(oldPlayers[p].ridingEntity).pos
+            else:
+                # Update the modded properties
+                props = oldPlayers[p].getProperty('worldUpdate')
+                props.props['newPos'] = player.pos
+                props.props['updateTick'] = game.tick
+                oldPlayers[p].setProperty('worldUpdate', props)
 
             return
 
@@ -205,6 +221,20 @@ def onVehicleSync(game, vehicle, vehicles):
     # Iterate and update the vehicles
     for v in range(len(vehicles)):
         if vehicles[v].uuid == vehicle.uuid:
+            # Set the riders
+            vehicles[v].riders = vehicle.riders
+            # Update the ridingEntity values in the players
+            for rider in vehicles[v].riders['other']:
+                # Try to get a player
+                player = game.getPlayer(rider)
+                if player:
+                    player.ridingEntity = vehicle.uuid
+                else:
+                    # If it's not a player, try to get an entity
+                    entity = game.getEntity(rider)
+                    if entity:
+                        entity.ridingEntity = vehicle.uuid
+
             # Update the modded properties
             props = vehicles[v].getProperty('worldUpdate')
             props.props['newPos'] = vehicle.pos
