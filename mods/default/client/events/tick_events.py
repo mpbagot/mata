@@ -39,10 +39,56 @@ def onTickHandleMovement(game, tick):
     '''
     animTicks = util.FPS//6
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
+        # Handle player movement
+        keys = pygame.key.get_pressed()
+        speed = game.player.getSpeed(game)
+
+        # Update the player position
+        if keys[pygame.K_UP]:
+            game.player.pos[1] -= speed
+        if keys[pygame.K_DOWN]:
+            game.player.pos[1] += speed
+        if keys[pygame.K_LEFT]:
+            game.player.pos[0] -= speed
+        if keys[pygame.K_RIGHT]:
+            game.player.pos[0] += speed
+
+        # Handle the update of the riders, passengers, vehicles and game player correctly
+        # update all non-passengers
+        # then update all vehicles,
+        # finally, update all passengers
+        # and update the player in either drivers or passengers as required
+
         # Concatenate everything into a single list
         everythingList = game.world.players+game.world.entities
-        # Interpolate the movement of every entity
-        for o, obj in enumerate(everythingList):
+
+        # Create a list of non-passenger entities
+        drivers = []
+        for obj in everythingList:
+            if not obj.ridingEntity:
+                drivers.append(obj)
+                continue
+            vehicle = game.getVehicle(obj.ridingEntity)
+            if not vehicle:
+                drivers.append(obj)
+                continue
+            if not vehicle.isPassenger(obj):
+                drivers.append(obj)
+
+        passengers = [a for a in everythingList if a not in drivers]
+
+        # Add the game player to the appropriate list
+        if game.player.ridingEntity:
+            vehicle = game.getVehicle(game.player.ridingEntity)
+            if vehicle and vehicle.isPassenger(game.player):
+                passengers.append(game.player)
+            else:
+                drivers.append(game.player)
+        else:
+            drivers.append(game.player)
+
+        # Interpolate the movement of each non-passenger entity
+        for o, obj in enumerate(drivers):
             props = obj.getProperty('worldUpdate')
 
             if not props:
@@ -58,11 +104,12 @@ def onTickHandleMovement(game, tick):
 
             # Apply the position transform to the player
             pos = [pos[a]+deltaPos[a] for a in (0, 1)]
-            everythingList[o].pos = deepcopy(pos)
+            drivers[o].pos = deepcopy(pos)
 
-        # Split the objects into their respective lists again
-        game.world.players = [a for a in everythingList if isinstance(a, Player)]
-        game.world.entities = [a for a in everythingList if isinstance(a, Entity)]
+        # If the game player is a non-passenger, store them back in the game instance
+        if len(drivers) and drivers[-1].isPlayer() and drivers[-1].username == game.player.username:
+            game.player = drivers[-1]
+            del drivers[-1]
 
         # Iterate and update the vehicle positions
         for v, vehicle in enumerate(game.world.vehicles):
@@ -91,19 +138,19 @@ def onTickHandleMovement(game, tick):
                 pos = [pos[a]+deltaPos[a] for a in (0, 1)]
                 game.world.vehicles[v].pos = deepcopy(pos)
 
-        # Handle player movement
-        keys = pygame.key.get_pressed()
-        speed = game.player.getSpeed(game)
+        # Update all the passenger positions
+        for o, obj in enumerate(passengers):
+            passengers[o].pos = game.getVehicle(obj.ridingEntity).pos
 
-        # Update the relative position
-        if keys[pygame.K_UP]:
-            game.player.pos[1] -= speed
-        if keys[pygame.K_DOWN]:
-            game.player.pos[1] += speed
-        if keys[pygame.K_LEFT]:
-            game.player.pos[0] -= speed
-        if keys[pygame.K_RIGHT]:
-            game.player.pos[0] += speed
+        # If the game player is a non-passenger, store them back in the game instance
+        if len(passengers) and passengers[-1].isPlayer() and passengers[-1].username == game.player.username:
+            game.player = passengers[-1]
+            del passengers[-1]
+
+        everythingList = drivers+passengers
+        # Split the objects into their respective lists again
+        game.world.players = [a for a in everythingList if isinstance(a, Player)]
+        game.world.entities = [a for a in everythingList if isinstance(a, Entity)]
 
 def onTickSyncPlayer(game, tick):
     '''
