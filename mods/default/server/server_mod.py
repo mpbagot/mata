@@ -61,13 +61,17 @@ def onTick(game, tick):
         # Send server updates to all of the connected clients 6 times a second
         pp = game.packetPipeline
         connections = pp.connections.keys()
+        # Loop the keys
         for c in connections:
+            # Get the connection object from the dictionary
             conn = pp.connections.get(c)
+            # If it has been deleted by the other thread during iteration, skip it
             if not conn:
                 continue
-            # Customise the packet for each player
+            # If the player has logged in, send the world update data to them
             if conn.username:
                 player = game.getPlayer(conn.username)
+                # Customise the packet for each player
                 packet = WorldUpdatePacket(game.getWorld(player.dimension), player.username)
                 pp.sendToPlayer(packet, conn.username)
 
