@@ -118,12 +118,7 @@ class Inventory:
 class Item:
     def __init__(self, resources):
         self.name = ''
-        try:
-            self.img = resources['item_'+self.getItemName()]
-        except KeyError:
-            import pygame
-            self.img = pygame.image.load('resources/textures/mods/tiles/dirt.png')
-            #raise Exception('Item Image has not been Registered!')
+        self.image = None
 
     def setRegistryName(self, name):
         self.name = name
@@ -143,6 +138,12 @@ class Item:
             return True
         except AttributeError:
             return False
+
+    def getImage(self, resources):
+        try:
+            return resources.get(self.image)
+        except KeyError:
+            raise KeyError('Image "{}" has not been registered in the Game Registry'.format(self.image))
 
 class ItemStack:
     def __init__(self, item, size):

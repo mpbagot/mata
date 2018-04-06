@@ -47,10 +47,10 @@ class Scrollbox:
             self.maxHeight = testMaxHeight
 
 class ItemSlot:
-    def __init__(self, item, pos, size):
+    def __init__(self, game, item, pos, size):
         self.pos = [a+3 for a in pos]
         self.item = item
-        self.item.img = pygame.transform.scale(self.item.img, [size-5, size-5])
+        self.itemImage = self.item.getImage(game.modLoader.gameRegistry.resources)
         self.button = Button(pos+[size, size], '')
 
     def draw(self, screen, mousePos):
@@ -61,7 +61,8 @@ class ItemSlot:
         self.button.draw(screen, [0, 0])
 
         # Draw the item image
-        imgRect = screen.blit(self.item.img, self.pos)
+        if self.itemImage:
+            imgRect = screen.blit(self.itemImage, self.pos)
 
         if self.button.isHovered(mousePos):
             # Draw a semi transparent square over the itemslot
