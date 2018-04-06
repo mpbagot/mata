@@ -1,10 +1,15 @@
+from threading import Thread
+from multiprocessing import Process, Queue
 import pygame
 from copy import deepcopy
+import time
 
 import util
 from api.packets import SendCommandPacket, SetupConnPacket, MountPacket
 from api.entity import Player
 from api.vehicle import Vehicle
+
+from mods.default.client.events.tick_events import genWorld, handleProcess
 
 def onGameMouseClick(game, mousePos, event):
     '''
@@ -60,20 +65,27 @@ def onGameKeyPress(game, event):
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
         chatOverlay = game.getModInstance('ClientMod').chatOverlay
 
+        # Handle keypresses if the chat overlay is open
         if not game.getGUIState().isOverlayOpen(chatOverlay):
+            # Open global chat if the t key is pressed
             if event.key == pygame.K_t:
                 game.openOverlay(chatOverlay, game)
+            # Open the local chat if the u key is pressed
             elif event.key == pygame.K_u:
                 game.openOverlay(chatOverlay, game, 'local')
+            # Open the inventory
             elif event.key == pygame.K_e:
                 game.openGui(game.getModInstance('ClientMod').inventoryGui, game)
 
+        # Close the overlay if it's open
         elif event.key == pygame.K_ESCAPE:
             game.getGUIState().closeOverlay(chatOverlay)
 
+        # Send a test message
         if event.key == pygame.K_m:
             game.packetPipeline.sendToServer(SendCommandPacket('/message global random test message'))
 
+        # Spawn a bear using a command
         if event.key == pygame.K_b:
             game.packetPipeline.sendToServer(SendCommandPacket('/spawn Bear'))
 
@@ -146,6 +158,22 @@ def onPlayerLogin(game, player):
     Event Hook: onPlayerLogin
     Open the player customisation screen when the client logs into the server
     '''
+    # Pregenerate the world
+    queue = Queue()
+    p = Process(target=genWorld, args=(game, queue))
+    t = Thread(target=handleProcess, args=(game, queue))
+    p.daemon = True
+    t.daemon = True
+    p.start()
+    t.start()
+
+    startTime = time.time()
+    # Wait for the world to generate
+    while not game.world.isWorldLoaded():
+        # Timeout and print a message if it took too long
+        if time.time()-startTime > 5:
+            print('[WARNING] World took too long to generate')
+            break
     # Show the player customisation screen
     # TODO Switch this back to the playerDrawGui once assets have been created
     game.openGui(game.getModInstance('ClientMod').gameGui, game)
