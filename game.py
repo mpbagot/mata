@@ -301,17 +301,17 @@ class Game:
         '''
         # If a player object is accidentally passed in, run comparison with the username
         if isinstance(username, Player):
-            return self.getPlayer(username.username)
+            username = username.name
 
         # Check the main player if running on the client
         if self.args.getRuntimeType() != util.SERVER:
-            if self.player.username == username:
+            if self.player.name == username:
                 return self.player
 
         # Iterate the dimensions and find the player
         for d in self.modLoader.gameRegistry.dimensions:
             for player in self.getWorld(d).players:
-                if player.username == username:
+                if player.name == username:
                     return player
         return None
 
@@ -320,14 +320,14 @@ class Game:
         Set the player on the server
         '''
         # If the player does not exist, append them to the required dimension's player list
-        if not self.getPlayer(player.username):
+        if not self.getPlayer(player.name):
             self.getWorld(player.dimension).players.append(player)
             return
 
         # Fetch the dimension, iterate the players, and replace the corresponding object
         world = self.getWorld(player.dimension)
         for p, play in enumerate(world.players):
-            if play.username == player.username:
+            if play.name == player.name:
                 world.players[p] = player
                 return
 

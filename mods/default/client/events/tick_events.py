@@ -107,7 +107,7 @@ def onTickHandleMovement(game, tick):
             drivers[o].pos = deepcopy(pos)
 
         # If the game player is a non-passenger, store them back in the game instance
-        if len(drivers) and drivers[-1].isPlayer() and drivers[-1].username == game.player.username:
+        if len(drivers) and drivers[-1].isPlayer() and drivers[-1].name == game.player.name:
             game.player = drivers[-1]
             del drivers[-1]
 
@@ -143,7 +143,7 @@ def onTickHandleMovement(game, tick):
             passengers[o].pos = game.getVehicle(obj.ridingEntity).pos
 
         # If the game player is a non-passenger, store them back in the game instance
-        if len(passengers) and passengers[-1].isPlayer() and passengers[-1].username == game.player.username:
+        if len(passengers) and passengers[-1].isPlayer() and passengers[-1].name == game.player.name:
             game.player = passengers[-1]
             del passengers[-1]
 

@@ -42,7 +42,7 @@ class HUD(Overlay):
 
         # Generate a font object
         font = pygame.font.Font('resources/font/main.ttf', 20)
-        text = font.render('Username: '+self.game.player.username, True, (255, 255, 255))
+        text = font.render('Username: '+self.game.player.name, True, (255, 255, 255))
         self.screen.blit(text, scaleRect([744, 640], self.screen))
 
         # Generate a smaller font object
@@ -138,7 +138,7 @@ class PlayerInventoryScreen(Gui):
         Fetch the inventory from the server
         '''
         packetPipeline = game.getModInstance('ClientMod').packetPipeline
-        packetPipeline.sendToServer(FetchInventoryPacket(game.player.username))
+        packetPipeline.sendToServer(FetchInventoryPacket(game.player.name))
 
     def drawBackgroundLayer(self):
         self.inventory = self.game.player.inventory

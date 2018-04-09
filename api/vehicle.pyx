@@ -26,14 +26,14 @@ class Vehicle(EntityBase):
             game.getVehicle(entity.ridingEntity).unmountRider(entity)
 
         # If everything is ok, mount the entity in the appropriate position
-        game.getPlayer(entity.username).setPos(self.pos)
+        game.getPlayer(entity.name).setPos(self.pos)
 
-        if entity.username in self.riders['other'] or self.riders['driver'] == entity.username:
+        if entity.name in self.riders['other'] or self.riders['driver'] == entity.name:
             return False
         if not self.riders['driver']:
-            self.riders['driver'] = entity.username
+            self.riders['driver'] = entity.name
         else:
-            self.riders['other'].append(entity.username)
+            self.riders['other'].append(entity.name)
         entity.ridingEntity = self.uuid
         return True
 
@@ -43,12 +43,12 @@ class Vehicle(EntityBase):
         '''
         # Check the main driver
         driver = self.riders.get('driver')
-        if entity.username == driver:
+        if entity.name == driver:
             self.riders['driver'] = None
             return
         # Iterate the other connected riders, compare the entity and remove it if possible
         for r, rider in enumerate(self.riders['other']):
-            if entity.username == rider:
+            if entity.name == rider:
                 self.riders['other'].pop(r)
                 entity.ridingEntity = None
                 return
@@ -72,7 +72,7 @@ class Vehicle(EntityBase):
         Return if the given Entity is the driver
         '''
         if obj.isPlayer():
-            return obj.username == self.riders['driver']
+            return obj.name == self.riders['driver']
         else:
             return obj.uuid == self.riders['driver']
 
@@ -81,7 +81,7 @@ class Vehicle(EntityBase):
         Return if the given entity is a passenger
         '''
         if obj.isPlayer():
-            return obj.username in self.riders['other']
+            return obj.name in self.riders['other']
         else:
             return obj.uuid in self.riders['other']
 

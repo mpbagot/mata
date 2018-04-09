@@ -37,7 +37,7 @@ class FetchPlayerImagePacket(Packet):
         self.player = player
 
     def toBytes(self, buf):
-        buf.write(self.player.username.encode())
+        buf.write(self.player.name.encode())
 
     def fromBytes(self, data):
         self.player = data.decode()
@@ -49,7 +49,7 @@ class FetchPlayerImagePacket(Packet):
 class SendPlayerImagePacket(Packet):
     def __init__(self, player=None):
         if player:
-            self.playerName = player.username
+            self.playerName = player.name
             self.playerImg = player.img
 
     def toBytes(self, buf):

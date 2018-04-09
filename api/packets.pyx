@@ -56,17 +56,17 @@ class LoginPacket(Packet):
         # TODO Add password login for certain elevated usernames
 
         for conn in connections:
-            if connections[conn].username == self.player.username:
+            if connections[conn].username == self.player.name:
                 return InvalidLoginPacket()
 
-        connection.username = self.player.username
+        connection.username = self.player.name
 
         # Add the player
         self.player = game.getWorld(0).addPlayer(self.player)
 
         # Fire a login event
         game.fireEvent('onPlayerLogin', self.player)
-        print(self.player.username + ' joined the server!')
+        print(self.player.name + ' joined the server!')
 
         # Sync the player back to the Client
         return [
@@ -87,11 +87,11 @@ class SetupConnPacket(Packet):
     def onReceive(self, connection, side, game, connections):
         # Check if this has already been done in this pipeline
         for conn in connections:
-            if connections[conn].username == self.player.username:
+            if connections[conn].username == self.player.name:
                 return InvalidLoginPacket()
 
         # If not, set the connection username
-        connection.username = self.player.username
+        connection.username = self.player.name
 
 
 class SetupClientPacket(Packet):
@@ -151,12 +151,12 @@ class SyncPlayerPacket(Packet):
     def onReceive(self, connection, side, game):
         # Update their status on the server if everything is ok
         # Reset them if it's not
-        if connection.username and self.player.username != connection.username:
+        if connection.username and self.player.name != connection.username:
             # This is someone trying to mess with another player, do nothing
             return
 
         playerList = game.getWorld(self.player.dimension)
-        serverPlayer = game.getPlayer(self.player.username)
+        serverPlayer = game.getPlayer(self.player.name)
 
         # Get the deltaTime, and deltaTicks since last synchronisation
         if isinstance(serverPlayer.synced, datetime):
@@ -194,7 +194,7 @@ class MountPacket(Packet):
         if isinstance(vehicle, Vehicle):
             vehicle = vehicle.uuid
         if isinstance(player, Player):
-            player = player.username
+            player = player.name
 
         self.entity = str(vehicle)
         self.player = str(player)
@@ -236,7 +236,7 @@ class MountPacket(Packet):
                 dist = sum(pos)**.5
                 # Check for equal dimension and distance
                 if self.entity.dimension == self.player.dimension and dist < 8:
-                    print('Mounting player {} to vehicle {}'.format(self.player.username, self.entity.uuid))
+                    print('Mounting player {} to vehicle {}'.format(self.player.name, self.entity.uuid))
                     # If all prerequisites are met, connect the player to the vehicle
                     success = self.entity.mountRider(self.player, game)
                     game.fireEvent('onPlayerMount', self.player, self.entity, success, 'mount')

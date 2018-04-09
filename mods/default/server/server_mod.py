@@ -72,7 +72,7 @@ def onTick(game, tick):
             if conn.username:
                 player = game.getPlayer(conn.username)
                 # Customise the packet for each player
-                packet = WorldUpdatePacket(game.getWorld(player.dimension), player.username)
+                packet = WorldUpdatePacket(game.getWorld(player.dimension), player.name)
                 pp.sendToPlayer(packet, conn.username)
 
 def onPlayerMount(game, player, entity, success, mode):
@@ -88,7 +88,7 @@ def onPlayerMount(game, player, entity, success, mode):
         # Create the sync packet
         packet = ResetPlayerPacket(player)
         # Send the packet
-        game.packetPipeline.sendToPlayer(packet, player.username)
+        game.packetPipeline.sendToPlayer(packet, player.name)
 
 def onPlayerDeath(game, player):
     '''
@@ -97,9 +97,9 @@ def onPlayerDeath(game, player):
     '''
     # Close the connection to the client from the server
     pp = game.packetPipeline
-    pp.sendToPlayer(DisconnectPacket('You have died'), player.username)
-    game.packetPipeline.closeConnection(pp.username)
-    game.getModInstance('ServerMod').packetPipeline.closeConnection(pp.username)
+    pp.sendToPlayer(DisconnectPacket('You have died'), player.name)
+    game.packetPipeline.closeConnection(player.name)
+    game.getModInstance('ServerMod').packetPipeline.closeConnection(player.name)
 
 def onDisconnect(game):
     '''

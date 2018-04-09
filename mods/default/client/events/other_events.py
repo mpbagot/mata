@@ -46,7 +46,7 @@ def onGameMouseClick(game, mousePos, event):
                 if isinstance(obj, Vehicle):
                     # User has clicked on the vehicle
                     # Send MountPacket to server to sync this change there.
-                    packet = MountPacket(obj.uuid, game.player.username)
+                    packet = MountPacket(obj.uuid, game.player.name)
                     game.packetPipeline.sendToServer(packet)
                     obj.mountRider(game.player, game)
 
@@ -54,7 +54,7 @@ def onGameMouseClick(game, mousePos, event):
                     # User has clicked on the player
                     chatOverlay = game.getModInstance('ClientMod').chatOverlay
                     if not game.getGUIState().isOverlayOpen(chatOverlay):
-                        game.openOverlay(chatOverlay, game, obj.username)
+                        game.openOverlay(chatOverlay, game, obj.name)
                 return
 
 def onGameKeyPress(game, event):
@@ -189,18 +189,18 @@ def onPlayerSync(game, player, oldPlayers):
     if game.player.ridingEntity:
         vehicle = game.getVehicle(game.player.ridingEntity)
         if vehicle:
-            isRiding = game.player.username in vehicle.riders['other']
+            isRiding = game.player.name in vehicle.riders['other']
         else:
             print(game.player.ridingEntity)
 
-    if player.username == game.player.username:
+    if player.name == game.player.name:
         if isRiding:
             game.player.health = player.health
             game.player.pos = player.pos
         return
 
     for p in range(len(oldPlayers)):
-        if oldPlayers[p].username == player.username:
+        if oldPlayers[p].name == player.name:
             # Update vanilla player properties
             oldPlayers[p].health = player.health
 
@@ -279,7 +279,7 @@ def onDimensionChange(game, entity, oldDimension, newDimension):
     Event Hook: onDimensionChange
     Run logic when an entity changes dimension
     '''
-    if isinstance(entity, Player) and entity.username == game.player.username:
+    if isinstance(entity, Player) and entity.name == game.player.name:
         # Check if it's the client player switching dimension
         message = 'Entering '+game.getDimension(newDimension).getName()
         game.openGui(game.getModInstance('ClientMod').enteringGui, message)

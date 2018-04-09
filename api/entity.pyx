@@ -60,7 +60,6 @@ class Player(EntityBase):
     '''
     def __init__(self):
         super().__init__()
-        self.username = ''
         self.level = 1
         self.exp = 0
         self.img = []
@@ -71,7 +70,7 @@ class Player(EntityBase):
         self.synced = False
 
     def __eq__(self, other):
-        return isinstance(other, Player) and self.username == other.username
+        return isinstance(other, Player) and self.name == other.name
 
     def isPlayer(self):
         '''
@@ -104,7 +103,7 @@ class Player(EntityBase):
         # Delete the old player
         world = game.getWorld(self.dimension)
         for p, player in enumerate(world.players):
-            if player.username == self.username:
+            if player.name == self.name:
                 del world.players[p]
 
         # Set the dimension, and replace it
@@ -115,13 +114,13 @@ class Player(EntityBase):
         '''
         Set the player username to a given name
         '''
-        self.username = name
+        self.name = name
 
     def toBytes(self):
         '''
         Get a string representation of the player object
         '''
-        return (str([self.username, self.getPos(), self.health, str(self.tickDamage), self.dimension]).replace(', ', ',')).encode()
+        return (str([self.name, self.getPos(), self.health, str(self.tickDamage), self.dimension]).replace(', ', ',')).encode()
 
     @staticmethod
     def fromBytes(data):
@@ -130,7 +129,7 @@ class Player(EntityBase):
         '''
         uname, pos, health, damage, dimension = eval(data.decode())
         p = Player()
-        p.username = uname
+        p.name = uname
         p.pos = pos
         p.health = health
         p.dimension = dimension

@@ -88,7 +88,6 @@ class WorldMP:
             print('[WARNING] Invalid entity. Did you forget to set the UUID?')
             return False
         elif not entity.uuid.isnumeric() and not entity.uuid[1:].isnumeric():
-            print(entity.uuid)
             print('[WARNING] Invalid entity UUID. You forgot to run getUUIDForEntity in ModLoader')
             return False
         if objType == 'entity':
@@ -142,6 +141,7 @@ class WorldMP:
         Collate the update data into a bytes object
         '''
         # TODO clip the data based on the user
+        # TODO Figure out a better protocol, because this one sucks!
         playerData = str([p.toBytes() for p in self.players])
         entityData = str([e.toBytes() for e in self.entities])
         vehicleData = str([v.toBytes() for v in self.vehicles])
@@ -151,7 +151,7 @@ class WorldMP:
         '''
         Use the binary data to update the world
         '''
-        # TODO Add entities and vehicles to this.
+        # Split the data up for parsing separately
         players, entities, vehicles = updateBytes.decode().split('$$$')
 
         # Loop the transferred players
@@ -180,7 +180,7 @@ class WorldMP:
         Add a player to the world
         '''
         for p in self.players:
-            if p.username == player.username:
+            if p.name == player.name:
                 return p
         player.pos = [0, 0]
         self.players.append(player)

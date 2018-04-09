@@ -170,8 +170,9 @@ class PacketHandler:
 
                     except Exception as e:
                         print('Packet unable to be handled correctly.')
-                        print('Error is as follow:')
+                        print('Error is as follows:')
                         print(e)
+                        raise e
                         return
 
                     self.game.fireEvent('onPacketReceived', p)
@@ -252,7 +253,7 @@ class PacketHandler:
         for p in self.game.getWorld(dim).players:
             print(math.sqrt((p.pos[0]-pos[0])**2 + (p.pos[1]-pos[1])**2))
             if math.sqrt((p.pos[0]-pos[0])**2 + (p.pos[1]-pos[1])**2) <= radius:
-                self.sendToPlayer(packet, p.username)
+                self.sendToPlayer(packet, p.name)
 
     def sendToPlayer(self, packet, username):
         '''
