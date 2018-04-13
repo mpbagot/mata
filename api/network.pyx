@@ -90,6 +90,7 @@ class PacketHandler:
                 if not data:
                     raise ConnectionResetError
             except ConnectionResetError as e:
+                print(e)
                 # Properly disconnect if the connection is reset from the other side
                 if self.side == util.CLIENT:
                     self.game.fireEvent('onDisconnect', 'Server Connection Reset')
@@ -213,18 +214,39 @@ class PacketHandler:
         '''
         return any([isinstance(packet, a) for a in self.safePackets])
 
-    def sendToAll(self, packet):
+    def checkClientPacket(self, packet):
         '''
-        Send a packet to all Clients
+        Check if a packet bound for a client is valid
         '''
         if not self.isPacketSafe(packet):
             # Reject the packet
             print('[ERROR] Packet was not sent to clients because it was not registered.')
             print(packet)
-            return
+            return 'error'
         if self.side == util.CLIENT:
             print('[WARNING] Cannot send a packet to clients from a client runtime!')
+            return 'error'
+
+    def checkServerPacket(self, packet):
+        '''
+        Check if a packet bound for the server is valid
+        '''
+        if not self.isPacketSafe(packet):
+            # Reject the packet
+            print('[ERROR] Packet was not sent to server because it was not registered.')
+            print(packet)
+            return 'error'
+        if self.side == util.SERVER:
+            print('[WARNING] Cannot send a packet to server from a server runtime!')
+            return 'error'
+
+    def sendToAll(self, packet):
+        '''
+        Send a packet to all Clients
+        '''
+        if self.checkClientPacket(packet):
             return
+
         # Loop and send the packet to each connection
         try:
             for conn in self.connections.values():
@@ -237,14 +259,9 @@ class PacketHandler:
         '''
         Send a packet to all players within a certain distance of a given player
         '''
-        if not self.isPacketSafe(packet):
-            # Reject the packet
-            print('[ERROR] Packet was not sent to clients because it was not registered.')
-            print(packet)
+        if self.checkClientPacket(packet):
             return
-        if self.side == util.CLIENT:
-            print('[WARNING] Cannot send a packet to clients from a client runtime!')
-            return
+
         player = self.game.getPlayer(username)
         pos = player.pos
         dim = player.dimension
@@ -259,14 +276,9 @@ class PacketHandler:
         '''
         Send a packet to a client with the given username
         '''
-        if not self.isPacketSafe(packet):
-            # Reject the packet
-            print('[ERROR] Packet was not sent to clients because it was not registered.')
-            print(packet)
+        if self.checkClientPacket(packet):
             return
-        if self.side == util.CLIENT:
-            print('[WARNING] Cannot send a packet to clients from a client runtime!')
-            return
+
         for conn in self.connections.values():
             if conn.username == username:
                 conn.sendPacket(packet)
@@ -276,14 +288,9 @@ class PacketHandler:
         '''
         Send a Packet to the server
         '''
-        if not self.isPacketSafe(packet):
-            # Reject the packet
-            print('[ERROR] Packet was not sent to server because it was not registered.')
-            print(packet)
+        if self.checkServerPacket(packet):
             return
-        if self.side == util.SERVER:
-            print('[WARNING] Cannot send a packet to server from a server runtime!')
-            return
+
         self.connections[1].sendPacket(packet)
 
 class VanillaPacketHandler(PacketHandler):
