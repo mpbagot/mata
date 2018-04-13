@@ -17,7 +17,7 @@ def onTickGenerateWorld(game, tick):
     '''
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
         # If the player has moved more than a certain distance, generate the world
-        deltaPos = [abs(game.player.pos[a] - game.getModInstance('ClientMod').oldPlayerPos[a]) for a in (0, 1)]
+        deltaPos = [abs(game.player.pos[a] - game.world.centrePos[a]) for a in (0, 1)]
         # TODO This still has the lag spikes (probably the thread copying the surfaces is causing it.)
         if (game.player.synced and not game.world.isWorldLoaded()) or max(deltaPos) > 16:
             if game.getModInstance('ClientMod').genLock:
@@ -171,6 +171,8 @@ def onTickSyncPlayer(game, tick):
                 # Send the copy of the player object in the packet
                 game.packetPipeline.sendToServer(SyncPlayerPacket(playerCopy))
 
+                game.player.synced = True
+
 def handleProcess(game, queue):
     '''
     Handle the genWorld queue and link it back into the main thread
@@ -211,3 +213,4 @@ def genWorld(game, queue):
     queue.put(dimension.getWorldObj().getTileMap())
     print('world gen done')
     queue.put(preGenPos)
+    queue.put('end')
