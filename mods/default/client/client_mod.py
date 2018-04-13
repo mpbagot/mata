@@ -6,7 +6,9 @@ from api.colour import hueShiftImage
 from mods.default.packets import *
 from mods.default.biomes import *
 from mods.default.dimension import DefaultChunkProvider
-from mods.default.client.client_gui import *
+from mods.default.client.gui.game_screens import *
+from mods.default.client.gui.game_overlays import *
+from mods.default.client.gui.messages import *
 from mods.default.client.events import tick_events, other_events
 from mods.default.server.entity import bear
 from mods.default.server.vehicle import horse
