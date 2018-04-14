@@ -151,3 +151,18 @@ def scaleRect(rect, screen):
 
     # Floor all of the values and return
     return [int(a) for a in rect]
+
+def scaleVal(val, screen):
+    '''
+    Scale a rect to a given screen size from a default of 1024x768
+    '''
+    w = screen.get_width()
+
+    # Calculate the scaling coefficient
+    coeff = w/768
+
+    # Multiply the value by the coefficient
+    val *= coeff
+
+    # Floor the value and return
+    return int(val)
