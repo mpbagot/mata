@@ -49,9 +49,16 @@ class Scrollbox:
 class ItemSlot:
     def __init__(self, game, item, pos, size):
         self.pos = [a+3 for a in pos]
-        self.item = item
-        self.itemImage = self.item.getImage(game.modLoader.gameRegistry.resources)
+        self.resources = game.modLoader.gameRegistry.resources
+        self.setItem(item)
         self.button = Button(pos+[size, size], '')
+
+    def setItem(self, item):
+        '''
+        Set the itemstack for this itemslot
+        '''
+        self.item = item
+        self.itemImage = self.item.getImage(self.resources)
 
     def draw(self, screen, mousePos):
         '''
