@@ -28,9 +28,7 @@ class GUIState:
         '''
         # Get all overlay buttons
         overlayButtons = []
-        print(self.overlays)
         for id, overlay in self.overlays:
-            print(overlay)
             overlayButtons += overlay.buttons
 
         # Return the main gui buttons first, then the overlay ones
