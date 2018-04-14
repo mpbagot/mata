@@ -85,6 +85,7 @@ class Game:
             # Get the start time of the tick
             startTickTime = time.time()
 
+
             # Tick the world object
             for d in self.modLoader.gameRegistry.dimensions.keys():
                 world = self.getWorld(d)
@@ -119,7 +120,10 @@ class Game:
                         self.quit()
 
                     elif self.getGui():
-                        if event.type == pygame.KEYDOWN:
+                        if event.type == pygame.VIDEORESIZE:
+                            pygame.display.set_mode((event.w, event.h), util.DISPLAY_FLAGS)
+
+                        elif event.type == pygame.KEYDOWN:
                             # Handle a keypress on the gui
                             if self.getGui()[1].currentTextBox is not None:
                                 self.getGui()[1].textboxes[self.getGui()[1].currentTextBox].doKeyPress(event)
