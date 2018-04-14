@@ -22,6 +22,20 @@ class GUIState:
         for id, overlay in self.overlays:
             overlay.drawForegroundLayer(mousePos)
 
+    def getButtons(self):
+        '''
+        Return a list of all buttons in the current gui state
+        '''
+        # Get all overlay buttons
+        overlayButtons = []
+        print(self.overlays)
+        for id, overlay in self.overlays:
+            print(overlay)
+            overlayButtons += overlay.buttons
+
+        # Return the main gui buttons first, then the overlay ones
+        return self.gui[1].buttons+overlayButtons
+
     def openGui(self, guiID, *args):
         '''
         Set the open GUI for this GUI state.

@@ -139,7 +139,7 @@ class Game:
 
                         elif event.type == pygame.MOUSEBUTTONDOWN:
                             # Handle a mouse click on buttons
-                            for button in self.getGui()[1].buttons:
+                            for button in self.getGUIState().getButtons():
                                 if button.isHovered(pos):
                                     button.onClick(self)
 
