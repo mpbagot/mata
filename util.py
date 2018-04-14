@@ -2,6 +2,8 @@
 Util module
 This module contains miscellaneous classes and constants that are used by the game engine
 '''
+import pygame
+
 SERVER = 0
 CLIENT = 1
 COMBINED = 2
@@ -9,6 +11,8 @@ COMBINED = 2
 DEFAULT_PORT = 6658
 MAX_PLAYERS = 100
 FPS = 60
+
+DISPLAY_FLAGS = pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.RESIZABLE
 
 class ArgumentHandler:
     '''

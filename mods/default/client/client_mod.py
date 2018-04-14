@@ -28,8 +28,7 @@ class ClientMod(Mod):
         self.worldUpdateProperty = properties.Property(newPos=[0, 0], updateTick=0)
 
         # Initialise the display
-        flags = pygame.DOUBLEBUF | pygame.HWSURFACE
-        pygame.display.set_mode((1024, 576), flags)
+        pygame.display.set_mode((1024, 576), util.DISPLAY_FLAGS)
         pygame.display.set_caption('M.A.T.A: Medieval Attack-Trade-Alliance')
         # pygame.display.set_icon(pygame.image.load('resources/textures/icon.png').convert_alpha())
 
