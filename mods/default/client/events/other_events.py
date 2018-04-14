@@ -151,7 +151,7 @@ def onClientConnected(game):
     '''
     # Send a login packet
     game.getModInstance('ClientMod').packetPipeline.sendToServer(SetupConnPacket(game.player))
-    print('connection to server established')
+    print('Server connection established.')
 
 def onPlayerLogin(game, player):
     '''
