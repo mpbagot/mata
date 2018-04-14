@@ -54,7 +54,10 @@ class Pause(Overlay):
         self.game = game
 
         self.buttons = [
-            # TODO Fill in these buttons
+            ResumeButton([351, 179, 321, 90]),
+            OptionsButton([351, 286, 321, 90], "Options"),
+            MenuButton([351, 393, 321, 90]),
+            ExitButton([351, 500, 321, 90], 'Exit to OS')
         ]
 
     def drawBackgroundLayer(self):

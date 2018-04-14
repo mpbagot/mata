@@ -4,6 +4,7 @@ from threading import Thread
 from api.gui.gui import *
 from api.gui.objects import *
 from api.colour import *
+from api.packets import DisconnectPacket
 from mods.default.packets import *
 
 class StartGameButton(Button):
@@ -54,25 +55,40 @@ class PlayButton(Button):
             game.getGui()[1].error = error
             game.getGui()[1].textboxes[0].text = username
 
-class CloseInvButton(Button):
-    def __init__(self, rect):
-        super().__init__(rect, 'Close Inventory')
-
+class BackButton(Button):
     def onClick(self, game):
         game.restoreGui()
 
+class ResumeButton(Button):
+    def __init__(self, rect, label="Resume Game"):
+        super().__init__(rect, label)
+
+    def onClick(self, game):
+        pauseOverlay = game.getModInstance('ClientMod').pauseOverlay
+        if game.getGUIState().isOverlayOpen(pauseOverlay):
+            game.getGUIState().closeOverlay(game.getModInstance('ClientMod').pauseOverlay)
+
 class ExitButton(Button):
-    def __init__(self, rect):
-        super().__init__(rect, 'Exit')
+    def __init__(self, rect, label="Exit"):
+        super().__init__(rect, label)
 
     def onClick(self, game):
         game.quit()
+
+class OptionsButton(Button):
+    def onClick(self, game):
+        pass
 
 class MenuButton(Button):
     def __init__(self, rect):
         super().__init__(rect, 'Return To Menu')
 
     def onClick(self, game):
+        # Try to disconnnect if required
+        game.packetPipeline.sendToServer(DisconnectPacket())
+        game.getModInstance('ClientMod').packetPipeline.sendToServer(DisconnectPacket())
+
+        # Return to the main menu
         game.openGui(game.getModInstance('ClientMod').mainMenuGui)
 
 class PlayerImageBox:
