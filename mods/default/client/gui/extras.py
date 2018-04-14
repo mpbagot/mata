@@ -54,6 +54,13 @@ class PlayButton(Button):
             game.getGui()[1].error = error
             game.getGui()[1].textboxes[0].text = username
 
+class CloseInvButton(Button):
+    def __init__(self, rect):
+        super().__init__(rect, 'Close Inventory')
+
+    def onClick(self, game):
+        game.restoreGui()
+
 class ExitButton(Button):
     def __init__(self, rect):
         super().__init__(rect, 'Exit')
@@ -121,7 +128,8 @@ class PlayerImageBox:
 
         # Generate the image
         if self.colours != self.prevColours or self.img == None:
-            self.img = self.game.getModInstance('ClientMod').generateLargePlayerImage(self.colours)
+            self.img = self.game.modLoader.gameRegistry.resources['tile_grass']
+            # self.img = self.game.getModInstance('ClientMod').generateLargePlayerImage(self.colours)
 
         # Flip, rotate and draw the image
         img = pygame.transform.flip(self.img, flipX, flipY)
