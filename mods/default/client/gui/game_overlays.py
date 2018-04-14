@@ -48,6 +48,31 @@ class HUD(Overlay):
         text = font.render('Level: '+str(self.game.player.level), True, (255, 255, 255))
         self.screen.blit(text, scaleRect([744, 670], self.screen))
 
+class Pause(Overlay):
+    def __init__(self, game):
+        super().__init__()
+        self.game = game
+
+        self.buttons = [
+            # TODO Fill in these buttons
+        ]
+
+    def drawBackgroundLayer(self):
+        w = self.screen.get_width()
+        h = self.screen.get_height()
+
+        pygame.draw.rect(self.screen, (236, 196, 145), [w//3, h//7, w//3, h//1.55])
+        pygame.draw.rect(self.screen, (65, 55, 40), [w//3, h//7, w//3, h//1.55], 4)
+
+    def drawForegroundLayer(self, mousePos):
+        super().drawForegroundLayer(mousePos)
+
+        w, h = self.screen.get_size()
+
+        font = pygame.font.Font('resources/font/main.ttf', 30)
+        text = font.render('Menu', True, (0, 0, 0))
+        self.screen.blit(text, [(w-text.get_width())//2, h//7+5])
+
 class Chat(Overlay):
     def __init__(self, game, tab='global'):
         super().__init__()

@@ -77,6 +77,7 @@ class ClientMod(Mod):
         # Initialise the Overlays
         self.hudOverlay = self.gameRegistry.registerGUI(HUD)
         self.chatOverlay = self.gameRegistry.registerGUI(Chat)
+        self.pauseOverlay = self.gameRegistry.registerGUI(Pause)
 
         # Register the entities
         self.gameRegistry.registerEntity(bear.Bear())

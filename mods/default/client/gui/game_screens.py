@@ -34,7 +34,7 @@ class PlayerInventoryScreen(Gui):
         # Fetch the inventory
         self.inventory = game.player.inventory
         self.fetchInventory(game)
-        self.invSynced = True
+        self.invSynced = False
 
         # Generate the gui objects (itemslots, buttons etc)
         self.buttons = [CloseInvButton([470, 620, 528, 80])]

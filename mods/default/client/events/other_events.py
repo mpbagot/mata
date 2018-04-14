@@ -64,9 +64,16 @@ def onGameKeyPress(game, event):
     '''
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
         chatOverlay = game.getModInstance('ClientMod').chatOverlay
+        pauseOverlay = game.getModInstance('ClientMod').pauseOverlay
 
         # Handle keypresses if the chat overlay is open
         if not game.getGUIState().isOverlayOpen(chatOverlay):
+            if game.getGUIState().isOverlayOpen(pauseOverlay):
+                if event.key == pygame.K_ESCAPE:
+                    game.getGUIState().closeOverlay(pauseOverlay)
+            elif event.key == pygame.K_ESCAPE:
+                game.openOverlay(pauseOverlay, game)
+
             # Open global chat if the t key is pressed
             if event.key == pygame.K_t:
                 game.openOverlay(chatOverlay, game)
