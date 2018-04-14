@@ -307,6 +307,9 @@ class DisconnectPacket(Packet):
         self.message = data.decode()
 
     def onReceive(self, connection, side, game):
-        game.fireEvent('onDisconnect', self.message)
+        if side == util.SERVER:
+            game.fireEvent('onDisconnect', connection.username)
+        else:
+            game.fireEvent('onDisconnect', self.message)
         connection.connObj.close()
         del connection
