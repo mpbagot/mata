@@ -55,8 +55,14 @@ class LoginPacket(Packet):
 
         # TODO Add password login for certain elevated usernames
 
+        # TODO Fix the connection overlap that prevents relogging in
+        # and the second packetPipeline from connecting
+        print(self.player.name)
+
+        print(connections)
         for conn in connections:
             if connections[conn].username == self.player.name:
+                print('existing connection found')
                 return InvalidLoginPacket()
 
         connection.username = self.player.name
@@ -92,7 +98,6 @@ class SetupConnPacket(Packet):
 
         # If not, set the connection username
         connection.username = self.player.name
-
 
 class SetupClientPacket(Packet):
     def __init__(self, biomeSize=0, seed=0):
@@ -169,8 +174,10 @@ class SyncPlayerPacket(Packet):
         serverPlayer.synced = datetime.now()
 
         # Check if the player's motion is not greater than a certain threshold
-        threshold = serverPlayer.getSpeed(game)*(deltaTicks+2)
-        if abs(self.player.pos[0]-serverPlayer.pos[0]) > threshold or abs(self.player.pos[1]-serverPlayer.pos[1]) > threshold:
+        threshold = serverPlayer.getSpeed(game)*(deltaTicks+2) + 0.0005 # <- Add this tiny extra bit to account for float imprecision
+        print('Threshold:', threshold)
+        print('Actual Distance:', max([abs(self.player.pos[a]-serverPlayer.pos[a]) for a in (0, 1)]))
+        if max([abs(self.player.pos[a]-serverPlayer.pos[a]) for a in (0, 1)]) > threshold:
             return ResetPlayerPacket(serverPlayer)
 
         if self.player.dimension != serverPlayer.dimension:
