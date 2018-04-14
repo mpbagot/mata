@@ -6,7 +6,9 @@ class Scrollbox:
     def __init__(self, rect):
         self.scrollValue = 0
         self.defaultRect = rect[:2]
+        self.rect = self.defaultRect
         self.defaultPos = rect[2:]
+        self.pos = self.defaultPos
         self.maxHeight = 0
         self.objects = []
         self.innerScreen = pygame.Surface(self.defaultRect).convert_alpha()
@@ -56,6 +58,7 @@ class Scrollbox:
 class ItemSlot:
     def __init__(self, game, item, pos, size):
         self.defaultPos = [a+3 for a in pos]
+        self.pos = self.defaultPos
         self.resources = game.modLoader.gameRegistry.resources
         self.setItem(item)
         self.button = Button(pos+[size, size], '', True)
@@ -90,6 +93,7 @@ class ItemSlot:
 class Slider:
     def __init__(self, rect, colour):
         self.defaultRect = rect
+        self.rect = self.defaultRect
         self.value = 0
 
         self.pad = rect[2]//2 if rect[2] < rect[3] else rect[3]//2
@@ -136,8 +140,11 @@ class Slider:
 class HorizBar:
     def __init__(self, rect, colour, percentage=100, label=''):
         self.defaultPos = rect[:2]
+        self.pos = self.defaultPos
         self.defaultWidth = rect[2]
+        self.width = self.defaultWidth
         self.defaultHeight = rect[3]+rect[3]%2
+        self.height = self.defaultHeight
         self.percentage = percentage
         self.colour = colour
         self.label = label
@@ -214,6 +221,7 @@ class VertBar(HorizBar):
 class Button:
     def __init__(self, rect, label, isSquare=False):
         self.defaultRect = rect
+        self.rect = self.defaultRect
         self.label = label
         self.font = pygame.font.Font('resources/font/main.ttf', 30)
         self.isSquare = isSquare
@@ -325,6 +333,7 @@ class TextBox(Button):
 class TextArea:
     def __init__(self, rect, colour):
         self.defaultRect = rect
+        self.rect = self.defaultRect
         self.colour = colour
         self.text = ''
         self.font = pygame.font.Font('resources/font/main.ttf', 20)
