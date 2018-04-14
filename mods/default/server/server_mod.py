@@ -62,7 +62,7 @@ def onTick(game, tick):
         pp = game.packetPipeline
         connections = pp.connections.keys()
         # Loop the keys
-        for c in connections:
+        for c in list(connections):
             # Get the connection object from the dictionary
             conn = pp.connections.get(c)
             # If it has been deleted by the other thread during iteration, skip it
