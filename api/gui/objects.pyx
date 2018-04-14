@@ -5,19 +5,22 @@ from api.gui.gui import *
 class Scrollbox:
     def __init__(self, rect):
         self.scrollValue = 0
-        self.rect = rect[:2]
-        self.pos = rect[2:]
+        self.defaultRect = rect[:2]
+        self.defaultPos = rect[2:]
         self.maxHeight = 0
         self.objects = []
-        self.innerScreen = pygame.Surface(self.rect).convert_alpha()
+        self.innerScreen = pygame.Surface(self.defaultRect).convert_alpha()
 
-        sliderRect = [self.pos[0]+int(rect[0]*0.97), self.pos[1]+30, int(rect[0]*0.025), rect[1]-60]
+        sliderRect = [self.defaultPos[0]+int(rect[0]*0.97), self.defaultPos[1]+30, int(rect[0]*0.025), rect[1]-60]
         self.scrollSlider = Slider(sliderRect, (0, 0, 0))
 
     def draw(self, screen, mousePos):
         '''
         Draw the scrollbox to a given screen
         '''
+        self.rect = scaleRect(self.defaultRect, screen)
+        self.pos = scaleRect(self.defaultPos, screen)
+
         # Draw the innerscreen
         while self.objects:
             # Iterate the objects, and draw with scroll adjustment applied
@@ -40,18 +43,22 @@ class Scrollbox:
         '''
         Draw a surface to the scrollbox's inner screen
         '''
+        try:
+            self.rect[1]
+        except AttributeError:
+            return
+
         self.objects.append([surface, pos])
-        # self.innerScreen.blit(surface, pos, *args)
         testMaxHeight = pos[1]+surface.get_height()-self.rect[1]
         if testMaxHeight > self.maxHeight-10 and testMaxHeight > 0:
             self.maxHeight = testMaxHeight
 
 class ItemSlot:
     def __init__(self, game, item, pos, size):
-        self.pos = [a+3 for a in pos]
+        self.defaultPos = [a+3 for a in pos]
         self.resources = game.modLoader.gameRegistry.resources
         self.setItem(item)
-        self.button = Button(pos+[size, size], '')
+        self.button = Button(pos+[size, size], '', True)
 
     def setItem(self, item):
         '''
@@ -64,6 +71,8 @@ class ItemSlot:
         '''
         Draw the itemslot to a given screen
         '''
+        self.pos = scaleRect(self.defaultPos, screen)
+
         # Draw the border of the itemslot
         self.button.draw(screen, [0, 0])
 
@@ -80,7 +89,7 @@ class ItemSlot:
 
 class Slider:
     def __init__(self, rect, colour):
-        self.rect = rect
+        self.defaultRect = rect
         self.value = 0
 
         self.pad = rect[2]//2 if rect[2] < rect[3] else rect[3]//2
@@ -96,6 +105,7 @@ class Slider:
         '''
         Draw the slider to a given screen
         '''
+        self.rect = scaleRect(self.defaultRect, screen)
         # Update the slider value if the mouse is dragging the circle
         if self.isHovered(mousePos) and pygame.mouse.get_pressed()[0]:
             if self.isVertical:
@@ -125,14 +135,17 @@ class Slider:
 
 class HorizBar:
     def __init__(self, rect, colour, percentage=100, label=''):
-        self.pos = rect[:2]
-        self.width = rect[2]
-        self.height = rect[3]+rect[3]%2
+        self.defaultPos = rect[:2]
+        self.defaultWidth = rect[2]
+        self.defaultHeight = rect[3]+rect[3]%2
         self.percentage = percentage
         self.colour = colour
         self.label = label
 
     def draw(self, screen, mousePos):
+        self.pos = scaleRect(self.defaultPos, screen)
+        self.width, self.height = scaleRect([self.defaultWidth, self.defaultHeight], screen)
+
         lineLength = self.width-self.height
 
         # Get the left and right points of the bar's circles
@@ -165,6 +178,8 @@ class HorizBar:
 
 class VertBar(HorizBar):
     def draw(self, screen, mousePos):
+        self.pos = scaleRect(self.defaultPos, screen)
+        self.width, self.height = scaleRect([self.defaultWidth, self.defaultHeight], screen)
         lineLength = self.height-self.width
 
         # Get the top and bottom points of the bar's circles
@@ -197,15 +212,20 @@ class VertBar(HorizBar):
                 screen.blit(text, pos)
 
 class Button:
-    def __init__(self, rect, label):
-        self.rect = rect
+    def __init__(self, rect, label, isSquare=False):
+        self.defaultRect = rect
         self.label = label
         self.font = pygame.font.Font('resources/font/main.ttf', 30)
+        self.isSquare = isSquare
 
     def draw(self, screen, mousePos):
         '''
         Draw the button to the given surface
         '''
+        self.rect = scaleRect(self.defaultRect, screen)
+        if self.isSquare:
+            self.rect = self.rect[:2]+[min(self.rect[2:])]*2
+
         colour1 = (65, 55, 40)
         if self.isHovered(mousePos):
             colour2 = (138, 114, 84)
@@ -304,12 +324,13 @@ class TextBox(Button):
 
 class TextArea:
     def __init__(self, rect, colour):
-        self.rect = rect
+        self.defaultRect = rect
         self.colour = colour
         self.text = ''
         self.font = pygame.font.Font('resources/font/main.ttf', 20)
 
     def draw(self, screen, mousePos):
+        self.rect = scaleRect(self.defaultRect, screen)
         # Set up the background of the textarea
         background = pygame.Surface(self.rect[2:]).convert_alpha()
         background.fill(pygame.Color(*self.colour))

@@ -9,22 +9,23 @@ class MainMenu(Gui):
     def __init__(self):
         super().__init__()
 
+        self.buttons = [
+            PlayButton([400, 350, 224, 50]),
+            ExitButton([400, 450, 224, 50])
+        ]
+        self.textboxes = [
+            TextBox([375, 180, 274, 40], 'Username'),
+            TextBox([375, 250, 274, 40], 'Server Address')
+        ]
+
+        self.backImg = pygame.image.load('resources/textures/background.png').convert()
+        self.error = ''
+
+    def drawBackgroundLayer(self):
         w = self.screen.get_width()
         h = self.screen.get_height()
 
-        self.backImg = pygame.transform.scale(pygame.image.load('resources/textures/background.png'), [w, h]).convert()
-        self.error = ''
-        self.buttons = [
-                        PlayButton(scaleRect([400, 350, 224, 50], self.screen)),
-                        ExitButton(scaleRect([400, 450, 224, 50], self.screen))
-                       ]
-        self.textboxes = [
-                          TextBox(scaleRect([375, 180, 274, 40], self.screen), 'Username'),
-                          TextBox(scaleRect([375, 250, 274, 40], self.screen), 'Server Address')
-                         ]
-
-    def drawBackgroundLayer(self):
-        self.screen.blit(self.backImg, [0, 0])
+        self.screen.blit(pygame.transform.scale(self.backImg, [w, h]), [0, 0])
 
     def drawMiddleLayer(self, mousePos):
         w = self.screen.get_width()

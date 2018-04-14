@@ -77,10 +77,10 @@ class MenuButton(Button):
 
 class PlayerImageBox:
     def __init__(self, rect, game):
-        self.rect = rect[:2]
+        self.defaultRect = rect[:2]
         if rect[0] > rect[1]:
             raise Exception('Invalid Player Image Dimensions!')
-        self.pos = rect[2:]
+        self.defaultPos = rect[2:]
 
         # Current rotation amount
         self.rot = [1, 1]
@@ -97,6 +97,9 @@ class PlayerImageBox:
         self.img = None
 
     def draw(self, screen, mousePos):
+        self.rect = scaleRect(self.defaultRect, screen)
+        self.pos = scaleRect(self.defaultPos, screen)
+
         # Update the rotation from rotation velocity
         self.rot[0] += self.rotVel[0]
         self.rot[1] += self.rotVel[1]

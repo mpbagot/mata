@@ -20,13 +20,14 @@ class HUD(Overlay):
 
         self.game = game
         self.bars = [
-                        HorizBar(scaleRect([744, 698, 260, 20], self.screen), (255, 0, 0), self.game.player.health, 'Health'),
-                        HorizBar(scaleRect([744, 728, 260, 20], self.screen), (0, 102, 255), self.game.player.exp, 'Experience')
+                        HorizBar([744, 698, 260, 20], (255, 0, 0), self.game.player.health, 'Health'),
+                        HorizBar([744, 728, 260, 20], (0, 102, 255), self.game.player.exp, 'Experience')
                     ]
         equippedItems = self.game.player.inventory.getEquipped()
+
         self.itemSlots = [
-                            ItemSlot(game, equippedItems[0].getItem(), scaleRect([664, 630], self.screen), (5*h)//64),
-                            ItemSlot(game, equippedItems[1].getItem(), scaleRect([664, 700], self.screen), (5*h)//64)
+                            ItemSlot(game, equippedItems[0].getItem(), [664, 630], 60),
+                            ItemSlot(game, equippedItems[1].getItem(), [664, 700], 60)
                          ]
 
     def drawBackgroundLayer(self):
@@ -52,8 +53,8 @@ class Chat(Overlay):
         super().__init__()
         self.game = game
         self.tab = tab
-        self.scrollScreen = Scrollbox(scaleRect([804, 438, 110, 90], self.screen))
-        self.textarea = TextArea(scaleRect([100, 538, 618, 100], self.screen), (255, 255, 255, 127))
+        self.scrollScreen = Scrollbox([804, 438, 110, 90])
+        self.textarea = TextArea([100, 538, 618, 100], (255, 255, 255, 127))
 
     def drawForegroundLayer(self, mousePos):
         # Fetch the messages from the mod instance
@@ -96,6 +97,11 @@ class Chat(Overlay):
         if event.key == pygame.K_RETURN:
             # Adjust the message
             message = self.textarea.text
+            # Skip blank messages
+            if not message:
+                return
+
+            # Format a non-command as required
             if message[0] != '/':
                 message = '/message '+self.tab+' '+message
 

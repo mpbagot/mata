@@ -5,13 +5,14 @@ from mods.default.client.gui.extras import *
 class MessageScreen(Gui):
     def __init__(self, message):
         super().__init__()
-        w = self.screen.get_width()
-        h = self.screen.get_height()
         self.message = message
-        self.backImg = pygame.transform.scale(pygame.image.load('resources/textures/background.png'), [w, h]).convert()
+        self.backImg = pygame.image.load('resources/textures/background.png').convert()
 
     def drawBackgroundLayer(self):
-        self.screen.blit(self.backImg, [0, 0])
+        w = self.screen.get_width()
+        h = self.screen.get_height()
+
+        self.screen.blit(pygame.transform.scale(self.backImg, [w, h]), [0, 0])
 
     def drawMiddleLayer(self, mousePos):
         w = self.screen.get_width()
@@ -40,10 +41,7 @@ class DisconnectMessage(MessageScreen):
     def __init__(self, message):
         super().__init__(message)
 
-        w = self.screen.get_width()
-        h = self.screen.get_height()
-
-        self.buttons = [MenuButton(scaleRect([300, 500, 424, 80], self.screen))]
+        self.buttons = [MenuButton([300, 500, 424, 80])]
 
 class LoadingScreen(MessageScreen):
     def __init__(self):

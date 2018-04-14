@@ -22,11 +22,8 @@ class PlayerInventoryScreen(Gui):
     def __init__(self, game):
         super().__init__()
 
-        w = self.screen.get_width()
-        h = self.screen.get_height()
-
         # Initialise Pygame assets
-        self.backImg = pygame.transform.scale(pygame.image.load('resources/textures/background.png'), [w, h]).convert()
+        self.backImg = pygame.image.load('resources/textures/background.png').convert()
         font = pygame.font.Font('resources/font/main.ttf', 60)
         self.title = font.render('Inventory', True, (0, 0, 0))
 
@@ -37,27 +34,26 @@ class PlayerInventoryScreen(Gui):
         # Fetch the inventory
         self.inventory = game.player.inventory
         self.fetchInventory(game)
-        self.invSynced = False
+        self.invSynced = True
 
         # Generate the gui objects (itemslots, buttons etc)
-        self.buttons = [CloseInvButton(scaleRect([470, 620, 528, 80], self.screen))]
-        self.addItem(PlayerImageBox(scaleRect([250, 450, 599, 120], self.screen), game))
+        self.buttons = [CloseInvButton([470, 620, 528, 80])]
+        self.addItem(PlayerImageBox([250, 450, 599, 120], game))
 
         self.itemSlots = []
         # Calculate the slotsize for generating the screen
-        slotSize = scaleVal(70, self.screen)
+        slotSize = 90
         # Make the slotsize accessible in the middle and foreground methods
         self.slotSize = slotSize
         # Loop the rows and columns and create an empty inventory grid
         for y in range(4):
             for x in range(4):
-                pos = [int((x + 1) * (slotSize + 8)), self.extraItems[0].pos[1] + y * (slotSize + 8)]
-                slot = ItemSlot(game, self.inventory.getItem(y * 4 + x), pos, slotSize)
+                slotPos = [(x + 1) * (slotSize + 8), 120 + y * (slotSize + 8)]
+                slot = ItemSlot(game, self.inventory.getItem(y * 4 + x), slotPos, slotSize)
                 self.itemSlots.append(slot)
 
-        pos = scaleRect([599, 120, 250, 450], self.screen)
         for i, itemstack in enumerate(self.inventory.getEquipped()):
-            slotPos = [pos[0] + pos[2] + 10, pos[1] + slotSize//4 + i * (slotSize + 40)]
+            slotPos = [859, 120 + slotSize//4 + i * (slotSize + 40)]
             self.itemSlots.append(ItemSlot(game, itemstack, slotPos, slotSize + 30))
 
     def fetchInventory(self, game):
@@ -68,8 +64,11 @@ class PlayerInventoryScreen(Gui):
         packetPipeline.sendToServer(FetchInventoryPacket(game.player.name))
 
     def drawBackgroundLayer(self):
+        w = self.screen.get_width()
+        h = self.screen.get_height()
+
         self.inventory = self.game.player.inventory
-        self.screen.blit(self.backImg, [0, 0])
+        self.screen.blit(pygame.transform.scale(self.backImg, [w, h]), [0, 0])
 
     def drawMiddleLayer(self, mousePos):
         super().drawMiddleLayer(mousePos)
@@ -78,7 +77,7 @@ class PlayerInventoryScreen(Gui):
         h = self.screen.get_height()
 
         # Draw the menu title
-        self.screen.blit(self.title, [(w-self.title.get_width())//2, 10])
+        self.screen.blit(self.title, [(w-self.title.get_width())//2, -10])
 
     def drawForegroundLayer(self, mousePos):
         super().drawForegroundLayer(mousePos)
