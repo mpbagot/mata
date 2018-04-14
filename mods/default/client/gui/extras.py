@@ -1,4 +1,5 @@
 from math import cos, pi
+from threading import Thread
 
 from api.gui.gui import *
 from api.gui.objects import *
@@ -35,7 +36,15 @@ class PlayButton(Button):
         game.player.setUsername(username)
         game.openGui(game.getModInstance('ClientMod').loadingGui)
 
-        # Try to connect
+        # Try to connect in another thread
+        t = Thread(target=self.asyncConnect, args=(game, username, address))
+        t.daemon = True
+        t.start()
+
+    def asyncConnect(self, game, username, address):
+        '''
+        Connect to the server, and handle errors as required in the background
+        '''
         game.establishConnection(address)
         error = game.getModInstance('ClientMod').packetPipeline.connectToServer(address)
 
