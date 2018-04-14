@@ -5,10 +5,19 @@ A module to hold all the api stuff related to items
 
 class Inventory:
     def __init__(self):
-        self.items = {'left' : ItemStack(Item({}), 1), 'right' : ItemStack(Item({}), 1), 'hotbar' : [], 'main' : []}
+        #Hotbar might be used in the future, but for now is useless
+        self.items = {'left' : ItemStack(NullItem(), 0), 'right' : ItemStack(NullItem(), 0),
+                      'armour' : ItemStack(NullItem(), 0), 'hotbar' : [], 'main' : []}
+        self.maxSize = 16
 
     def getEquipped(self):
-        return [self.items['left'], self.items['right']]
+        return [self.items['left'], self.items['right'], self.items['armour']]
+
+    def getItem(self, index):
+        try:
+            return self.items['main'][index]
+        except IndexError:
+            return ItemStack(NullItem(), 0)
 
     @staticmethod
     def fromBytes(byte):
@@ -27,8 +36,9 @@ class Inventory:
 
         # Compress everything into a single list and sort
         newInv.items['main'] += newInv.items['hotbar']
-        newInv.items['main'].append(newInv.items['right'])
         newInv.items['main'].append(newInv.items['left'])
+        newInv.items['main'].append(newInv.items['right'])
+        newInv.items['main'].append(newInv.items['armour'])
         newInv.sortGroup('main', compress=True)
 
         # Separate the list
@@ -49,6 +59,7 @@ class Inventory:
         newInv.items['hotbar'] = list(self.items['hotbar'])
         newInv.items['left'] = self.items['left']
         newInv.items['right'] = self.items['right']
+        newInv.items['armour'] = self.items['armour']
 
         return newInv
 
@@ -97,17 +108,17 @@ class Inventory:
         # with all of the second inventory's contents
         sumInv.items['main'] += inv2.items['hotbar']
         sumInv.items['main'] += inv2.items['main']
-        sumInv.items['main'] += [inv2.items['left'], inv2.items['right']]
+        sumInv.items['main'] += [inv2.items['left'], inv2.items['right'], inv2.items['armour']]
 
         # Sort and stack the itemstacks
         sumInv.sortItems()
 
         # Check if the inventory needs to overflow
-        if not force and len(sumInv.items['main']) > 24:
+        if not force and len(sumInv.items['main']) > inv1.maxSize:
             # Overflow back into the original second inventory
             print('Inventory needs to overflow here...')
-            overflowInv.items['main'] = sumInv.items['main'][24:]
-            sumInv.items['main'] = sumInv.items['main'][:24]
+            overflowInv.items['main'] = sumInv.items['main'][inv1.maxSize:]
+            sumInv.items['main'] = sumInv.items['main'][:inv1.maxSize]
 
         # Sort the inventories
         sumInv.sortItems()
@@ -124,7 +135,7 @@ class Item:
         self.name = name
 
     def getItemName(self):
-        return self.name or 'null_item'
+        return self.name
 
     def getMaxStackSize(self):
         return 1
@@ -172,6 +183,12 @@ class ItemStack:
     def getMaxStackSize(self):
         return self.item.getMaxStackSize()
 
+    def getImage(self, resources):
+        '''
+        Return the image of the item in this stack
+        '''
+        return self.item.getImage(resources)
+
     def add(self, other, forceCompress=False):
         '''
         Add one stack to another
@@ -190,3 +207,16 @@ class ItemStack:
             carryover = ItemStack(self.getItem(), carrySize)
 
         return [result, carryover]
+
+class NullItem(Item):
+    '''
+    A special item class used for empty itemslots
+    '''
+    def __init__(self):
+        self.setRegistryName('null_item')
+
+    def getMaxStackSize(self):
+        return 0
+
+    def getImage(self, resources):
+        return None
