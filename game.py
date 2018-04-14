@@ -121,7 +121,10 @@ class Game:
 
                     elif self.getGui():
                         if event.type == pygame.VIDEORESIZE:
+                            oldSurface = pygame.display.get_surface().copy()
                             pygame.display.set_mode((event.w, event.h), util.DISPLAY_FLAGS)
+                            pygame.display.get_surface().blit(oldSurface, [0, 0])
+                            pygame.display.flip()
 
                         elif event.type == pygame.KEYDOWN:
                             # Handle a keypress on the gui
