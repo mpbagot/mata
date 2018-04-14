@@ -53,7 +53,7 @@ class ClientMod(Mod):
 
     def load(self):
         # Initialise the packet pipeline
-        self.packetPipeline = network.PacketHandler(self.game, util.CLIENT)
+        self.packetPipeline = network.PacketHandler(self.game, util.CLIENT, self.game.getOpenPort())
 
         # Register the valid packet classes
         packets = [

@@ -28,6 +28,8 @@ class Game:
     def __init__(self, argHandler):
         # Initialise the child process value
         self.child = None
+        #Initilise the port handling variable
+        self.lastUsedPort = util.DEFAULT_PORT
 
         # Load mods and process cmd args
         self.modLoader = mod.ModLoader(self)
@@ -42,7 +44,7 @@ class Game:
         self.modLoader.loadRegisteredMods()
 
         # Create a default packetPipeline for the game instance
-        self.packetPipeline = network.VanillaPacketHandler(self, self.args.getRuntimeType(), util.DEFAULT_PORT+1)
+        self.packetPipeline = network.GamePacketHandler(self, self.args.getRuntimeType())
 
         if self.args.getRuntimeType() != util.SERVER:
             # Set the world and player up
@@ -336,6 +338,13 @@ class Game:
         Connect the default pipeline to the server
         '''
         self.packetPipeline.connectToServer(address)
+
+    def getOpenPort(self):
+        '''
+        Return an available port for a custom PacketHandler to use
+        '''
+        self.lastUsedPort += 1
+        return self.lastUsedPort
 
     def processCmdArgs(self, argHandler):
         '''

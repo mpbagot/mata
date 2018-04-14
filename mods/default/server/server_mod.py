@@ -21,7 +21,7 @@ class ServerMod(Mod):
 
     def load(self):
         # Initialise the packet pipeline
-        self.packetPipeline = network.PacketHandler(self.game, util.SERVER)
+        self.packetPipeline = network.PacketHandler(self.game, util.SERVER, self.game.getOpenPort())
         # Register the valid packet classes
         packets = [
                     FetchPlayerImagePacket, SendInventoryPacket,
@@ -101,12 +101,12 @@ def onPlayerDeath(game, player):
     game.packetPipeline.closeConnection(player.name)
     game.getModInstance('ServerMod').packetPipeline.closeConnection(player.name)
 
-def onDisconnect(game):
+def onDisconnect(game, username):
     '''
     Event Hook: onDisconnect
     Print a little message in the server console
     '''
-    print('A Client has disconnected')
+    print('Client player', username, 'has disconnected')
 
 class KickPlayerCommand(cmd.Command):
     def run(self, username, *args):

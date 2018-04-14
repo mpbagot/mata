@@ -20,6 +20,7 @@ class PacketHandler:
         self.nextSize = 37
         self.game = game
         self.side = side
+        self.port = port
 
         self.connections = {}
         self.safePackets = [ByteSizePacket, LoginPacket,
@@ -34,17 +35,17 @@ class PacketHandler:
 
         # Bind the socket if the PacketHandler is server-side
         if side == util.SERVER:
-            self.socket.bind(('0.0.0.0', port))
+            self.socket.bind(('0.0.0.0', self.port))
             connPoll = Thread(target=self.pollForConnections)
             connPoll.daemon = True
             connPoll.start()
 
-    def connectToServer(self, address, port=util.DEFAULT_PORT):
+    def connectToServer(self, address):
         '''
         A client-side method to connect to a chosen server
         '''
         try:
-            self.socket.connect((address, port))
+            self.socket.connect((address, self.port))
         except socket.gaierror:
             return 'Invalid Hostname or IP Address'
         except ConnectionRefusedError:
@@ -95,6 +96,7 @@ class PacketHandler:
                 if self.side == util.CLIENT:
                     self.game.fireEvent('onDisconnect', 'Server Connection Reset')
                 else:
+                    self.game.fireEvent('onDisconnect', self.connections[connIndex].username)
                     del self.connections[connIndex]
                 return
             except UnicodeDecodeError:
@@ -293,13 +295,16 @@ class PacketHandler:
 
         self.connections[1].sendPacket(packet)
 
-class VanillaPacketHandler(PacketHandler):
+class GamePacketHandler(PacketHandler):
+    def __init__(self, game, side):
+        super().__init__(game, side, util.DEFAULT_PORT)
+
     def connectToServer(self, address):
         '''
         A client-side method to connect to a chosen server
         '''
         try:
-            self.socket.connect((address, util.DEFAULT_PORT+1))
+            self.socket.connect((address, util.DEFAULT_PORT))
         except socket.gaierror:
             return 'Invalid Hostname or IP Address'
         except ConnectionRefusedError:
