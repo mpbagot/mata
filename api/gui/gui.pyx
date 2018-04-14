@@ -70,6 +70,7 @@ class Gui:
         '''
         Draw the gui to screen
         '''
+        self.screen = pygame.display.get_surface()
         self.drawBackgroundLayer()
         self.drawMiddleLayer(mousePos)
         self.drawForegroundLayer(mousePos)
@@ -131,6 +132,8 @@ def scaleRect(rect, screen):
     '''
     Scale a rect to a given screen size from a default of 1024x768
     '''
+    rect = list(rect)
+
     w = screen.get_width()
     h = screen.get_height()
 
@@ -157,9 +160,10 @@ def scaleVal(val, screen):
     Scale a rect to a given screen size from a default of 1024x768
     '''
     w = screen.get_width()
+    h = screen.get_height()
 
     # Calculate the scaling coefficient
-    coeff = w/768
+    coeff = (w + h)/(1024 + 768)
 
     # Multiply the value by the coefficient
     val *= coeff
