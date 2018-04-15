@@ -17,18 +17,16 @@ from multiprocessing import Process
 
 class PacketHandler:
     def __init__(self, game, side, port=util.DEFAULT_PORT):
-        self.nextSize = 37
         self.game = game
         self.side = side
         self.port = port
 
         self.connections = {}
-        self.safePackets = [ByteSizePacket, LoginPacket,
+        self.safePackets = [WorldUpdatePacket, LoginPacket,
                             DisconnectPacket, SyncPlayerPacket,
                             ResetPlayerPacket, InvalidLoginPacket,
                             SetupClientPacket, SendCommandPacket,
-                            MountPacket, SetupConnPacket,
-                            WorldUpdatePacket
+                            MountPacket, SetupConnPacket
                            ]
 
         self.socket = socket.socket()
@@ -78,6 +76,65 @@ class PacketHandler:
             t.daemon = True
             t.start()
 
+    def getPacket(self, conn):
+        '''
+        Get the bytes of a data packet
+        '''
+        # Initialise a buffer for bytes
+        byteBuf = b'\x01'
+        # Clear any rubbish bytes that fill up the connection
+        currentByte = conn.recv(1)
+        # Wait for Start-Of-Transmission byte
+        while currentByte != b'\x01':
+            if currentByte == b'':
+                raise ConnectionResetError
+            currentByte = conn.recv(1)
+
+        # Start fetching the useful info
+        # Get the packet type and part sections
+        byteBuf += conn.recv(34)
+        # Get the packet length section
+        length = conn.recv(2)
+        byteBuf += length
+        length = int.from_bytes(length, 'big')
+        # Get the packet data section
+        byteBuf += conn.recv(length)
+        # Get the checksum and End-Of-Transmission byte
+        byteBuf += conn.recv(4)
+
+        # If the packet is not the correct length, something strange has happened
+        if len(byteBuf) != 41+length:
+            raise ConnectionResetError
+
+        return byteBuf
+
+    def parsePacket(self, data):
+        '''
+        Parse a byte string and return the results
+        '''
+        # Remove the control bytes
+        data = data[1:-1]
+        dataDictionary = {}
+        try:
+            # Pull the values from the byte string
+            dataDictionary['type'] = data[:32].decode().strip()
+            data = data[32:]
+            dataDictionary['part'] = str(data[0]) + '/' + str(data[1])
+            data = data[2:]
+            dataDictionary['length'] = int.from_bytes(data[:2], 'big')
+            data = data[2:]
+            dataDictionary['data'] = data[:dataDictionary['length']]
+            checksum = data[-3:]
+        except IndexError:
+            return {}
+
+        # Compare the checksum
+        toCompare = util.calcChecksum(dataDictionary['data'])
+        if toCompare != checksum:
+            raise Exception('Packet corrupted')
+
+        return dataDictionary
+
     def handleConn(self, connIndex):
         '''
         Handle communication on the given connection
@@ -86,12 +143,9 @@ class PacketHandler:
         while True:
             # Receive the packet data
             try:
-                data = conn.recv(self.connections[connIndex].nextSize)[1:-1]
-                # data = data.decode()
-                if not data:
-                    raise ConnectionResetError
+                data = self.getPacket(conn)
             except ConnectionResetError as e:
-                print(e)
+                print('ConnectionResetError')
                 # Properly disconnect if the connection is reset from the other side
                 if self.side == util.CLIENT:
                     self.game.fireEvent('onDisconnect', 'Server Connection Reset')
@@ -104,27 +158,15 @@ class PacketHandler:
 
             # Parse the byte data of the packet
             try:
-                # dataDictionary = {a.split(':')[0][1:-1] : (':'.join(a.split(':')[1:])[1:-1]).encode() for a in re.findall('".*?":".*?"', data, re.DOTALL)}
-                dataDictionary = {a.split(b':')[0][1:-1] : b':'.join(a.split(b':')[1:])[1:-1] for a in re.findall(b'".*?":".*?"', data, re.DOTALL)}
-                dataDictionary = {a.decode() : dataDictionary[a] for a in dataDictionary.keys()}
-            except IndexError:
-                dataDictionary = {}
-
-            try:
-                x = ('Received '+dataDictionary['type'].decode())
-            except KeyError:
-                print(data)
-                print('[ERROR] Packet corrupted. This is probably an issue with a mod you are using.')
+                dataDictionary = self.parsePacket(data)
+            except Exception as e:
+                print(e)
                 continue
 
-            # Handle the packet synchronously or asynchronously as required
-            if dataDictionary['type'] == b'ByteSizePacket':
-                self.handlePacket(dataDictionary, connIndex)
-            else:
-                t = Thread(target=self.handlePacket, args=(dataDictionary, connIndex))
-                t.daemon = True
-                t.start()
-                self.connections[connIndex].setNextPacketSize(37)
+            # Handle the packet asynchronously
+            t = Thread(target=self.handlePacket, args=(dataDictionary, connIndex))
+            t.daemon = True
+            t.start()
 
     def handlePacket(self, dataDictionary, connIndex):
         '''
@@ -132,12 +174,12 @@ class PacketHandler:
         '''
         # Loop through the registered packets and handle the received data accordingly
         for packet in self.safePackets:
-            if packet.__name__ == dataDictionary['type'].decode():
+            if packet.__name__ == dataDictionary['type']:
                 # Fetch the current buffer for this packet type
                 parts = self.connections[connIndex].multipartBuffer.get(dataDictionary['type'], [])
                 if 'part' in dataDictionary.keys():
                     # If it is part of a multipart packet
-                    packetNum, size = [int(a) for a in dataDictionary['part'].split(b'/')]
+                    packetNum, size = [int(a) for a in dataDictionary['part'].split('/')]
                     # If it's the first part, initialise the parts buffer for this packet type
                     if parts == []:
                         parts = [(a+1, '') for a in range(size)]
@@ -173,9 +215,8 @@ class PacketHandler:
 
                     except Exception as e:
                         print('Packet unable to be handled correctly.')
-                        print('Error is as follows:')
+                        print('Error is:')
                         print(e)
-                        raise e
                         return
 
                     self.game.fireEvent('onPacketReceived', p)
@@ -326,7 +367,6 @@ class Connection:
         self.username = ''
         self.connObj = conn
         self.address = addr
-        self.nextSize = 37
 
         self.multipartBuffer = {}
 
@@ -334,46 +374,47 @@ class Connection:
         '''
         Send a packet on this connection
         '''
-        # print('Sending packet: '+packet.__class__.__name__)
+        print('Sending packet: '+packet.__class__.__name__)
 
         # Initialise a new buffer, and write the packet byte data to it
         buf2 = io.BytesIO()
         packet.toBytes(buf2)
-        packetString = buf2.getvalue().decode().replace('"', '\"').encode()
+        packetString = buf2.getvalue()
 
         # Split the packet if required
         dataSize = len(packetString)
         dataList = [packetString[a:a+950] for a in range(0, dataSize, 950)]
 
         for p, part in enumerate(dataList):
-            partDetail = '{}/{}'.format(p+1, len(dataList))
+            # Format the partitioning information correctly
+            partDetail = (p+1).to_bytes(1, 'big') + len(dataList).to_bytes(1, 'big')
 
             # Prepare the packet buffer
             buf = io.BytesIO()
-            buf.write('{'.encode())
-            buf.write('"type":"{}","data":"'.format(packet.__class__.__name__).encode())
 
-            # Write the part, then the part info
+            # Write Start-Of-Transmission, Packet type, then part info
+            packetType = packet.__class__.__name__
+            # Check for packet name overflow
+            if len(packetType) > 32:
+                raise Exception('[ERROR] Packet name longer than 32 characters')
+            # Pad the packet name
+            packetType = ' '*(32-len(packetType))+packetType
+
+            # Write the header of the packet
+            buf.write(b'\x01' + packetType.encode() + partDetail)
+
+            # Write the length
+            buf.write(len(part).to_bytes(2, 'big'))
+
+            # Write the actual data
             buf.write(part)
-            buf.write('","part":"{}"'.format(partDetail).encode()+b'}')
 
-            # Get the packet length to send first
-            byteSize = len(buf.getvalue())
-
-            # Initialise the ByteSizePacket and buffer
-            byteBuf = io.BytesIO()
-            sizePacket = ByteSizePacket(byteSize)
-
-            # Write the packet data to the buffer
-            byteBuf.write('{'.encode())
-            byteBuf.write('"type":"{}","data":"'.format(sizePacket.__class__.__name__).encode())
-            sizePacket.toBytes(byteBuf)
-            byteBuf.write('"}'.encode())
+            # Calc then write the checksum
+            buf.write(util.calcChecksum(part) + b'\x17')
 
             # Run error checks here to stop the server from crashing
             try:
                 # Sanitise and send the two packets one after the other
-                self.connObj.send(byteBuf.getvalue())
                 self.connObj.send(buf.getvalue())
             except Exception as e:
                 if isinstance(e, ConnectionResetError):
@@ -390,9 +431,3 @@ class Connection:
                     if str(e) == "[Errno 9] Bad file descriptor":
                         return
                     print('[ERROR] An Error Occured! '+str(e))
-
-    def setNextPacketSize(self, size):
-        '''
-        Set the size of the next packet to be recieved
-        '''
-        self.nextSize = size

@@ -27,20 +27,6 @@ class Packet:
         '''
         raise NotImplementedError('onReceive method is empty in a packet class!')
 
-class ByteSizePacket(Packet):
-    def __init__(self, size=0):
-        self.size = size
-
-    def toBytes(self, buf):
-        buf.write(self.size.to_bytes(2, 'big'))
-
-    def fromBytes(self, data):
-        self.size = int.from_bytes(data, 'big')
-
-    def onReceive(self, connection, side, game):
-        # Set the connection's next receive size to the size gotten from this packet
-        connection.setNextPacketSize(self.size)
-
 class LoginPacket(Packet):
     def __init__(self, player=None):
         self.player = player
