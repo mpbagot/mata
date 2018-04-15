@@ -53,6 +53,7 @@ class ServerMod(Mod):
         # Register the events
         self.gameRegistry.registerEventHandler(onTick, 'onTick')
         self.gameRegistry.registerEventHandler(onPlayerDeath, 'onPlayerDeath')
+        self.gameRegistry.registerEventHandler(onPlayerLogin, 'onPlayerLogin')
         self.gameRegistry.registerEventHandler(onPlayerMount, 'onPlayerMount')
         self.gameRegistry.registerEventHandler(onDisconnect, 'onDisconnect')
 
@@ -85,9 +86,8 @@ def onPlayerMount(game, player, entity, success, mode):
         # Set the player position
         player.setPos(entity.pos)
 
-        # Create the sync packet
+        # Create and send the sync packet
         packet = ResetPlayerPacket(player)
-        # Send the packet
         game.packetPipeline.sendToPlayer(packet, player.name)
 
 def onPlayerDeath(game, player):
@@ -98,15 +98,23 @@ def onPlayerDeath(game, player):
     # Close the connection to the client from the server
     pp = game.packetPipeline
     pp.sendToPlayer(DisconnectPacket('You have died'), player.name)
-    game.packetPipeline.closeConnection(player.name)
-    game.getModInstance('ServerMod').packetPipeline.closeConnection(player.name)
+    game.fireEvent('onDisconnect', player.name)
+
+def onPlayerLogin(game, player):
+    '''
+    Event Hook: onPlayerLogin
+    Print a little message when a player connects
+    '''
+    print(player.name + ' joined the server!')
 
 def onDisconnect(game, username):
     '''
     Event Hook: onDisconnect
     Print a little message in the server console
     '''
-    print('Client player', username, 'has disconnected')
+    print('Client player "' + username + '" has disconnected')
+    game.packetPipeline.closeConnection(username)
+    game.getModInstance('ServerMod').packetPipeline.closeConnection(username)
 
 class KickPlayerCommand(cmd.Command):
     def run(self, username, *args):
@@ -119,8 +127,8 @@ class KickPlayerCommand(cmd.Command):
         for player in args:
             # Loop the players, and kick them by deleting the PacketHandler
             # Delete the connection from the server to the client
-            pp.closeConnection(player)
             pp.sendToPlayer(DisconnectPacket('You have been kicked from the server.'), player)
+            self.game.fireEvent('onDisconnect', player.name)
             break
 
 class SpawnEntityCommand(cmd.Command):

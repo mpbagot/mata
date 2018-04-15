@@ -26,7 +26,7 @@ class PacketHandler:
                             DisconnectPacket, SyncPlayerPacket,
                             ResetPlayerPacket, InvalidLoginPacket,
                             SetupClientPacket, SendCommandPacket,
-                            MountPacket, SetupConnPacket
+                            MountPacket
                            ]
 
         self.socket = socket.socket()
@@ -42,12 +42,17 @@ class PacketHandler:
         '''
         A client-side method to connect to a chosen server
         '''
+        self.socket = socket.socket()
+
         try:
             self.socket.connect((address, self.port))
+
         except socket.gaierror:
             return 'Invalid Hostname or IP Address'
+
         except ConnectionRefusedError:
             return 'Connection Refused By Server'
+
         except OSError:
             pass
 
@@ -58,10 +63,7 @@ class PacketHandler:
         t.start()
 
         # Send a login packet
-        self.game.packetPipeline.sendToServer(LoginPacket(self.game.player))
-
-        # Fire the login event
-        self.game.fireEvent('onClientConnected')
+        self.sendToServer(LoginPacket(self.game.player))
 
     def pollForConnections(self):
         '''
@@ -71,6 +73,7 @@ class PacketHandler:
         while True:
             conn, addr = self.socket.accept()
             self.connections[max(self.connections, default=0)+1] = Connection(conn, addr)
+
             # Fork a connection handling thread
             t = Thread(target=self.handleConn, args=(max(self.connections, default=0),))
             t.daemon = True
@@ -93,12 +96,15 @@ class PacketHandler:
         # Start fetching the useful info
         # Get the packet type and part sections
         byteBuf += conn.recv(34)
+
         # Get the packet length section
         length = conn.recv(2)
         byteBuf += length
         length = int.from_bytes(length, 'big')
+
         # Get the packet data section
         byteBuf += conn.recv(length)
+
         # Get the checksum and End-Of-Transmission byte
         byteBuf += conn.recv(4)
 
@@ -115,6 +121,7 @@ class PacketHandler:
         # Remove the control bytes
         data = data[1:-1]
         dataDictionary = {}
+
         try:
             # Pull the values from the byte string
             dataDictionary['type'] = data[:32].decode().strip()
@@ -125,6 +132,7 @@ class PacketHandler:
             data = data[2:]
             dataDictionary['data'] = data[:dataDictionary['length']]
             checksum = data[-3:]
+
         except IndexError:
             return {}
 
@@ -144,21 +152,31 @@ class PacketHandler:
             # Receive the packet data
             try:
                 data = self.getPacket(conn)
+
             except ConnectionResetError as e:
-                print('ConnectionResetError')
+                # print('ConnectionResetError')
                 # Properly disconnect if the connection is reset from the other side
                 if self.side == util.CLIENT:
                     self.game.fireEvent('onDisconnect', 'Server Connection Reset')
+
                 else:
-                    self.game.fireEvent('onDisconnect', self.connections[connIndex].username)
-                    del self.connections[connIndex]
+                    # print('Connections in handleConn (pre-onDisconnect):', self.connections)
+                    try:
+                        self.game.fireEvent('onDisconnect', self.connections[connIndex].username)
+                    except KeyError:
+                        # Another thread has already disconnected this one
+                        return
+                    # print('Connections in handleConn (post-onDisconnect):', self.connections)
+
                 return
+
             except UnicodeDecodeError:
                 pass
 
             # Parse the byte data of the packet
             try:
                 dataDictionary = self.parsePacket(data)
+
             except Exception as e:
                 print(e)
                 continue
@@ -177,23 +195,24 @@ class PacketHandler:
             if packet.__name__ == dataDictionary['type']:
                 # Fetch the current buffer for this packet type
                 parts = self.connections[connIndex].multipartBuffer.get(dataDictionary['type'], [])
-                if 'part' in dataDictionary.keys():
-                    # If it is part of a multipart packet
-                    packetNum, size = [int(a) for a in dataDictionary['part'].split('/')]
-                    # If it's the first part, initialise the parts buffer for this packet type
-                    if parts == []:
-                        parts = [(a+1, '') for a in range(size)]
-                    # Fill in the part in the buffer
-                    try:
-                        parts[packetNum-1] = (packetNum, dataDictionary['data'])
-                    except IndexError:
-                        print(packetNum,'/',size)
 
-                    # Update the connection object's buffer
-                    self.connections[connIndex].multipartBuffer[dataDictionary['type']] = parts
+                packetNum, size = [int(a) for a in dataDictionary['part'].split('/')]
+
+                # If it's the first part, initialise the parts buffer for this packet type
+                if parts == []:
+                    parts = ['' for a in range(size)]
+
+                # Fill in the part in the buffer
+                try:
+                    parts[packetNum-1] = dataDictionary['data']
+                except IndexError:
+                    print(packetNum,'/',size)
+
+                # Update the connection object's buffer
+                self.connections[connIndex].multipartBuffer[dataDictionary['type']] = parts
 
                 # Check if the buffer is filled (all parts of the packet have been received)
-                bufferData = [parts[a][1] for a in range(len(parts))]
+                bufferData = list(parts)
                 if all(bufferData):
                     # Replace the data with the bufferData if required
                     if bufferData:
@@ -209,6 +228,8 @@ class PacketHandler:
 
                         # Pass the connection list in if a login packet
                         if packet.__name__ in ['LoginPacket', 'SetupConnPacket']:
+                            # print('Logging in on packethandler:', self)
+                            # print('connections of that packethandler are:', self.connections)
                             response = p.onReceive(self.connections[connIndex], self.side, self.game, self.connections)
                         else:
                             response = p.onReceive(self.connections[connIndex], self.side, self.game)
@@ -216,7 +237,7 @@ class PacketHandler:
                     except Exception as e:
                         print('Packet unable to be handled correctly.')
                         print('Error is:')
-                        print(e)
+                        raise e
                         return
 
                     self.game.fireEvent('onPacketReceived', p)
@@ -233,17 +254,44 @@ class PacketHandler:
                             self.connections[connIndex].sendPacket(response)
                 break
 
-    def closeConnection(self, username):
+    def closeConnection(self, username=''):
         '''
-        A server-side method for closing a connection to a client
+        A method for closing a connection
         '''
-        # Loop the connections and find a connection matching the username
-        for conn in self.connections:
-            if self.connections[conn].username == username:
+        if self.side == util.SERVER and username:
+            # Loop the connections and find a connection matching the username
+            for conn in self.connections:
+                if self.connections[conn].username == username:
+                    # Close the socket object and delete the connection object from memory
+                    # print('Connections in closeConnection (pre-connection close):', self.connections)
+                    try:
+                        self.connections[conn].connObj.shutdown(socket.SHUT_RDWR)
+
+                    except OSError:
+                        self.connections[conn].connObj.close()
+
+                    # print('Connections in closeConnection (post-connection close):', self.connections)
+                    try:
+                        del self.connections[conn]
+                    except KeyError:
+                        pass
+                    # print('Connections in closeConnection (post-connection delete):', self.connections)
+                    return
+
+        elif self.side != util.SERVER:
+            keys = list(self.connections.keys())
+            for conn in keys:
                 # Close the socket object and delete the connection object from memory
-                self.connections[conn].connObj.close()
-                del self.connections[conn]
-                return
+                try:
+                    try:
+                        self.connections[conn].connObj.shutdown(socket.SHUT_RDWR)
+
+                    except OSError:
+                        self.connections[conn].connObj.close()
+
+                    del self.connections[conn]
+                except KeyError:
+                    continue
 
     def registerPacket(self, packetClass):
         '''
@@ -266,6 +314,7 @@ class PacketHandler:
             print('[ERROR] Packet was not sent to clients because it was not registered.')
             print(packet)
             return 'error'
+
         if self.side == util.CLIENT:
             print('[WARNING] Cannot send a packet to clients from a client runtime!')
             return 'error'
@@ -279,6 +328,7 @@ class PacketHandler:
             print('[ERROR] Packet was not sent to server because it was not registered.')
             print(packet)
             return 'error'
+
         if self.side == util.SERVER:
             print('[WARNING] Cannot send a packet to server from a server runtime!')
             return 'error'
@@ -294,6 +344,7 @@ class PacketHandler:
         try:
             for conn in self.connections.values():
                 self.sendToPlayer(packet, conn.username)
+
         except RuntimeError:
             # Bail out if a client disappears during the transfer
             return
@@ -340,28 +391,6 @@ class GamePacketHandler(PacketHandler):
     def __init__(self, game, side):
         super().__init__(game, side, util.DEFAULT_PORT)
 
-    def connectToServer(self, address):
-        '''
-        A client-side method to connect to a chosen server
-        '''
-        try:
-            self.socket.connect((address, util.DEFAULT_PORT))
-        except socket.gaierror:
-            return 'Invalid Hostname or IP Address'
-        except ConnectionRefusedError:
-            return 'Connection Refused By Server'
-        except OSError:
-            pass
-
-        self.connections[max(self.connections, default=0)+1] = Connection(self.socket, address)
-        # Fork a connection handling thread
-        t = Thread(target=self.handleConn, args=(max(self.connections, default=0),))
-        t.daemon = True
-        t.start()
-
-        # Send a login packet
-        self.game.packetPipeline.sendToServer(LoginPacket(self.game.player))
-
 class Connection:
     def __init__(self, conn, addr):
         self.username = ''
@@ -369,6 +398,9 @@ class Connection:
         self.address = addr
 
         self.multipartBuffer = {}
+
+    def __repr__(self):
+        return 'Connection(username={}, connObj={})'.format(self.username, self.connObj.fileno())
 
     def sendPacket(self, packet):
         '''
@@ -385,6 +417,9 @@ class Connection:
         dataSize = len(packetString)
         dataList = [packetString[a:a+950] for a in range(0, dataSize, 950)]
 
+        if dataList == []:
+            dataList.append(b'')
+
         for p, part in enumerate(dataList):
             # Format the partitioning information correctly
             partDetail = (p+1).to_bytes(1, 'big') + len(dataList).to_bytes(1, 'big')
@@ -394,9 +429,11 @@ class Connection:
 
             # Write Start-Of-Transmission, Packet type, then part info
             packetType = packet.__class__.__name__
+
             # Check for packet name overflow
             if len(packetType) > 32:
                 raise Exception('[ERROR] Packet name longer than 32 characters')
+
             # Pad the packet name
             packetType = ' '*(32-len(packetType))+packetType
 
@@ -416,18 +453,24 @@ class Connection:
             try:
                 # Sanitise and send the two packets one after the other
                 self.connObj.send(buf.getvalue())
+
             except Exception as e:
                 if isinstance(e, ConnectionResetError):
                     # The client might still be connected
                     print('[ERROR] The Packet Failed To Send For Some Reason.')
+
                 elif isinstance(e, BrokenPipeError):
                     # The client is completely disconnected
+                    # TODO This error happens when the client tries to reconnect to the server
                     print('[WARNING] The Client Has Disconnected Badly. Clearing Connection...')
                     # Disconnect the client
                     self.connObj.close()
                     del self
                     return
+
                 else:
                     if str(e) == "[Errno 9] Bad file descriptor":
+                        print('Bad File descriptor')
                         return
+
                     print('[ERROR] An Error Occured! '+str(e))

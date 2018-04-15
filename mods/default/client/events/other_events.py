@@ -5,7 +5,7 @@ from copy import deepcopy
 import time
 
 import util
-from api.packets import SendCommandPacket, SetupConnPacket, MountPacket
+from api.packets import SendCommandPacket, MountPacket
 from api.entity import Player
 from api.vehicle import Vehicle
 
@@ -121,11 +121,7 @@ def onPacketReceived(game, packet):
     Event Hook: onPacketReceived
     Hook additional behaviour into the vanilla API packets
     '''
-    if packet.__class__.__name__ == 'DisconnectPacket':
-        # Open a GUI that displays the message, and disconnect them
-        game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, packet.message)
-
-    elif packet.__class__.__name__ == 'ResetPlayerPacket':
+    if packet.__class__.__name__ == 'ResetPlayerPacket':
         # Tell the game that the player is synced
         game.player.synced = True
 
@@ -147,40 +143,35 @@ def onDisconnect(game, message):
     '''
     # Show the message
     game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, message)
-    # Flush the connection buffers
-    for conn in game.getModInstance('ClientMod').packetPipeline.connections.keys():
-        game.getModInstance('ClientMod').packetPipeline.connections[conn].connObj.recv(65536)
 
-def onClientConnected(game):
-    '''
-    Event Hook: onClientConnected
-    Apply the extra property to the client player when the connection to the server is established
-    '''
-    # Send a login packet
-    game.getModInstance('ClientMod').packetPipeline.sendToServer(SetupConnPacket(game.player))
-    print('Server connection established.')
+    # Close the connection in the packetPipeline(s)
+    game.packetPipeline.closeConnection()
+    game.getModInstance('ClientMod').packetPipeline.closeConnection()
 
 def onPlayerLogin(game, player):
     '''
     Event Hook: onPlayerLogin
+    Run logic each time a client logs into a remote packetPipeline
     Open the player customisation screen when the client logs into the server
     '''
     # Pregenerate the world
-    queue = Queue()
-    p = Process(target=genWorld, args=(game, queue))
-    t = Thread(target=handleProcess, args=(game, queue))
-    p.daemon = True
-    t.daemon = True
-    p.start()
-    t.start()
+    if not game.getModInstance('ClientMod').genLock:
+        queue = Queue()
+        p = Process(target=genWorld, args=(game, queue))
+        t = Thread(target=handleProcess, args=(game, queue))
+        p.daemon = True
+        t.daemon = True
+        p.start()
+        t.start()
 
-    startTime = time.time()
-    # Wait for the world to generate
-    while not game.world.isWorldLoaded():
-        # Timeout and print a message if it took too long
-        if time.time()-startTime > 5:
-            print('[WARNING] World took too long to generate')
-            break
+        startTime = time.time()
+        # Wait for the world to generate
+        while not game.world.isWorldLoaded():
+            # Timeout and print a message if it took too long
+            if time.time()-startTime > 5:
+                print('[WARNING] World took too long to generate')
+                break
+
     # Show the player customisation screen
     # TODO Switch this back to the playerDrawGui once assets have been created
     game.openGui(game.getModInstance('ClientMod').gameGui, game)

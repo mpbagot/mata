@@ -98,7 +98,6 @@ class ClientMod(Mod):
         self.gameRegistry.registerEventHandler(tick_events.onTickHandleMovement, 'onTick')
         self.gameRegistry.registerEventHandler(tick_events.onTickSyncPlayer, 'onTick')
 
-        self.gameRegistry.registerEventHandler(other_events.onClientConnected, 'onClientConnected')
         self.gameRegistry.registerEventHandler(other_events.onPlayerLogin, 'onPlayerLogin')
         self.gameRegistry.registerEventHandler(other_events.onCommand, 'onCommand')
         self.gameRegistry.registerEventHandler(other_events.onPacketReceived, 'onPacketReceived')

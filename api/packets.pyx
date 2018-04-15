@@ -58,32 +58,12 @@ class LoginPacket(Packet):
 
         # Fire a login event
         game.fireEvent('onPlayerLogin', self.player)
-        print(self.player.name + ' joined the server!')
 
         # Sync the player back to the Client
         return [
                 SetupClientPacket(game.getDimension(0).getBiomeSize(), game.modLoader.gameRegistry.seed),
                 ResetPlayerPacket(self.player)
                ]
-
-class SetupConnPacket(Packet):
-    def __init__(self, player=None):
-        self.player = player
-
-    def toBytes(self, buf):
-        buf.write(self.player.toBytes())
-
-    def fromBytes(self, data):
-        self.player = Player.fromBytes(data)
-
-    def onReceive(self, connection, side, game, connections):
-        # Check if this has already been done in this pipeline
-        for conn in connections:
-            if connections[conn].username == self.player.name:
-                return InvalidLoginPacket()
-
-        # If not, set the connection username
-        connection.username = self.player.name
 
 class SetupClientPacket(Packet):
     def __init__(self, biomeSize=0, seed=0):
@@ -283,7 +263,7 @@ class InvalidLoginPacket(Packet):
         pass
 
 class DisconnectPacket(Packet):
-    def __init__(self, message=''):
+    def __init__(self, message='null'):
         self.message = message
 
     def toBytes(self, buf):
@@ -291,11 +271,11 @@ class DisconnectPacket(Packet):
 
     def fromBytes(self, data):
         self.message = data.decode()
+        if self.message == 'null':
+            self.message = ''
 
     def onReceive(self, connection, side, game):
         if side == util.SERVER:
             game.fireEvent('onDisconnect', connection.username)
         else:
             game.fireEvent('onDisconnect', self.message)
-        connection.connObj.close()
-        del connection
