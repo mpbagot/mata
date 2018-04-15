@@ -56,7 +56,7 @@ class Pause(Overlay):
         self.buttons = [
             ResumeButton([351, 179, 321, 90]),
             OptionsButton([351, 286, 321, 90], "Options"),
-            MenuButton([351, 393, 321, 90]),
+            MenuButton([351, 393, 321, 90], True),
             ExitButton([351, 500, 321, 90], 'Exit to OS')
         ]
 

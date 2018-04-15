@@ -80,13 +80,14 @@ class OptionsButton(Button):
         pass
 
 class MenuButton(Button):
-    def __init__(self, rect):
+    def __init__(self, rect, disconnect=False):
         super().__init__(rect, 'Return To Menu')
+        self.disconnect = disconnect
 
     def onClick(self, game):
-        # Try to disconnnect if required
-        game.packetPipeline.sendToServer(DisconnectPacket())
-        game.getModInstance('ClientMod').packetPipeline.sendToServer(DisconnectPacket())
+        if self.disconnect:
+            # Try to disconnnect if required
+            game.packetPipeline.sendToServer(DisconnectPacket())
 
         # Return to the main menu
         game.openGui(game.getModInstance('ClientMod').mainMenuGui)
