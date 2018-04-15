@@ -406,7 +406,7 @@ class Connection:
         '''
         Send a packet on this connection
         '''
-        print('Sending packet: '+packet.__class__.__name__)
+        # print('Sending packet: '+packet.__class__.__name__)
 
         # Initialise a new buffer, and write the packet byte data to it
         buf2 = io.BytesIO()

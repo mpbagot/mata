@@ -134,15 +134,17 @@ def onPacketReceived(game, packet):
         # Fetch images of new players
         for p, player in enumerate(game.world.players):
             if player.img == None:
-                game.getModInstance('ClientMod').packetPipeline.sendToServer(FetchPlayerImagePacket(player), util.NON_PRIMARY)
+                game.getModInstance('ClientMod').packetPipeline.sendToServer(FetchPlayerImagePacket(player))
 
 def onDisconnect(game, message):
     '''
     Event Hook: onDisconnect
     Handle the opening of the disconnected screen when the client disconnects
     '''
-    # Show the message
-    game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, message)
+    if message.startswith('show_screen'):
+        # Show the message
+        #TODO Make this only show when I want it to
+        game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, message[12:])
 
     # Close the connection in the packetPipeline(s)
     game.packetPipeline.closeConnection()
