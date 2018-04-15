@@ -139,15 +139,17 @@ class Game:
 
                         elif event.type == pygame.MOUSEBUTTONDOWN:
                             # Handle a mouse click on buttons
-                            for button in self.getGUIState().getButtons():
-                                if button.isHovered(pos):
-                                    button.onClick(self)
+                            if self.getGUIState():
+                                for button in self.getGUIState().getButtons():
+                                    if button.isHovered(pos):
+                                        button.onClick(self)
 
                             # Then, handle a mouse click on a text box
-                            self.getGui()[1].currentTextBox = None
-                            for t, textbox in enumerate(self.getGui()[1].textboxes):
-                                if textbox.isHovered(pos):
-                                    self.getGui()[1].currentTextBox = t
+                            if self.getGui():
+                                self.getGui()[1].currentTextBox = None
+                                for t, textbox in enumerate(self.getGui()[1].textboxes):
+                                    if textbox.isHovered(pos):
+                                        self.getGui()[1].currentTextBox = t
 
                             # Finally, trigger any registered event functions
                             self.fireEvent('onMouseClick', pos, event)
