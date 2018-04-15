@@ -14,6 +14,15 @@ FPS = 60
 
 DISPLAY_FLAGS = pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.RESIZABLE
 
+def calcChecksum(data):
+    '''
+    Calculate a checksum
+    '''
+    checksum = 0
+    for a in range(len(data)):
+        checksum += data[a]
+    return checksum.to_bytes(3, 'big')
+
 class ArgumentHandler:
     '''
     An object to store and handle the command line arguments passed into the game at runtime
