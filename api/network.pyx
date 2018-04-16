@@ -103,13 +103,19 @@ class PacketHandler:
         length = int.from_bytes(length, 'big')
 
         # Get the packet data section
-        byteBuf += conn.recv(length)
+        buf = b''
+        while len(buf) < length:
+            buf += conn.recv(length-len(buf))
+
+        byteBuf += buf
 
         # Get the checksum and End-Of-Transmission byte
         byteBuf += conn.recv(4)
 
         # If the packet is not the correct length, something strange has happened
         if len(byteBuf) != 41+length:
+            print(byteBuf)
+            print(length)
             raise ConnectionResetError
 
         return byteBuf
@@ -154,7 +160,7 @@ class PacketHandler:
                 data = self.getPacket(conn)
 
             except ConnectionResetError as e:
-                # print('ConnectionResetError')
+                print('ConnectionResetError')
                 # Properly disconnect if the connection is reset from the other side
                 if self.side == util.CLIENT:
                     self.game.fireEvent('onDisconnect', 'Server Connection Reset')
