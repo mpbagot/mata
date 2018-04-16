@@ -33,7 +33,6 @@ class PlayerInventoryScreen(Gui):
 
         # Fetch the inventory
         self.inventory = game.player.inventory
-        self.fetchInventory(game)
         self.invSynced = False
 
         # Generate the gui objects (itemslots, buttons etc)
@@ -56,6 +55,30 @@ class PlayerInventoryScreen(Gui):
             slotPos = [859, 120 + slotSize//4 + i * (slotSize + 40)]
             self.itemSlots.append(ItemSlot(game, itemstack, slotPos, slotSize + 30))
 
+        self.fetchInventory(game)
+
+    def setInventory(self, inv):
+        '''
+        Set the inventory for this screen
+        '''
+        self.inventory = inv
+
+        self.itemSlots = []
+        # Calculate the slotsize for generating the screen
+        slotSize = 90
+        # Make the slotsize accessible in the middle and foreground methods
+        self.slotSize = slotSize
+        # Loop the rows and columns and create an empty inventory grid
+        for y in range(4):
+            for x in range(4):
+                slotPos = [(x + 1) * (slotSize + 8), 120 + y * (slotSize + 8)]
+                slot = ItemSlot(self.game, self.inventory.getItem(y * 4 + x), slotPos, slotSize)
+                self.itemSlots.append(slot)
+
+        for i, itemstack in enumerate(self.inventory.getEquipped()):
+            slotPos = [859, 120 + slotSize//4 + i * (slotSize + 40)]
+            self.itemSlots.append(ItemSlot(self.game, itemstack, slotPos, slotSize + 30))
+
     def fetchInventory(self, game):
         '''
         Fetch the inventory from the server
@@ -67,7 +90,7 @@ class PlayerInventoryScreen(Gui):
         w = self.screen.get_width()
         h = self.screen.get_height()
 
-        self.inventory = self.game.player.inventory
+        self.setInventory(self.game.player.inventory)
         self.screen.blit(pygame.transform.scale(self.backImg, [w, h]), [0, 0])
 
     def drawMiddleLayer(self, mousePos):

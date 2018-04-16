@@ -25,9 +25,10 @@ class SendInventoryPacket(Packet):
         buf.write(self.inventory.toBytes())
 
     def fromBytes(self, data):
-        self.inventory = Inventory.fromBytes(data)
+        self.inventory = data
 
     def onReceive(self, connection, side, game):
+        self.inventory = Inventory.fromBytes(game, self.inventory)
         # TODO This is super dodgy, something else needs to be done with this inventory.
         # Store the inventory in the client side player
         game.player.setInventory(self.inventory)

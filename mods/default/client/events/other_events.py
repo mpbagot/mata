@@ -136,6 +136,10 @@ def onPacketReceived(game, packet):
             if player.img == None:
                 game.getModInstance('ClientMod').packetPipeline.sendToServer(FetchPlayerImagePacket(player))
 
+    elif packet.__class__.__name__ == 'SendInventoryPacket':
+        if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').inventoryGui:
+            game.getGui()[1].invSynced = True
+
 def onDisconnect(game, message):
     '''
     Event Hook: onDisconnect

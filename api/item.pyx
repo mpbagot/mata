@@ -20,11 +20,59 @@ class Inventory:
             return ItemStack(NullItem(), 0)
 
     @staticmethod
-    def fromBytes(byte):
-        return Inventory()
+    def fromBytes(game, bytes):
+        '''
+        Convert a transmitted byte string to an inventory object
+        '''
+        # Pull the inventory size of the top of the packet
+        invSize = int.from_bytes(bytes[:2], 'big')
+        bytes = bytes[2:]
+
+        # Pull the different sections of the packet from the data
+        armour, left, right = [ItemStack.fromBytes(game, bytes[a:a+98]) for a in range(0, 294, 98)]
+        bytes = bytes[294:]
+
+        # left = ItemStack.fromBytes(game, bytes[:98])
+        # bytes = bytes[98:]
+        #
+        # right = ItemStack.fromBytes(game, bytes[:98])
+        # bytes = bytes[98:]
+
+        hotbar = [ItemStack.fromBytes(game, bytes[a*98:(a+1)*98]) for a in range(10)]
+        bytes = bytes[980:]
+
+        main = [ItemStack.fromBytes(game, bytes[a:a+98]) for a in range(0, len(bytes), 98)]
+
+        # Instantiate the inventory
+        i = Inventory()
+        # Set the values of the inventory
+        i.maxSize = invSize
+        i.items['armour'] = armour
+        i.items['left'] = left
+        i.items['right'] = right
+        i.items['hotbar'] = hotbar
+        i.items['main'] = main
+
+        return i
 
     def toBytes(self):
-        return b''
+        '''
+        Convert the inventory to a byte string for transmission
+        '''
+        # Convert the equipped stacks
+        armour, left, right = [self.items[a].toBytes() for a in ('armour', 'left', 'right')]
+
+        # Then convert the hotbar and main sections
+        hotbar = self.items['hotbar']
+        hotbar += [ItemStack(NullItem(), 0)]*(10-len(hotbar))
+        main = self.items['main']
+        main += [ItemStack(NullItem(), 0)]*(self.maxSize-len(main))
+
+        hotbar = b''.join([a.toBytes() for a in hotbar])
+        main = b''.join([a.toBytes() for a in main])
+
+        # Write it all out to a byte string
+        return self.maxSize.to_bytes(2, 'big') + armour + left + right + hotbar + main
 
     def hashInv(self):
         '''
@@ -156,6 +204,31 @@ class Item:
         except KeyError:
             raise KeyError('Image "{}" has not been registered in the Game Registry'.format(self.image))
 
+    def toBytes(self):
+        '''
+        Get a byte representation of the item
+        '''
+        className = self.__class__.__name__
+        className = ' '*(32-len(className))+className
+        image = self.image if isinstance(self.image, str) else ''
+        image = ' '*(32-len(image))+image
+        itemName = ' '*(32-len(self.name))+self.name
+        return itemName.encode()+image.encode()+className.encode()
+
+    def fromBytes(itemClasses, resources, data):
+        itemName, image, className = [data[a:a+32].strip() for a in range(0, len(data), 32)]
+
+        # Iterate the possible classes and look for the matching item class
+        for itemClass in itemClasses:
+            if itemClass.__name__ == className:
+                # Fill in the values for the item, then return it
+                item = itemClass(resources)
+                item.name = itemName
+                item.image = image
+                return item
+
+        return NullItem()
+
 class ItemStack:
     def __init__(self, item, size):
         self.stackSize = size
@@ -173,6 +246,23 @@ class ItemStack:
 
     def __str__(self):
         return 'ItemStack(item="{}", stackSize="{}")'.format(self.getItemName(), self.stackSize)
+
+    @staticmethod
+    def fromBytes(game, bytes):
+        stack = ItemStack(None, 0)
+        # Pull the stack size from the data
+        stack.stackSize = int.from_bytes(bytes[:2], 'big')
+        bytes = bytes[2:]
+
+        # Get the item from the data
+        items = game.modLoader.gameRegistry.items.values()
+        resources = game.modLoader.gameRegistry.resources
+        stack.item = Item.fromBytes(items, resources, bytes)
+
+        return stack
+
+    def toBytes(self):
+        return self.stackSize.to_bytes(2, 'big')+self.item.toBytes()
 
     def getItem(self):
         return self.item
@@ -214,9 +304,10 @@ class NullItem(Item):
     '''
     def __init__(self):
         self.setRegistryName('null_item')
+        self.image = None
 
     def getMaxStackSize(self):
         return 0
 
     def getImage(self, resources):
-        return None
+        return self.image
