@@ -3,8 +3,6 @@ import os
 from datetime import datetime
 from threading import Thread
 
-import util
-
 width, height = (800, 600)
 
 def writeLog(message):
@@ -20,6 +18,7 @@ writeLog('Setting platform dependent values...')
 
 pythonCommand = "python3" if sys.platform == "linux" else "py"
 pipCommand = "pip3" if sys.platform == "linux" else "py -m pip"
+scriptStart = './' if sys.platform == "linux" else ""
 scriptEnd = '.sh' if sys.platform == "linux" else ".bat"
 
 writeLog('Platform is: '+sys.platform.upper())
@@ -149,9 +148,9 @@ def firstTimeSetup():
     if shouldSetupAPI():
         setupStep = "Setting up API..."
         writeLog(setupStep)
-        errorCode = os.system('./compile_api'+scriptEnd)
+        errorCode = os.system(scriptStart+'compile_api'+scriptEnd)
         if errorCode != 0:
-            errorCode = os.system('./pythonify_api'+scriptEnd)
+            errorCode = os.system(scriptStart+'pythonify_api'+scriptEnd)
             if errorCode != 0:
                 # Do something about the error here
                 errorMessage = 'Failed to compile or pythonify the api.'
