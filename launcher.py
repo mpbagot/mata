@@ -188,6 +188,7 @@ def shouldSetupAPI():
     '''
     try:
         from api.colour import HueShifter
+        from api.gui.gui import GUIState
         return False
     except ImportError:
         return True

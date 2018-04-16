@@ -1,3 +1,5 @@
 cd api
 ren *.pyx *.py
-cd ../
+cd gui
+ren *.pyx *.py
+cd ../../
