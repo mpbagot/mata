@@ -81,7 +81,7 @@ class OptionsButton(Button):
 
 class MenuButton(Button):
     def __init__(self, rect, disconnect=False):
-        super().__init__(rect, 'Return To Menu')
+        super().__init__(rect, 'Exit To Menu')
         self.disconnect = disconnect
 
     def onClick(self, game):

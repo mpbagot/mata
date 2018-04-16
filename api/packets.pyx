@@ -41,11 +41,7 @@ class LoginPacket(Packet):
 
         # TODO Add password login for certain elevated usernames
 
-        # TODO Fix the connection overlap that prevents relogging in
-        # and the second packetPipeline from connecting
-        print(self.player.name)
-
-        print(connections)
+        # Stop one player from being controlled by two computers simultaneously
         for conn in connections:
             if connections[conn].username == self.player.name:
                 print('existing connection found')
