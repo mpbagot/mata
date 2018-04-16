@@ -25,7 +25,7 @@ class ModLoader:
             entity_length += len(world.entities)+len(world.vehicles)
 
         # Hash and set the uuid
-        return str(hash(entity.name+str(entity_length)))
+        return hash(entity.name+str(entity_length)) & 0xffffffffffffffff
 
     def registerModByName(self, name):
         '''

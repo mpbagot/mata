@@ -20,6 +20,7 @@ import util
 import mod
 from api.entity import Player
 from api import network
+from api.packets import *
 
 class Game:
     '''
@@ -288,7 +289,7 @@ class Game:
             # Loop the entities in the dimension
             for entity in world.entities:
                 # Check if its the correct one, and if so, return it
-                if str(entity.uuid) == str(uuid):
+                if entity.uuid == uuid:
                     return entity
         return None
 
@@ -302,7 +303,7 @@ class Game:
             # Loop the vehicles in the dimension
             for entity in world.vehicles:
                 # Check if its the correct one, and if so, return it
-                if str(entity.uuid) == str(uuid):
+                if entity.uuid == uuid:
                     return entity
         return None
 

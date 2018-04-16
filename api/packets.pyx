@@ -175,9 +175,8 @@ class MountPacket(Packet):
 
     def onReceive(self, connection, side, game):
         # Set up the entity and player values
-        print(self.entity)
         if self.entity != 'None':
-            self.entity = game.getVehicle(self.entity)
+            self.entity = game.getVehicle(int(self.entity))
         else:
             self.entity = None
 
@@ -210,11 +209,10 @@ class MountPacket(Packet):
                 else:
                     return MountPacket()
 
-            else:
+            elif self.player.ridingEntity:
                 print('dismounting player from entity')
                 # Dismount the entity/player
-                if self.player.ridingEntity:
-                    success = game.getVehicle(self.player.ridingEntity).unmountRider(self.player)
+                success = game.getVehicle(self.player.ridingEntity).unmountRider(self.player)
                 game.fireEvent('onPlayerMount', self.player, self.entity, success, 'dismount')
 
 class WorldUpdatePacket(Packet):
