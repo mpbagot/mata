@@ -5,8 +5,6 @@ from threading import Thread
 
 import util
 
-import pygame
-
 width, height = (800, 600)
 
 def writeLog(message):
@@ -145,19 +143,6 @@ def firstTimeSetup():
             writeLog(errorMessage)
             return
         setupStep = "Noise library installation complete!"
-        writeLog(setupStep)
-
-    # Install Pygame
-    if shouldInstallPygame():
-        setupStep = "Installing Pygame..."
-        writeLog(setupStep)
-        errorCode = os.system(pipCommand + ' install pygame')
-        if errorCode != 0:
-            # Do something about the error here
-            errorMessage = 'Pygame library failed to install'
-            writeLog(errorMessage)
-            return
-        setupStep = "Pygame installation complete!"
         writeLog(setupStep)
 
     # Compile or Pythonify the API
@@ -315,6 +300,21 @@ def launchGame():
     mode = 'COMBINED'
     pygame.quit()
     os.system(pythonCommand+' main.py --type {}'.format(mode))
+
+# Install Pygame
+if shouldInstallPygame():
+    setupStep = "Installing Pygame..."
+    writeLog(setupStep)
+    errorCode = os.system(pipCommand + ' install pygame')
+    if errorCode != 0:
+        # Do something about the error here
+        errorMessage = 'Pygame library failed to install'
+        writeLog(errorMessage)
+        sys.quit()
+    setupStep = "Pygame installation complete!"
+    writeLog(setupStep)
+
+import pygame
 
 pygame.init()
 
