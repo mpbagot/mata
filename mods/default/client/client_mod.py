@@ -5,6 +5,7 @@ from api.colour import hueShiftImage
 
 from mods.default.packets import *
 from mods.default.biomes import *
+from mods.default.items import *
 from mods.default.dimension import DefaultChunkProvider
 from mods.default.client.gui.game_screens import *
 from mods.default.client.gui.game_overlays import *
@@ -82,6 +83,9 @@ class ClientMod(Mod):
         # Register the entities
         self.gameRegistry.registerEntity(bear.Bear())
         self.gameRegistry.registerVehicle(horse.Horse())
+
+        # Register the items
+        self.gameRegistry.registerItem(Dirt)
 
     def postLoad(self):
         # Open the main menu on startup
