@@ -93,10 +93,11 @@ class GameRegistry:
         '''
         Register an item
         '''
-        if self.items.get(itemClass.getRegistryName()) is None:
-            self.items[itemClass.getRegistryName()] = itemClass
+        tempItem = itemClass(self.resources)
+        if self.items.get(tempItem.getRegistryName()) is None:
+            self.items[tempItem.getRegistryName()] = itemClass
             return
-        raise KeyError('[ERROR] Registry name {} already in use by another item!'.format(itemClass.getRegistryName()))
+        raise KeyError('[ERROR] Registry name {} already in use by another item!'.format(tempItem.getRegistryName()))
 
     def registerEntity(self, entityClass):
         '''

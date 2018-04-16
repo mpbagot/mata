@@ -130,7 +130,7 @@ class Inventory:
             if i in used or itemstack is None:
                 continue
             for j, item in enumerate(self.items[name]):
-                if item is not None and j != i and item.getItemName() == itemstack.getItemName():
+                if item is not None and j != i and item.getRegistryName() == itemstack.getRegistryName():
                     used.append(j)
                     print(item, itemstack)
                     # result, carryover = itemstack.add(item)
@@ -182,7 +182,7 @@ class Item:
     def setRegistryName(self, name):
         self.name = name
 
-    def getItemName(self):
+    def getRegistryName(self):
         return self.name
 
     def getMaxStackSize(self):
@@ -237,15 +237,15 @@ class ItemStack:
     def __lt__(self, other):
         if other is None:
             return True
-        return self.item.getItemName() < other.item.getItemName()
+        return self.item.getRegistryName() < other.item.getRegistryName()
 
     def __gt__(self, other):
         if other is None:
             return False
-        return self.item.getItemName() > other.item.getItemName()
+        return self.item.getRegistryName() > other.item.getRegistryName()
 
     def __str__(self):
-        return 'ItemStack(item="{}", stackSize="{}")'.format(self.getItemName(), self.stackSize)
+        return 'ItemStack(item="{}", stackSize="{}")'.format(self.getRegistryName(), self.stackSize)
 
     @staticmethod
     def fromBytes(game, bytes):
@@ -267,8 +267,8 @@ class ItemStack:
     def getItem(self):
         return self.item
 
-    def getItemName(self):
-        return self.getItem().getItemName()
+    def getRegistryName(self):
+        return self.getItem().getRegistryName()
 
     def getMaxStackSize(self):
         return self.item.getMaxStackSize()
