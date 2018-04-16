@@ -216,7 +216,7 @@ class Item:
         return itemName.encode()+image.encode()+className.encode()
 
     def fromBytes(itemClasses, resources, data):
-        itemName, image, className = [data[a:a+32].strip() for a in range(0, len(data), 32)]
+        itemName, image, className = [data[a:a+32].decode().strip() for a in range(0, len(data), 32)]
 
         # Iterate the possible classes and look for the matching item class
         for itemClass in itemClasses:

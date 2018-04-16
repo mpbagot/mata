@@ -84,10 +84,10 @@ class WorldMP:
         Spawn a new entity instance into the world
         Return whether successful or not
         '''
-        if not isinstance(entity, EntityBase) or not isinstance(entity.uuid, str):
+        if not isinstance(entity, EntityBase):
             print('[WARNING] Invalid entity. Did you forget to set the UUID?')
             return False
-        elif not entity.uuid.isnumeric() and not entity.uuid[1:].isnumeric():
+        elif not isinstance(entity.uuid, int):
             print('[WARNING] Invalid entity UUID. You forgot to run getUUIDForEntity in ModLoader')
             return False
         if objType == 'entity':
@@ -145,7 +145,7 @@ class WorldMP:
         playerData = str([p.toBytes() for p in self.players])
         entityData = str([e.toBytes() for e in self.entities])
         vehicleData = str([v.toBytes() for v in self.vehicles])
-        return '{}$$${}$$${}'.format(playerData, entityData, vehicleData).replace('"', "'''").encode()
+        return '{}$$${}$$${}'.format(playerData, entityData, vehicleData).encode()
 
     def handleUpdate(self, updateBytes, game):
         '''

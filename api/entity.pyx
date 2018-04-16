@@ -22,6 +22,12 @@ class EntityBase:
 
         self.ridingEntity = None
 
+    def getPos(self):
+        '''
+        Get the position of the entity, rounded to 2 decimal places
+        '''
+        return [round(self.pos[0], 2), round(self.pos[1], 2)]
+
     def getSpeed(self, game):
         '''
         Get the movement speed of this entity
@@ -90,12 +96,6 @@ class Player(EntityBase):
         '''
         self.pos = list(pos)
 
-    def getPos(self):
-        '''
-        Get the position of the player, rounded to 2 decimal places
-        '''
-        return [round(self.pos[0], 2), round(self.pos[1], 2)]
-
     def switchDimension(self, dimension, game):
         '''
         Switch the current dimension for this player
@@ -120,23 +120,53 @@ class Player(EntityBase):
         '''
         Get a string representation of the player object
         '''
-        return (str([self.name, self.getPos(), self.health, str(self.tickDamage), self.dimension]).replace(', ', ',')).encode()
+        name = len(self.name).to_bytes(1, 'big')+self.name.encode()
+        pos = str(self.getPos()).encode()
+        hp = self.health.to_bytes(4, 'big')
+        dimension = self.dimension.to_bytes(2, 'big')
+
+        damage = self.tickDamage.toBytes() if isinstance(self.tickDamage, Damage) else NullDamage().toBytes()
+
+        return name + pos + hp + dimension + damage
 
     @staticmethod
     def fromBytes(data):
         '''
         Get a player object from a string representation
         '''
-        uname, pos, health, damage, dimension = eval(data.decode())
+        nameLength = data[0]
+        name = data[1:nameLength+1].decode().strip()
+        data = data[1+nameLength:]
+
+        # Walk the string to find the position value, because we can't just dump float data into the stream -_-
+        posBuf = ''
+        for character in data:
+            posBuf += chr(character)
+            if character == ord(']'):
+                break
+        # Eval it into an array
+        pos = eval(posBuf)
+        data = data[len(posBuf):]
+
+        health = int.from_bytes(data[:4], 'big')
+        dimension = int.from_bytes(data[4:6], 'big')
+        data = data[6:]
+
+        damAmount = data[:3]
+        damType = data[3]
+        damLength = data[4]
+        damSource = data[5:5+damLength]
+        data = data[5+damLength:]
+        damage = Damage.fromBytes(damType, damSource, damAmount)
+
+        # Restore all the sent values into a new player object
         p = Player()
-        p.name = uname
+        p.name = name
         p.pos = pos
         p.health = health
         p.dimension = dimension
-        if damage:
-            p.tickDamage = Damage.fromBytes(damage.encode())
-        else:
-            p.tickDamage = None
+        p.tickDamage = damage
+
         return p
 
 class Entity(EntityBase):
@@ -175,15 +205,55 @@ class Entity(EntityBase):
         self.image = image
 
     def toBytes(self):
-        return (str([self.__class__.__name__, self.name, self.uuid, self.pos, self.health, str(self.tickDamage)]).replace(', ', ',')).encode()
+        name = len(self.name).to_bytes(1, 'big') + self.name.encode()
+        uuid = self.uuid.to_bytes(8, 'big')
+        pos = str(self.getPos()).encode()
+        hp = self.health.to_bytes(4, 'big')
+        dimension = self.dimension.to_bytes(2, 'big')
+
+        damage = self.tickDamage.toBytes() if isinstance(self.tickDamage, Damage) else NullDamage().toBytes()
+
+        return name + uuid + pos + hp + dimension + damage + self.__class__.__name__.encode()
 
     @staticmethod
-    def fromBytes(eBytes, entityClassList):
-        entityClass, *entityProps = eval(eBytes)
+    def fromBytes(data, entityClassList):
+        nameLength = data[0]
+        name = data[1:nameLength+1].decode().strip()
+        data = data[nameLength+1:]
+
+        uuid = int.from_bytes(data[:8], 'big')
+        data = data[8:]
+
+        # Walk the string to find the position value, because we can't just dump float data into the stream -_-
+        posBuf = ''
+        for character in data:
+            posBuf += chr(character)
+            if character == ord(']'):
+                break
+        # Eval it into an array
+        pos = eval(posBuf)
+        data = data[len(posBuf):]
+
+        health = int.from_bytes(data[:4], 'big')
+        dimension = int.from_bytes(data[4:6], 'big')
+        data = data[6:]
+
+        damAmount = data[:3]
+        damType = data[3]
+        damLength = data[4]
+        damSource = data[5:5+damLength]
+        data = data[5+damLength:]
+        damage = Damage.fromBytes(damType, damSource, damAmount)
+
+        entityClass = data.decode().strip()
+
+        # Create the entity and fill in its information
         finalEntity = entityClassList.get(entityClass, Entity)()
 
-        finalEntity.setRegistryName(entityProps[0])
-        finalEntity.uuid, finalEntity.pos, finalEntity.health, finalEntity.tickDamage = entityProps[1:]
+        finalEntity.setRegistryName(name)
+        finalEntity.uuid, finalEntity.pos = uuid, pos
+        finalEntity.health, finalEntity.dimension = health, dimension
+        finalEntity.tickDamage = damage
 
         return finalEntity
 
@@ -208,6 +278,28 @@ class Damage:
         except AttributeError:
             return False
 
+    def toBytes(self):
+        if isinstance(self.source, int):
+            sourceData = b'u' + b'\x08' + self.source.to_bytes(8, 'big')
+        else:
+            length = len(self.source).to_bytes(1, 'big')
+            sourceData = b'n' + length + self.source.encode()
+        return self.amount.to_bytes(3, 'big') + sourceData
+
     @staticmethod
-    def fromBytes(data):
-        return Damage(0, None)
+    def fromBytes(type, source, amount):
+        amount = int.from_bytes(amount, 'big')
+
+        if amount == 0:
+            return NullDamage()
+
+        if type == ord('n'):
+            sourceData = source.decode()
+        else:
+            sourceData = int.from_bytes(source, 'big')
+
+        return Damage(amount, sourceData)
+
+class NullDamage(Damage):
+    def __init__(self):
+        super().__init__(0, '')
