@@ -149,6 +149,7 @@ def onDisconnect(game, message):
         # Show the message
         game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, message[12:])
 
+    game.player = Player()
     # Close the connection in the packetPipeline(s)
     game.packetPipeline.closeConnection()
     game.getModInstance('ClientMod').packetPipeline.closeConnection()

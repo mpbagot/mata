@@ -117,6 +117,16 @@ def onDisconnect(game, username):
     Print a little message in the server console
     '''
     print('Client player "' + username + '" has disconnected')
+
+    player = game.getPlayer(username)
+    # Unmount the player
+    if player.ridingEntity:
+        vehicle = game.getVehicle(player.ridingEntity)
+        if vehicle:
+            vehicle.unmountRider(player)
+        player.ridingEntity = None
+    # TODO Move the player out of danger. Somehow...
+
     game.packetPipeline.closeConnection(username)
     game.getModInstance('ServerMod').packetPipeline.closeConnection(username)
 
