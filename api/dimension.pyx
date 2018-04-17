@@ -140,45 +140,44 @@ class WorldMP:
         '''
         Return a list of entities within a given distance from a given position
         '''
-        # REMEMBER: 0 distance means all entities
-        if distance == 0:
-            return self.entities
+        return self.getObjectsNear(pos, distance, self.entities)
 
-        closeEntities = []
-        for e in self.entities:
-            x, y = [e.pos[0]-pos[0], e.pos[1]-pos[1]]
-            dist = (x**2 + y**2)**0.5
-            if dist <= distance:
-                closeEntities.append(e)
-
-        return closeEntities
+    def getVehiclesNear(self, pos, distance):
+        '''
+        Return a list of vehicles within a given distance from a given position
+        '''
+        return self.getObjectsNear(pos, distance, self.vehicles)
 
     def getPlayersNear(self, pos, distance):
         '''
         Return a list of players within a given distance from a given position
         '''
+        return self.getObjectsNear(pos, distance, self.players)
+
+    def getObjectsNear(self, pos, distance, objects):
+        '''
+        Return a a subset of the given objects within a given distance from a given position
+        '''
         # REMEMBER: 0 distance means all players
         if distance == 0:
-            return self.players
+            return objects
 
-        closePlayers = []
-        for e in self.players:
+        closeObjects = []
+        for e in objects:
             x, y = [e.pos[0]-pos[0], e.pos[1]-pos[1]]
             dist = (x**2 + y**2)**0.5
             if dist <= distance:
-                closePlayers.append(e)
+                closeObjects.append(e)
 
-        return closePlayers
+        return closeObjects
 
     def getUpdateData(self, player):
         '''
         Collate the update data into a bytes object
         '''
-        # TODO clip the data based on the user
-        # TODO Figure out a better protocol, because this one sucks!
         playerData = str([p.toBytes() for p in self.getPlayersNear(player.pos, 30)])
         entityData = str([e.toBytes() for e in self.getEntitiesNear(player.pos, 30)])
-        vehicleData = str([v.toBytes() for v in self.vehicles])
+        vehicleData = str([v.toBytes() for v in self.getVehiclesNear(player.pos, 30)])
         return '{}$$${}$$${}'.format(playerData, entityData, vehicleData).encode()
 
     def handleUpdate(self, updateBytes, game):
