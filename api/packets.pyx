@@ -86,7 +86,7 @@ class SetupClientPacket(Packet):
         game.fireEvent('onPlayerLogin', game.player)
 
 class ResetPlayerPacket(Packet):
-    def __init__(self, player='', currentPlayer='' ,pos=True, hp=True, dimension=True):
+    def __init__(self, player='', currentPlayer='' , pos=True, hp=True, dimension=True):
         self.player = player
         if not pos:
             self.player.pos = currentPlayer.pos
@@ -127,6 +127,8 @@ class SyncPlayerPacket(Packet):
 
         playerList = game.getWorld(self.player.dimension)
         serverPlayer = game.getPlayer(self.player.name)
+        if serverPlayer is None:
+            return
 
         # Get the deltaTime, and deltaTicks since last synchronisation
         if isinstance(serverPlayer.synced, datetime):
@@ -157,7 +159,6 @@ class SyncPlayerPacket(Packet):
         # Sync the player object on the server
         serverPlayer.setPos(self.player.pos)
         serverPlayer.dimension = self.player.dimension
-        serverPlayer.health = self.player.health
 
 class MountPacket(Packet):
     def __init__(self, vehicle=None, player=None):
@@ -253,8 +254,10 @@ class AttackPacket(Packet):
     def __init__(self, player=None, weapon=None):
         if isinstance(player, str):
             self.player = player
-        else:
+        elif player != None:
             self.player = player.name
+        else:
+            self.player = None
 
         self.weapon = weapon
 
@@ -265,12 +268,14 @@ class AttackPacket(Packet):
 
     def fromBytes(self, data):
         length = data[0]
-        self.player = data[1:length+1]
-        data = data[length+1:]
-        self.weapon = Weapon.fromBytes(data)
+        self.player = data[1:length+1].decode()
+        self.weapon = data[length+1:]
 
     def onReceive(self, connection, side, game):
+      # Decode the player and weapon data
         self.player = game.getPlayer(self.player)
+        gameRegistry = game.modLoader.gameRegistry
+        self.weapon = Weapon.fromBytes(gameRegistry.items.values(), gameRegistry.resources, self.weapon)
 
         # If the weapon isn't in their (correct) server-side inventory, just stop processing
         if not self.player.inventory.checkWeapon(self.weapon):
@@ -281,26 +286,28 @@ class AttackPacket(Packet):
 
         # Find the entities within the weapon's range
         entitiesInRange = game.getWorld(self.player.dimension).getEntitiesNear(self.player.pos, self.weapon.range)
+        players = game.getWorld(self.player.dimension).getPlayersNear(self.player.pos, self.weapon.range)
+        players = [a for a in players if a.name != self.player.name]
+        entitiesInRange += players
 
         # Then only keep those within the weapon's attack arc
         entitiesInArc = []
         for e in entitiesInRange:
             eTheta = util.calcDirection(e.pos, self.player.pos)
-            if abs(theta-eTheta) < self.weapon.spread:
-                # Store entity, and knockback falloff
-                falloff = (1-(abs(theta-eTheta)/self.weapon.spread)**2)**(1/7)
-                entitiesInArc.append((e, falloff))
+            if abs(theta-eTheta) >= self.weapon.spread:
+                continue
 
-        for e, falloff in entitiesInArc:
-            eTheta = util.calcDirection(e.pos, self.player.pos)
+            # Store entity, and knockback falloff
+            falloff = (1-(abs(theta-eTheta)/self.weapon.spread)**2)**(1/7)
 
             # Calculate and apply the knockback
             knockback = random.randint(0, self.weapon.knockback) * falloff
-            deltaX = knockback * math.sin(eTheta)
-            deltaY = knockback * math.cos(eTheta)
+            deltaX = knockback * math.sin(eTheta*math.pi)
+            deltaY = knockback * math.cos(eTheta*math.pi)
 
             pos = [e.pos[0]+deltaX, e.pos[1]+deltaY]
             e.setPos(pos)
+            entitiesInArc.append(e)
 
         # Calculate and set the tickDamage value
         self.weapon.calcDamage(game, self.player.name, entitiesInArc)
