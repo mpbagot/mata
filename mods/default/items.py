@@ -27,3 +27,16 @@ class Sword(Weapon):
         self.range = combat.MELEE
         self.damageClass = combat.NORMAL
         self.knockback = combat.KNOCK_STRONG
+
+class Teeth(Weapon):
+    '''
+    An unobtainable weapon used for entity attack calculations
+    '''
+    def __init__(self, resources):
+        super().__init__(resources)
+        self.setRegistryName('Teeth Weapon')
+        self.attack = 5
+        self.spread = combat.FULL_ARC
+        self.range = combat.MELEE
+        self.damageClass = combat.LIFE
+        self.knockback = combat.KNOCK_NONE
