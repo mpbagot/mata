@@ -20,7 +20,8 @@ def onGameMouseClick(game, mousePos, event):
     Handle a mouse click on vehicles, players and entities
     '''
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
-        if pygame.mouse.get_pressed()[0]:
+        pressed = pygame.mouse.get_pressed()
+        if pressed[0]:
             # Attack button (LMB) was pressed
             # Perform an attack
             weapons = [stack.getItem() for stack in game.player.inventory.getEquipped()[:2]]
@@ -40,7 +41,7 @@ def onGameMouseClick(game, mousePos, event):
                         pass
 
         # Interaction button (RMB) was pressed
-        elif pygame.mouse.get_pressed()[1]:
+        elif pressed[2]:
             screen = game.getGui()[1].screen
 
             w = screen.get_width()
@@ -176,9 +177,9 @@ def onDisconnect(game, message):
     Event Hook: onDisconnect
     Handle the opening of the disconnected screen when the client disconnects
     '''
-    if message.startswith('show_screen'):
+    if message:
         # Show the message
-        game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, message[12:])
+        game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, message)
 
     game.player = Player()
     # Close the connection in the packetPipeline(s)

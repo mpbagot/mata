@@ -324,18 +324,15 @@ class InvalidLoginPacket(Packet):
 
 class DisconnectPacket(Packet):
     def __init__(self, message='null'):
-        self.message = ''
-        if message != 'null':
-            self.message += 'show_screen|'
-        self.message += message
+        self.message = message
 
     def toBytes(self, buf):
         buf.write(self.message.encode())
 
     def fromBytes(self, data):
         self.message = data.decode()
-        if self.message.endswith('null'):
-            self.message = self.message[:-4]
+        if self.message == 'null':
+            self.message = ''
 
     def onReceive(self, connection, side, game):
         if side == util.SERVER:

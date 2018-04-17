@@ -49,7 +49,9 @@ class HUD(Overlay):
 
         # Generate a smaller font object
         font = pygame.font.Font('resources/font/main.ttf', 12)
-        text = font.render('Level: '+str(self.game.player.level), True, (255, 255, 255))
+        # Calculate and render the player level
+        playerLevel = int(self.game.player.exp**0.5)+1
+        text = font.render('Level: '+str(playerLevel), True, (255, 255, 255))
         self.screen.blit(text, scaleRect([744, 670], self.screen))
 
 class Pause(Overlay):
