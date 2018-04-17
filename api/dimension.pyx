@@ -78,7 +78,7 @@ class WorldMP:
         '''
         return bool(self._world)
 
-    def spawnEntityInWorld(self, entity, objType='entity'):
+    def spawnEntityInWorld(self, entity):
         '''
         Spawn a new entity instance into the world
         Return whether successful or not
@@ -89,10 +89,10 @@ class WorldMP:
         elif not isinstance(entity.uuid, int):
             print('[WARNING] Invalid entity UUID. You forgot to run getUUIDForEntity in ModLoader')
             return False
-        if objType == 'entity':
-            self.entities.append(entity)
-        elif objType == 'vehicle':
+        if isinstance(entity, Vehicle):
             self.vehicles.append(entity)
+        else:
+            self.entities.append(entity)
         return True
 
     def tickUpdate(self, game):
@@ -113,6 +113,7 @@ class WorldMP:
             elif self.entities[e].tickDamage:
                 # Trigger on Entity Damaged events
                 game.fireEvent('onEntityDamage', self.entities[e], self.entities[e].tickDamage)
+                self.entities[e].tickDamage = None
 
         # Loop through the vehicles and update them
         for v in range(len(self.vehicles)):
@@ -129,10 +130,11 @@ class WorldMP:
         for p in range(len(self.players)):
             if self.players[p].isDead:
                 # If the player has died, fire an onDeath event
-                game.fireEvent('onPlayerDeath', self.players[p])
+                game.fireEvent('onPlayerDeath', self.players.pop(p))
             elif self.players[p].tickDamage:
                 # Trigger on Player Damaged events
                 game.fireEvent('onPlayerDamage', self.players[p], self.players[p].tickDamage)
+                self.players[p].tickDamage = None
 
     def getEntitiesNear(self, pos, distance):
         '''
