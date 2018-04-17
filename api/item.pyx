@@ -396,7 +396,7 @@ class Weapon(Item):
 
             if isinstance(entity, Player):
                 game.getPlayer(entity.name).tickDamage = Damage(damage, source)
-                game.packetPipeline.sendToPlayer(ResetPlayerPacket(entity), entity.name)
+                game.packetPipeline.sendToPlayer(ResetPlayerPacket(entity, bits=2), entity.name)
 
             elif isinstance(entity, Entity):
                 game.getEntity(entity.uuid).tickDamage = Damage(damage, source)

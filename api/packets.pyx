@@ -86,27 +86,32 @@ class SetupClientPacket(Packet):
         game.fireEvent('onPlayerLogin', game.player)
 
 class ResetPlayerPacket(Packet):
-    def __init__(self, player='', currentPlayer='' , pos=True, hp=True, dimension=True):
+    def __init__(self, player='', pos=True, hp=True, dimension=True, exp=True, bits=0):
         self.player = player
-        if not pos:
-            self.player.pos = currentPlayer.pos
-        if not hp:
-            self.player.health = currentPlayer.health
-        if not dimension:
-            self.player.dimension = currentPlayer.dimension
+        if bits:
+            self.bits = bits
+            return
+        pos, hp, dimension, exp = int(pos), int(hp)*2, int(dimension)*4, int(exp)*8
+        self.bits = pos | hp | dimension | exp
 
     def toBytes(self, buf):
-        buf.write(self.player.toBytes())
+        buf.write(self.bits.to_bytes(1, 'big') + self.player.toBytes())
 
     def fromBytes(self, data):
-        playerData = data
+        self.bits = data[0]
+        playerData = data[1:]
         self.player = Player.fromBytes(playerData)
 
     def onReceive(self, connection, side, game):
         # Sync the player object on the client
-        game.player.pos = self.player.pos
-        game.player.health = self.player.health
-        game.player.dimension = self.player.dimension
+        if self.bits & 1:
+            game.player.pos = self.player.pos
+        if self.bits & 2:
+            game.player.health = self.player.health
+        if self.bits & 4:
+            game.player.dimension = self.player.dimension
+        if self.bits & 8:
+            game.player.exp = self.player.exp
 
 class SyncPlayerPacket(Packet):
     def __init__(self, player=''):
@@ -147,7 +152,7 @@ class SyncPlayerPacket(Packet):
 
         if self.player.dimension != serverPlayer.dimension:
             # TODO check if it's possible for the dimension shift to have occured
-            return ResetPlayerPacket(serverPlayer, self.player, pos=False)
+            return ResetPlayerPacket(serverPlayer, bits=4)
 
         # If the player has clipped into a plant, reset their position
         world = game.modLoader.gameRegistry.dimensions[self.player.dimension].getWorldObj()
