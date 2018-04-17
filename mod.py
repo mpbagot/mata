@@ -6,6 +6,7 @@ Module containing the Mod loading and Mod API code for the game
 import os
 
 from api.cmd import FailedCommand, MessageCommand
+from api.entity import Pickup
 
 class ModLoader:
     def __init__(self, game):
@@ -73,7 +74,9 @@ class ModLoader:
 
 class GameRegistry:
     def __init__(self):
-        self.entities = {}
+        self.entities = {
+                         'Pickup' : Pickup,
+                        }
         self.items = {}
         self.guis = {}
         self.dimensions = {}

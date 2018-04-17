@@ -1,9 +1,7 @@
-from api.item import Inventory
-from api.ai import AIHandler
+from api.item import *
+from api.ai import AIHandler, PickupAITask
 
 import util
-
-from copy import deepcopy
 
 class EntityBase:
     def __init__(self):
@@ -258,6 +256,23 @@ class Entity(EntityBase):
         finalEntity.tickDamage = damage
 
         return finalEntity
+
+class Pickup(Entity):
+    def __init__(self):
+        super().__init__(self)
+        self.health = 2**31
+        self.setRegistryName('Pickup')
+        self.aiHandler.registerAITask(PickupAITask(self), 0)
+        self.stack = None
+
+    def setItemstack(self, stack):
+        if not isinstance(item, ItemStack):
+            print('[WARNING] Invalid item being set for pickup')
+        self.setImage(stack.getItem().image)
+        self.stack = stack
+
+    def getItem(self):
+        return self.stack
 
 class Damage:
     '''
