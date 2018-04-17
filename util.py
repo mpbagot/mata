@@ -3,6 +3,7 @@ Util module
 This module contains miscellaneous classes and constants that are used by the game engine
 '''
 import pygame
+import math
 
 SERVER = 0
 CLIENT = 1
@@ -22,6 +23,15 @@ def calcChecksum(data):
     for a in range(len(data)):
         checksum += data[a]
     return checksum.to_bytes(3, 'big')
+
+def calcDirection(pos1, pos2):
+    '''
+    Calculate a direction between two positions
+    pos1 is current position
+    pos2 is previous position
+    '''
+    theta = math.atan2(pos1[0]-pos2[0], pos1[1]-pos2[1])/math.pi
+    return theta
 
 class ArgumentHandler:
     '''
