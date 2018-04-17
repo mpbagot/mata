@@ -105,14 +105,15 @@ class WorldMP:
         for e in range(len(self.entities)):
             self.entities[e].aiHandler.runAITick(game)
             game.fireEvent('onEntityUpdate', self.entities[e])
+            if self.entities[e].tickDamage:
+                # Trigger on Entity Damaged events
+                game.fireEvent('onEntityDamage', self.entities[e], self.entities[e].tickDamage)
             # If they die, delete them, and trigger events
             if self.entities[e].isDead:
                 entityBackup = self.entities.pop(e)
                 # Trigger on Entity Death events
                 game.fireEvent('onEntityDeath', entityBackup, entityBackup.tickDamage)
-            elif self.entities[e].tickDamage:
-                # Trigger on Entity Damaged events
-                game.fireEvent('onEntityDamage', self.entities[e], self.entities[e].tickDamage)
+            else:
                 self.entities[e].tickDamage = None
 
         # Loop through the vehicles and update them
@@ -128,12 +129,14 @@ class WorldMP:
 
         # Loop through the players and update them
         for p in range(len(self.players)):
-            if self.players[p].isDead:
-                # If the player has died, fire an onDeath event
-                game.fireEvent('onPlayerDeath', self.players.pop(p))
-            elif self.players[p].tickDamage:
+            if self.players[p].tickDamage:
                 # Trigger on Player Damaged events
                 game.fireEvent('onPlayerDamage', self.players[p], self.players[p].tickDamage)
+            if self.players[p].isDead:
+                playerBackup = self.players.pop(p)
+                # If the player has died, fire an onDeath event
+                game.fireEvent('onPlayerDeath', playerBackup, playerBackup.tickDamage)
+            else:
                 self.players[p].tickDamage = None
 
     def getEntitiesNear(self, pos, distance):
