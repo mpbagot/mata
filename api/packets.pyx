@@ -2,11 +2,14 @@ from api.entity import Player
 from api.vehicle import Vehicle
 from api.dimension import WorldMP
 from api.biome import TileMap
+from api.item import Weapon
 
 import util
 
 from datetime import datetime
+import random
 import time
+import math
 
 class Packet:
     def toBytes(self, buf):
@@ -152,7 +155,7 @@ class SyncPlayerPacket(Packet):
         #     return ResetPlayerPacket(serverPlayer)
 
         # Sync the player object on the server
-        serverPlayer.pos = self.player.pos
+        serverPlayer.setPos(self.player.pos)
         serverPlayer.dimension = self.player.dimension
         serverPlayer.health = self.player.health
 
@@ -216,12 +219,12 @@ class MountPacket(Packet):
                 game.fireEvent('onPlayerMount', self.player, self.entity, success, 'dismount')
 
 class WorldUpdatePacket(Packet):
-    def __init__(self, world=None, username=''):
+    def __init__(self, world=None, player=None):
         self.world = world
-        self.username = username
+        self.player = player
 
     def toBytes(self, buf):
-        buf.write(self.world.getUpdateData(self.username))
+        buf.write(self.world.getUpdateData(self.player))
 
     def fromBytes(self, data):
         self.world = data
@@ -245,6 +248,62 @@ class SendCommandPacket(Packet):
         if self.text[0] != '/':
             self.text = '/message global '+self.text
         game.fireCommand(self.text, connection.username)
+
+class AttackPacket(Packet):
+    def __init__(self, player=None, weapon=None):
+        if isinstance(player, str):
+            self.player = player
+        else:
+            self.player = player.name
+
+        self.weapon = weapon
+
+    def toBytes(self, buf):
+        length = len(self.player).to_bytes(1, 'big')
+        buf.write(length+self.player.encode())
+        buf.write(self.weapon.toBytes())
+
+    def fromBytes(self, data):
+        length = data[0]
+        self.player = data[1:length+1]
+        data = data[length+1:]
+        self.weapon = Weapon.fromBytes(data)
+
+    def onReceive(self, connection, side, game):
+        self.player = game.getPlayer(self.player)
+
+        # If the weapon isn't in their (correct) server-side inventory, just stop processing
+        if not self.player.inventory.checkWeapon(self.weapon):
+            return
+
+        # Calculate the direction the player is facing
+        theta = util.calcDirection(self.player.pos, self.player.lastPos)
+
+        # Find the entities within the weapon's range
+        entitiesInRange = game.getWorld(self.player.dimension).getEntitiesNear(self.player.pos, self.weapon.range)
+
+        # Then only keep those within the weapon's attack arc
+        entitiesInArc = []
+        for e in entitiesInRange:
+            eTheta = util.calcDirection(e.pos, self.player.pos)
+            if abs(theta-eTheta) < self.weapon.spread:
+                # Store entity, and knockback falloff
+                falloff = (1-(abs(theta-eTheta)/self.weapon.spread)**2)**(1/7)
+                entitiesInArc.append((e, falloff))
+
+        for e, falloff in entitiesInArc:
+            eTheta = util.calcDirection(e.pos, self.player.pos)
+
+            # Calculate and apply the knockback
+            knockback = random.randint(0, self.weapon.knockback) * falloff
+            deltaX = knockback * math.sin(eTheta)
+            deltaY = knockback * math.cos(eTheta)
+
+            pos = [e.pos[0]+deltaX, e.pos[1]+deltaY]
+            e.setPos(pos)
+
+        # Calculate and set the tickDamage value
+        self.weapon.calcDamage(game, self.player.name, entitiesInArc)
 
 class InvalidLoginPacket(Packet):
     def toBytes(self, buf):

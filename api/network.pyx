@@ -26,7 +26,7 @@ class PacketHandler:
                             DisconnectPacket, SyncPlayerPacket,
                             ResetPlayerPacket, InvalidLoginPacket,
                             SetupClientPacket, SendCommandPacket,
-                            MountPacket
+                            MountPacket, AttackPacket
                            ]
 
         self.socket = socket.socket()
