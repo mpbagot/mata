@@ -72,7 +72,6 @@ class Player(EntityBase):
     '''
     def __init__(self):
         super().__init__()
-        self.level = 1
         self.exp = 0
         self.img = []
         self.inventory = Inventory()
