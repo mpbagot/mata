@@ -31,6 +31,10 @@ class HUD(Overlay):
                          ]
 
     def drawBackgroundLayer(self):
+        # Update the bar percentages
+        self.bars[0].percentage = self.game.player.health
+        self.bars[1].percentage = self.game.player.exp
+
         # Draw the background rectangle
         pygame.draw.rect(self.screen, (173, 144, 106), scaleRect([654, 620, 400, 150], self.screen))
         pygame.draw.rect(self.screen, (65, 55, 40), scaleRect([654, 620, 400, 150], self.screen), 4)
