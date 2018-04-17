@@ -122,11 +122,12 @@ class Player(EntityBase):
         name = len(self.name).to_bytes(1, 'big')+self.name.encode()
         pos = str(self.getPos()).encode()
         hp = self.health.to_bytes(4, 'big')
+        exp = self.exp.to_bytes(4, 'big')
         dimension = self.dimension.to_bytes(2, 'big')
 
         damage = self.tickDamage.toBytes() if isinstance(self.tickDamage, Damage) else NullDamage().toBytes()
 
-        return name + pos + hp + dimension + damage
+        return name + pos + hp + exp + dimension + damage
 
     @staticmethod
     def fromBytes(data):
@@ -148,7 +149,8 @@ class Player(EntityBase):
         data = data[len(posBuf):]
 
         health = int.from_bytes(data[:4], 'big')
-        dimension = int.from_bytes(data[4:6], 'big')
+        exp = int.from_bytes(data[4:8], 'big')
+        dimension = int.from_bytes(data[8:10], 'big')
         data = data[6:]
 
         damAmount = data[:3]
@@ -163,6 +165,7 @@ class Player(EntityBase):
         p.name = name
         p.pos = pos
         p.health = health
+        p.exp = exp
         p.dimension = dimension
         p.tickDamage = damage
 
