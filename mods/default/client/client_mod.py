@@ -36,20 +36,32 @@ class ClientMod(Mod):
         # Register the tile images
         images = ['gravel', 'grass', 'dirt', 'road', 'sand', 'water']
         for i in images:
-            img = pygame.image.load('resources/textures/mods/tiles/'+i+'.png').convert()
-            self.gameRegistry.registerResource('tile_'+i, img)
+            img = pygame.image.load('resources/textures/mods/tiles/' + i + '.png').convert()
+            self.gameRegistry.registerResource('tile_' + i, img)
 
         # Register the entity images
         images = ['bear']
         for i in images:
-            img = pygame.image.load('resources/textures/mods/entity/'+i+'.png').convert_alpha()
-            self.gameRegistry.registerResource('entity_'+i, img)
+            img = pygame.image.load('resources/textures/mods/entity/' + i + '.png').convert_alpha()
+            self.gameRegistry.registerResource('entity_' + i, img)
 
         # Register the vehicle images
         images = ['horse']
         for i in images:
-            img = pygame.image.load('resources/textures/mods/entity/'+i+'.png').convert_alpha()
-            self.gameRegistry.registerResource('vehicle_'+i, img)
+            img = pygame.image.load('resources/textures/mods/entity/' + i + '.png').convert_alpha()
+            self.gameRegistry.registerResource('vehicle_' + i, img)
+
+        # Register weapon images
+        images = ['steel_sword']
+        for i in images:
+            img = pygame.image.load('resources/textures/mods/items/' + i + '.png'i).convert_alpha()
+            self.gameRegistry.registerResource('weapon_' + i, img)
+
+        # Register item images
+        images = []
+        for i in images:
+            img = pygame.image.load('resources/textures/mods/items/' + i + '.png'i).convert_alpha()
+            self.gameRegistry.registerResource('item_' + i, img)
 
     def load(self):
         # Initialise the packet pipeline
@@ -86,6 +98,7 @@ class ClientMod(Mod):
 
         # Register the items
         self.gameRegistry.registerItem(Dirt)
+        self.gameRegistry.registerItem(Sword)
 
     def postLoad(self):
         # Open the main menu on startup

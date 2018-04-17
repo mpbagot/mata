@@ -40,6 +40,7 @@ class ServerMod(Mod):
 
         # Register the items
         self.gameRegistry.registerItem(Dirt)
+        self.gameRegistry.registerItem(Sword)
 
     def postLoad(self):
         # Register the commands
@@ -77,7 +78,7 @@ def onTick(game, tick):
             if conn.username:
                 player = game.getPlayer(conn.username)
                 # Customise the packet for each player
-                packet = WorldUpdatePacket(game.getWorld(player.dimension), player.name)
+                packet = WorldUpdatePacket(game.getWorld(player.dimension), player)
                 pp.sendToPlayer(packet, conn.username)
 
 def onPlayerMount(game, player, entity, success, mode):
