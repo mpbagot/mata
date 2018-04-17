@@ -75,20 +75,22 @@ class ItemSlot:
         Draw the itemslot to a given screen
         '''
         self.pos = scaleRect(self.defaultPos, screen)
+        self.pos[1] += 1
 
         # Draw the border of the itemslot
         self.button.draw(screen, [0, 0])
 
         # Draw the item image
+        imageSize = [self.button.rect[2]-5 for a in range(2)]
         if self.itemImage:
-            imgRect = screen.blit(self.itemImage, self.pos)
+            imgRect = screen.blit(pygame.transform.scale(self.itemImage, imageSize), self.pos)
 
         if self.button.isHovered(mousePos):
             # Draw a semi transparent square over the itemslot
-            square = pygame.Surface([self.button.rect[2]+1 for a in range(2)])
+            square = pygame.Surface(imageSize)
             square.set_alpha(128)
             square.fill((0, 0, 0))
-            screen.blit(square, [a-3 for a in self.pos])
+            screen.blit(square, self.pos)#[a-3 for a in self.pos])
 
 class Slider:
     def __init__(self, rect, colour):
