@@ -12,6 +12,7 @@ from mods.default.server.entity import bear
 from mods.default.server.vehicle import horse
 
 import util
+import random
 
 class ServerMod(Mod):
     modName = 'ServerMod'
@@ -57,8 +58,11 @@ class ServerMod(Mod):
         # Register the events
         self.gameRegistry.registerEventHandler(onTick, 'onTick')
         self.gameRegistry.registerEventHandler(onPlayerDeath, 'onPlayerDeath')
+        self.gameRegistry.registerEventHandler(onPlayerDeath, 'onEntityDeath')
         self.gameRegistry.registerEventHandler(onPlayerLogin, 'onPlayerLogin')
         self.gameRegistry.registerEventHandler(onPlayerMount, 'onPlayerMount')
+        self.gameRegistry.registerEventHandler(onEntityDamage, 'onEntityDamage')
+        self.gameRegistry.registerEventHandler(onEntityDamage, 'onPlayerDamage')
         self.gameRegistry.registerEventHandler(onDisconnect, 'onDisconnect')
 
 def onTick(game, tick):
@@ -103,13 +107,55 @@ def onPlayerDeath(game, player):
     pp = game.packetPipeline
     pp.sendToPlayer(DisconnectPacket('You have died'), player.name)
     game.fireEvent('onDisconnect', player.name)
+    game.fireCommand('System', '/message global Player {} has died.'.format(player.name))
+
+def onEntityDeath(game, entity, tickDamage):
+    '''
+    Event Hook: onEntityDeath
+    Drop gold and items
+    '''
+    world = game.getWorld(entity.dimension)
+    resources = game.modLoader.gameRegistry.resources
+    goldAmount = random.randint(0, int(sum(entity.pos)**0.5))
+
+    # Split the gold into several pieces
+    pieces = []
+    while goldAmount > 50:
+        pieces.append(ItemStack(Gold(resources), 50))
+        goldAmount -= 50
+    pieces.append(ItemStack(Gold(resources), goldAmount))
+
+    # Turn the itemstacks into Pickups and spawn them in the world
+    pieceEntities = [Pickup() for a in range(len(pieces))]
+    x, y = entity.pos
+    for p, piece in enumerate(pieceEntities):
+        pieceEntities[p].setItemstack(pieces[p])
+        pieceEntities[p].pos = [random.randint(x-3, x+3), random.randint(y-3, y+3)]
+        pieceEntities[p].uuid = game.modLoader.getUUIDForEntity(piece)
+        world.spawnEntityInWorld(pieceEntities[p])
+
+def onEntityDamage(game, entity, damage):
+    '''
+    Event Hook: onEntityDamage & onPlayerDamage
+    Subtract health from the entity according to the damage class
+    '''
+    entity.health -= damage.amount
+    if entity.health <= 0:
+        entity.isDead = True
+
+    if isinstance(entity, Player):
+        gameEntity = game.getPlayer(entity.name)
+    else:
+        gameEntity = game.getEntity(entity.uuid)
+    gameEntity.health = entity.health
+    gameEntity.isDead = entity.isDead
 
 def onPlayerLogin(game, player):
     '''
     Event Hook: onPlayerLogin
     Print a little message when a player connects
     '''
-    print(player.name + ' joined the server!')
+    print(player.name + ' joined the server.')
 
 def onDisconnect(game, username):
     '''
@@ -120,7 +166,7 @@ def onDisconnect(game, username):
 
     player = game.getPlayer(username)
     # Unmount the player
-    if player.ridingEntity:
+    if player and player.ridingEntity:
         vehicle = game.getVehicle(player.ridingEntity)
         if vehicle:
             vehicle.unmountRider(player)
@@ -164,6 +210,6 @@ class ConstructVehicleCommand(cmd.Command):
         try:
             newVehicle = self.game.modLoader.gameRegistry.vehicles[vehicleName]()
             newVehicle.uuid = self.game.modLoader.getUUIDForEntity(newVehicle)
-            self.game.getWorld(dimensionId).spawnEntityInWorld(newVehicle, 'vehicle')
+            self.game.getWorld(dimensionId).spawnEntityInWorld(newVehicle)
         except KeyError:
             print('[ERROR] Vehicle does not exist')
