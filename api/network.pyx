@@ -367,10 +367,8 @@ class PacketHandler:
         dim = player.dimension
 
         # Loop all players and find the distance to the given player
-        for p in self.game.getWorld(dim).players:
-            print(math.sqrt((p.pos[0]-pos[0])**2 + (p.pos[1]-pos[1])**2))
-            if math.sqrt((p.pos[0]-pos[0])**2 + (p.pos[1]-pos[1])**2) <= radius:
-                self.sendToPlayer(packet, p.name)
+        for p in self.game.getWorld(dim).getPlayersNear(pos, radius):
+            self.sendToPlayer(packet, p.name)
 
     def sendToPlayer(self, packet, username):
         '''

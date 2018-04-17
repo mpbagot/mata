@@ -3,7 +3,6 @@ from threading import Thread
 import random
 import time
 import noise
-from copy import deepcopy
 
 # Import the mod files
 from api.packets import *
@@ -104,12 +103,11 @@ class WorldMP:
         gameRegistry = game.modLoader.gameRegistry
         # Loop through the entities and update them
         for e in range(len(self.entities)):
-            self.entities[e].aiHandler.runAITick()
+            self.entities[e].aiHandler.runAITick(game)
             game.fireEvent('onEntityUpdate', self.entities[e])
             # If they die, delete them, and trigger events
             if self.entities[e].isDead:
-                entityBackup = self.entities[e]
-                del self.entities[e]
+                entityBackup = self.entities.pop(e)
                 # Trigger on Entity Death events
                 game.fireEvent('onEntityDeath', entityBackup, entityBackup.tickDamage)
             elif self.entities[e].tickDamage:
@@ -153,13 +151,30 @@ class WorldMP:
 
         return closeEntities
 
+    def getPlayersNear(self, pos, distance):
+        '''
+        Return a list of players within a given distance from a given position
+        '''
+        # REMEMBER: 0 distance means all players
+        if distance == 0:
+            return self.players
+
+        closePlayers = []
+        for e in self.players:
+            x, y = [e.pos[0]-pos[0], e.pos[1]-pos[1]]
+            dist = (x**2 + y**2)**0.5
+            if dist <= distance:
+                closePlayers.append(e)
+
+        return closePlayers
+
     def getUpdateData(self, player):
         '''
         Collate the update data into a bytes object
         '''
         # TODO clip the data based on the user
         # TODO Figure out a better protocol, because this one sucks!
-        playerData = str([p.toBytes() for p in self.players])
+        playerData = str([p.toBytes() for p in self.getPlayersNear(player.pos, 30)])
         entityData = str([e.toBytes() for e in self.getEntitiesNear(player.pos, 30)])
         vehicleData = str([v.toBytes() for v in self.vehicles])
         return '{}$$${}$$${}'.format(playerData, entityData, vehicleData).encode()
