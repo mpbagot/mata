@@ -89,7 +89,7 @@ class Vehicle(EntityBase):
         '''
         Update this vehicle
         '''
-        # TODO Update vehicle method with more logic
+        # Lock the vehicle to the driver and lock passengers to the vehicle
         if self.riders['driver'] is not None:
             self.pos = list(game.getPlayer(self.riders['driver']).pos)
         for ridername in self.riders['other']:

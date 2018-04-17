@@ -101,8 +101,11 @@ def onPlayerMount(game, player, entity, success, mode):
 def onPlayerDeath(game, player):
     '''
     Event Hook: onPlayerDeath
-    Close the connection to the client and
+    Close the connection to the client and drop the player's inventory
     '''
+    # TODO Drop the player's inventory on the ground
+
+
     # Close the connection to the client from the server
     pp = game.packetPipeline
     pp.sendToPlayer(DisconnectPacket('You have died'), player.name)

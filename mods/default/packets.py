@@ -28,9 +28,8 @@ class SendInventoryPacket(Packet):
         self.inventory = data
 
     def onReceive(self, connection, side, game):
+        # Decode and store the inventory in the client side player
         self.inventory = Inventory.fromBytes(game, self.inventory)
-        # TODO This is super dodgy, something else needs to be done with this inventory.
-        # Store the inventory in the client side player
         game.player.setInventory(self.inventory)
 
 class FetchPlayerImagePacket(Packet):
@@ -63,5 +62,4 @@ class SendPlayerImagePacket(Packet):
 
     def onReceive(self, connection, side, game):
         # Store the image data in the player object
-        # game.world.players[game.getPlayerIndex(self.playerName)].img = self.playerImg
         game.getPlayer(self.playerName).img = self.playerImg

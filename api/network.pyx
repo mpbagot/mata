@@ -465,7 +465,6 @@ class Connection:
 
                 elif isinstance(e, BrokenPipeError):
                     # The client is completely disconnected
-                    # TODO This error happens when the client tries to reconnect to the server
                     print('[WARNING] The Client Has Disconnected Badly. Clearing Connection...')
                     # Disconnect the client
                     self.connObj.close()

@@ -95,7 +95,7 @@ class Game:
                     if world.players:
                         world.tickUpdate(self)
                     elif (self.tick+d)%(5*util.FPS) == True:
-                        # TODO Fuzzy/slow logic if there are no players inside
+                        # Fuzzy/slow logic if there are no players inside
                         world.tickUpdate(self)
 
             # Trigger all of the onTick events
