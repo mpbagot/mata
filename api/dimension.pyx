@@ -101,7 +101,9 @@ class WorldMP:
         '''
         # Separate the Game Registry
         gameRegistry = game.modLoader.gameRegistry
+
         # Loop through the entities and update them
+        toRemove = []
         for e in range(len(self.entities)):
             self.entities[e].aiHandler.runAITick(game)
             game.fireEvent('onEntityUpdate', self.entities[e])
@@ -110,34 +112,47 @@ class WorldMP:
                 game.fireEvent('onEntityDamage', self.entities[e], self.entities[e].tickDamage)
             # If they die, delete them, and trigger events
             if self.entities[e].isDead:
-                entityBackup = self.entities.pop(e)
+                entityBackup = self.entities[e]
+                toRemove.append(e)
                 # Trigger on Entity Death events
                 game.fireEvent('onEntityDeath', entityBackup, entityBackup.tickDamage)
             else:
                 self.entities[e].tickDamage = None
+        # Remove the vehicles afterwards to prevent issues with list iteration
+        for a in toRemove[::-1]:
+            self.entities.pop(a)
 
         # Loop through the vehicles and update them
+        toRemove = []
         for v in range(len(self.vehicles)):
             self.vehicles[v].onVehicleUpdate(game)
             game.fireEvent('onVehicleUpdate', self.vehicles[v])
             # If they get destroyed, delete them, and trigger events
             if self.vehicles[v].isDestroyed:
                 vehicleBackup = self.vehicles[v]
-                del self.vehicles[v]
+                toRemove.append(v)
                 # Trigger on Vehicle Destruction events
                 game.fireEvent('onVehicleDestroyed', vehicleBackup)
+        # Remove the vehicles afterwards to prevent issues with list iteration
+        for a in toRemove[::-1]:
+            self.vehicles.pop(a)
 
         # Loop through the players and update them
+        toRemove = []
         for p in range(len(self.players)):
             if self.players[p].tickDamage:
                 # Trigger on Player Damaged events
                 game.fireEvent('onPlayerDamage', self.players[p], self.players[p].tickDamage)
             if self.players[p].isDead:
-                playerBackup = self.players.pop(p)
+                playerBackup = self.players[p]
+                toRemove.append(p)
                 # If the player has died, fire an onDeath event
                 game.fireEvent('onPlayerDeath', playerBackup, playerBackup.tickDamage)
             else:
                 self.players[p].tickDamage = None
+        # Remove the players afterwards to prevent issues with list iteration
+        for a in toRemove[::-1]:
+            self.players.pop(a)
 
     def getEntitiesNear(self, pos, distance):
         '''
