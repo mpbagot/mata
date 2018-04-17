@@ -13,6 +13,8 @@ from mods.default.server.vehicle import horse
 
 import util
 import random
+import math
+import time
 
 class ServerMod(Mod):
     modName = 'ServerMod'
@@ -98,13 +100,20 @@ def onPlayerMount(game, player, entity, success, mode):
         packet = ResetPlayerPacket(player)
         game.packetPipeline.sendToPlayer(packet, player.name)
 
-def onPlayerDeath(game, player):
+def onPlayerDeath(game, player, tickDamage):
     '''
     Event Hook: onPlayerDeath
     Close the connection to the client and drop the player's inventory
     '''
     # TODO Drop the player's inventory on the ground
 
+    if isinstance(tickDamage.source, str):
+        # Give experience points = enemy lvl**0.75 + 5. (lvl = exp**0.5)
+        xpToGive = int((player.exp**0.5+1)**(3/4)+5)
+        playerToGive = game.getPlayer(tickDamage.source)
+        if playerToGive:
+            playerToGive.exp += xpToGive
+            game.packetPipeline.sendToPlayer(ResetPlayerPacket(playerToGive, bits=8), playerToGive.name)
 
     # Close the connection to the client from the server
     pp = game.packetPipeline
@@ -117,6 +126,13 @@ def onEntityDeath(game, entity, tickDamage):
     Event Hook: onEntityDeath
     Drop gold and items
     '''
+    if isinstance(tickDamage.source, str):
+        # Give experience points = 1.5 * 4**(entity.hp/player.hp)
+        playerToGive = game.getPlayer(tickDamage.source)
+        if playerToGive:
+            xpToGive = int(1.5 * 4**(entity.health/playerToGive.health) + entity.health//20)
+            playerToGive.exp += xpToGive
+
     world = game.getWorld(entity.dimension)
     resources = game.modLoader.gameRegistry.resources
     goldAmount = random.randint(0, int(sum(entity.pos)**0.5))
