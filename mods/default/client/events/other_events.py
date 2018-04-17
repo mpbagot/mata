@@ -252,7 +252,9 @@ def onPlayerSync(game, player, oldPlayers):
 
             return
 
-    player.setProperty('worldUpdate', game.getModInstance('ClientMod').worldUpdateProperty)
+    prop = deepcopy(game.getModInstance('ClientMod').worldUpdateProperty)
+    prop.props['newPos'] = player.pos
+    player.setProperty('worldUpdate', prop)
     oldPlayers.append(player)
 
 def onEntitySync(game, entity, entities):
@@ -262,7 +264,7 @@ def onEntitySync(game, entity, entities):
     '''
     # If the player being updated is the client player, skip it
     for e in range(len(entities)):
-        if entities[e].uuid == entity.uuid:
+        if entities[e] == entity:
             # Update vanilla entity properties
             entities[e].health = entity.health
 
@@ -274,7 +276,9 @@ def onEntitySync(game, entity, entities):
 
             return
 
-    entity.setProperty('worldUpdate', deepcopy(game.getModInstance('ClientMod').worldUpdateProperty))
+    prop = deepcopy(game.getModInstance('ClientMod').worldUpdateProperty)
+    prop.props['newPos'] = entity.pos
+    entity.setProperty('worldUpdate', prop)
     entities.append(entity)
 
 def onVehicleSync(game, vehicle, vehicles):
@@ -284,7 +288,7 @@ def onVehicleSync(game, vehicle, vehicles):
     '''
     # Iterate and update the vehicles
     for v in range(len(vehicles)):
-        if vehicles[v].uuid == vehicle.uuid:
+        if vehicles[v] == vehicle:
             # Set the riders
             vehicles[v].riders = vehicle.riders
             # Update the ridingEntity values in the players
@@ -307,7 +311,9 @@ def onVehicleSync(game, vehicle, vehicles):
 
             return
 
-    vehicle.setProperty('worldUpdate', deepcopy(game.getModInstance('ClientMod').worldUpdateProperty))
+    prop = deepcopy(game.getModInstance('ClientMod').worldUpdateProperty)
+    prop.props['newPos'] = vehicle.pos
+    vehicle.setProperty('worldUpdate', prop)
     vehicles.append(vehicle)
 
 def onDimensionChange(game, entity, oldDimension, newDimension):

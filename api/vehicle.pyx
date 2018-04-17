@@ -9,6 +9,9 @@ class Vehicle(EntityBase):
 
         self.isDestroyed = False
 
+    def __eq__(self, other):
+        return isinstance(other, Vehicle) and self.uuid == other.uuid
+
     def mountRider(self, entity, game):
         '''
         Attempt to add a rider to this vehicle

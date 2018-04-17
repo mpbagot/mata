@@ -209,6 +209,17 @@ class WorldMP:
         players = eval(players)
         players = [Player.fromBytes(p) for p in players]
 
+        p = 0
+        while p < len(self.players):
+            toKeep = False
+            for player in players:
+                if self.players[p] == player:
+                    toKeep = True
+                    break
+            if not toKeep:
+                self.players.pop(p)
+            p += int(toKeep)
+
         for player in players:
             game.fireEvent("onPlayerSync", player, self.players)
 
@@ -216,12 +227,34 @@ class WorldMP:
         entities = eval(entities)
         entities = [Entity.fromBytes(e, game.modLoader.gameRegistry.entities) for e in entities]
 
+        e = 0
+        while e < len(self.entities):
+            toKeep = False
+            for entity in entities:
+                if self.entities[e] == entity:
+                    toKeep = True
+                    break
+            if not toKeep:
+                self.entities.pop(e)
+            e += int(toKeep)
+
         for entity in entities:
             game.fireEvent('onEntitySync', entity, self.entities)
 
         # Loop the transferred entities
         vehicles = eval(vehicles)
         vehicles = [Vehicle.fromBytes(v, game.modLoader.gameRegistry.vehicles) for v in vehicles]
+
+        v = 0
+        while v < len(self.vehicles):
+            toKeep = False
+            for vehicle in vehicles:
+                if self.vehicles[v] == vehicle:
+                    toKeep = True
+                    break
+            if not toKeep:
+                self.vehicles.pop(v)
+            v += int(toKeep)
 
         for vehicle in vehicles:
             game.fireEvent('onVehicleSync', vehicle, self.vehicles)
