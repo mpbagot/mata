@@ -43,6 +43,7 @@ def onTickHandleMovement(game, tick):
         keys = pygame.key.get_pressed()
         speed = game.player.getSpeed(game)
 
+        game.player.lastPos = list(game.player.pos)
         # Update the player position
         if keys[pygame.K_UP]:
             game.player.pos[1] -= speed
