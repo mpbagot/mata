@@ -5,11 +5,13 @@ from copy import deepcopy
 import time
 
 import util
-from api.packets import SendCommandPacket, MountPacket
+from api.item import *
+from api.packets import SendCommandPacket, MountPacket, AttackPacket
 from api.entity import Player
 from api.vehicle import Vehicle
 
 from mods.default.client.events.tick_events import genWorld, handleProcess
+from mods.default.items import *
 
 def onGameMouseClick(game, mousePos, event):
     '''
@@ -17,45 +19,60 @@ def onGameMouseClick(game, mousePos, event):
     Handle a mouse click on vehicles, players and entities
     '''
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
+        if pygame.mouse.get_pressed()[0]:
+            # Attack button (LMB) was pressed
+            # Perform an attack
+            weapons = [stack.getItem() for stack in game.player.inventory.getEquipped()[:2]]
+            for weapon in weapons:
+                if isinstance(weapon, Weapon):
+                    # Attack with this weapon
+                    # Send AttackPacket so that server can run damage calculation
+                    pp = game.getModInstance('ClientMod').packetPipeline
+                    pp.sendToServer(AttackPacket(game.player.name, weapon))
 
-        screen = game.getGui()[1].screen
+                    # TODO Run the animation
+                    pass
 
-        w = screen.get_width()
-        h = screen.get_height()
+        # Interaction button (RMB) was pressed
+        elif pygame.mouse.get_pressed()[1]:
+            screen = game.getGui()[1].screen
 
-        # Get the main player's position, to calculate the screen positions of the other players
-        mainAbsPos = game.player.pos
+            w = screen.get_width()
+            h = screen.get_height()
 
-        for obj in game.world.vehicles+game.world.players:
-            # Get the difference in position
-            deltaPos = [obj.pos[a]-mainAbsPos[a] for a in range(2)]
+            # Get the main player's position, to calculate the screen positions of the other players
+            mainAbsPos = game.player.pos
 
-            # Get the object image size
-            size = obj.smallImg if isinstance(obj, Player) else obj.getImage(game.modLoader.gameRegistry.resources)
-            if size is None:
-                continue
+            for obj in game.world.vehicles+game.world.players:
+                # Get the difference in position
+                deltaPos = [obj.pos[a]-mainAbsPos[a] for a in range(2)]
 
-            size = size.get_rect()
+                # Get the object image size
+                size = obj.smallImg if isinstance(obj, Player) else obj.getImage(game.modLoader.gameRegistry.resources)
+                if size is None:
+                    continue
 
-            # Adjust position accordingly
-            pos = [w//2+deltaPos[0]*40-size.width//2, h//2+deltaPos[1]*40-size.height//2]
+                size = size.get_rect()
 
-            # Create a rect based on the vehicle image
-            rect = pygame.Rect(pos+[size.width, size.height])
-            if rect.collidepoint(mousePos):
-                if isinstance(obj, Vehicle):
-                    # User has clicked on the vehicle
-                    # Send MountPacket to server to sync this change there.
-                    packet = MountPacket(obj.uuid, game.player.name)
-                    game.packetPipeline.sendToServer(packet)
-                    obj.mountRider(game.player, game)
+                # Adjust position accordingly
+                pos = [w//2+deltaPos[0]*40-size.width//2, h//2+deltaPos[1]*40-size.height//2]
 
-                elif isinstance(obj, Player):
-                    # User has clicked on the player
-                    chatOverlay = game.getModInstance('ClientMod').chatOverlay
-                    if not game.getGUIState().isOverlayOpen(chatOverlay):
-                        game.openOverlay(chatOverlay, game, obj.name)
-                return
+                # Create a rect based on the vehicle image
+                rect = pygame.Rect(pos+[size.width, size.height])
+                if rect.collidepoint(mousePos):
+                    if isinstance(obj, Vehicle):
+                        # User has clicked on the vehicle
+                        # Send MountPacket to server to sync this change there.
+                        packet = MountPacket(obj.uuid, game.player.name)
+                        game.packetPipeline.sendToServer(packet)
+                        obj.mountRider(game.player, game)
+
+                    elif isinstance(obj, Player):
+                        # User has clicked on the player
+                        chatOverlay = game.getModInstance('ClientMod').chatOverlay
+                        if not game.getGUIState().isOverlayOpen(chatOverlay):
+                            game.openOverlay(chatOverlay, game, obj.name)
+                    return
 
 def onGameKeyPress(game, event):
     '''
@@ -71,6 +88,7 @@ def onGameKeyPress(game, event):
             if game.getGUIState().isOverlayOpen(pauseOverlay):
                 if event.key == pygame.K_ESCAPE:
                     game.getGUIState().closeOverlay(pauseOverlay)
+                return
             elif event.key == pygame.K_ESCAPE:
                 game.openOverlay(pauseOverlay, game)
 
@@ -88,13 +106,13 @@ def onGameKeyPress(game, event):
         elif event.key == pygame.K_ESCAPE:
             game.getGUIState().closeOverlay(chatOverlay)
 
-        # Send a test message
-        if event.key == pygame.K_m:
-            game.packetPipeline.sendToServer(SendCommandPacket('/message global random test message'))
-
         # Spawn a bear using a command
         if event.key == pygame.K_b:
             game.packetPipeline.sendToServer(SendCommandPacket('/spawn Bear'))
+
+        # Spawn a horse using a command
+        if event.key == pygame.K_h:
+            game.packetPipeline.sendToServer(SendCommandPacket('/create Horse'))
 
 def onInvKeyPress(game, event):
     '''
@@ -104,6 +122,13 @@ def onInvKeyPress(game, event):
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').inventoryGui:
         if event.key == pygame.K_ESCAPE:
             game.restoreGui()
+
+        # Give a sword to the player
+        elif event.key == pygame.K_s:
+            print('adding sword')
+            resources = game.modLoader.gameRegistry.resources
+            game.player.inventory.items['left'] = ItemStack(Sword(resources), 1)
+            game.player.inventory.addItemstack(ItemStack(Dirt(resources), 1))
 
 def onCommand(game, commandClass, username, args):
     '''
