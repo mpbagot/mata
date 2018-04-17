@@ -136,6 +136,23 @@ class WorldMP:
                 # Trigger on Player Damaged events
                 game.fireEvent('onPlayerDamage', self.players[p], self.players[p].tickDamage)
 
+    def getEntitiesNear(self, pos, distance):
+        '''
+        Return a list of entities within a given distance from a given position
+        '''
+        # REMEMBER: 0 distance means all entities
+        if distance == 0:
+            return self.entities
+
+        closeEntities = []
+        for e in self.entities:
+            x, y = [e.pos[0]-pos[0], e.pos[1]-pos[1]]
+            dist = (x**2 + y**2)**0.5
+            if dist <= distance:
+                closeEntities.append(e)
+
+        return closeEntities
+
     def getUpdateData(self, player):
         '''
         Collate the update data into a bytes object
@@ -143,7 +160,7 @@ class WorldMP:
         # TODO clip the data based on the user
         # TODO Figure out a better protocol, because this one sucks!
         playerData = str([p.toBytes() for p in self.players])
-        entityData = str([e.toBytes() for e in self.entities])
+        entityData = str([e.toBytes() for e in self.getEntitiesNear(player.pos, 30)])
         vehicleData = str([v.toBytes() for v in self.vehicles])
         return '{}$$${}$$${}'.format(playerData, entityData, vehicleData).encode()
 
