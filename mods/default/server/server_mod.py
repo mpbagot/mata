@@ -163,11 +163,7 @@ def onEntityDamage(game, entity, damage):
         entity.isDead = True
 
     if isinstance(entity, Player):
-        gameEntity = game.getPlayer(entity.name)
-    else:
-        gameEntity = game.getEntity(entity.uuid)
-    gameEntity.health = entity.health
-    gameEntity.isDead = entity.isDead
+        game.packetPipeline.sendToPlayer(ResetPlayerPacket(entity, bits=2), entity.name)
 
 def onPlayerLogin(game, player):
     '''
