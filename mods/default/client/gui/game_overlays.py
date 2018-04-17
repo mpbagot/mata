@@ -20,7 +20,7 @@ class HUD(Overlay):
 
         self.game = game
         self.bars = [
-                        HorizBar([744, 698, 260, 20], (255, 0, 0), self.game.player.health, 'Health'),
+                        HorizBar([744, 698, 260, 20], (255, 0, 0), self.game.player.health/100, 'Health'),
                         HorizBar([744, 728, 260, 20], (0, 102, 255), self.game.player.exp, 'Experience')
                     ]
         equippedItems = self.game.player.inventory.getEquipped()
@@ -32,8 +32,8 @@ class HUD(Overlay):
 
     def drawBackgroundLayer(self):
         # Update the bar percentages
-        self.bars[0].percentage = self.game.player.health
-        self.bars[1].percentage = self.game.player.exp
+        self.bars[0].percentage = self.game.player.health/100
+        self.bars[1].percentage = (self.game.player.exp-int(self.game.player.exp**0.5)**2)/(2*int(self.game.player.exp**0.5)+1)
 
         # Draw the background rectangle
         pygame.draw.rect(self.screen, (173, 144, 106), scaleRect([654, 620, 400, 150], self.screen))

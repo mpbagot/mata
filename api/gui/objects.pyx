@@ -140,7 +140,7 @@ class Slider:
         return False
 
 class HorizBar:
-    def __init__(self, rect, colour, percentage=100, label=''):
+    def __init__(self, rect, colour, percentage=1, label=''):
         self.defaultPos = rect[:2]
         self.pos = self.defaultPos
         self.defaultWidth = rect[2]
@@ -171,7 +171,7 @@ class HorizBar:
 
         # Draw the bar over the top
         # Get the scaled position of the end of the bar
-        scaledRightPos = [leftPos[0] + round(lineLength * self.percentage/100), rightLinePos[1]]
+        scaledRightPos = [leftPos[0] + round(lineLength * self.percentage), rightLinePos[1]]
         pygame.draw.line(screen, self.colour, leftLinePos, scaledRightPos, self.height)
         # Draw the end circles of the bar
         scaledRightPos[1] += 1
@@ -205,7 +205,7 @@ class VertBar(HorizBar):
 
         # Draw the bar over the top
         # Get the scaled position of the end of the bar
-        scaledTopPos = [topPos[0]-1, bottomLinePos[1] - round(lineLength * self.percentage/100)]
+        scaledTopPos = [topPos[0]-1, bottomLinePos[1] - round(lineLength * self.percentage)]
         pygame.draw.line(screen, self.colour, bottomLinePos, scaledTopPos, self.width)
         # Draw the end circles of the bar
         scaledTopPos[0] += 1
