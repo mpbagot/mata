@@ -8,8 +8,14 @@ from api import combat
 class Dirt(Item):
     def __init__(self, resources):
         super().__init__(resources)
-        self.setRegistryName('dirt')
+        self.setRegistryName('Dirt')
         self.image = 'tile_dirt'
+
+class Gold(Item):
+    def __init__(self, resources):
+        super().__init__(resources)
+        self.setRegistryName('Gold')
+        self.image = 'item_gold'
 
 class Sword(Weapon):
     def __init__(self, resources):
