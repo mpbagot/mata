@@ -12,7 +12,6 @@ from mods.default.server.entity import bear
 from mods.default.server.vehicle import horse
 
 import util
-from copy import deepcopy
 
 class ServerMod(Mod):
     modName = 'ServerMod'
