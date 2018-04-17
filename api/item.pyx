@@ -1,9 +1,8 @@
 '''
-item.py
+item.pyx
 A module to hold all the api stuff related to items
 '''
 from api import combat
-from api.entity import *
 
 class Inventory:
     def __init__(self):
@@ -391,7 +390,16 @@ class Weapon(Item):
 
             # TODO Allow event hooks to modify the damage
 
-            game.getEntity(entity.uuid).tickDamage = Damage(damage, source)
+            # Import the required classes late, since it crashes up the top
+            from api.entity import Damage, Player, Entity
+            from api.packets import ResetPlayerPacket
+
+            if isinstance(entity, Player):
+                game.getPlayer(entity.name).tickDamage = Damage(damage, source)
+                game.packetPipeline.sendToPlayer(ResetPlayerPacket(entity), entity.name)
+
+            elif isinstance(entity, Entity):
+                game.getEntity(entity.uuid).tickDamage = Damage(damage, source)
 
 class NullItem(Item):
     '''
