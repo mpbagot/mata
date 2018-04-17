@@ -11,6 +11,7 @@ class EntityBase:
         self.uuid = 0
         self.health = 100
         self.pos = [0, 0]
+        self.lastPos = [0, 0]
 
         self.speed = 0.2
 
@@ -27,6 +28,13 @@ class EntityBase:
         Get the position of the entity, rounded to 2 decimal places
         '''
         return [round(self.pos[0], 2), round(self.pos[1], 2)]
+
+    def setPos(self, pos):
+        '''
+        Set a new absolute position
+        '''
+        self.lastPos = list(self.pos)
+        self.pos = list(pos)
 
     def getSpeed(self, game):
         '''
@@ -89,12 +97,6 @@ class Player(EntityBase):
 
     def getInventory(self):
         return self.inventory
-
-    def setPos(self, pos):
-        '''
-        Set a new absolute position
-        '''
-        self.pos = list(pos)
 
     def switchDimension(self, dimension, game):
         '''
