@@ -2,6 +2,7 @@ from threading import Thread
 from multiprocessing import Process, Queue
 import pygame
 from copy import deepcopy
+import random
 import time
 
 import util
@@ -32,6 +33,11 @@ def onGameMouseClick(game, mousePos, event):
 
                     # TODO Run the animation
                     pass
+
+                # Attempt to punch with a fist
+                elif isinstance(weapon, NullItem):
+                    if random.randint(0, 5) == 3:
+                        pass
 
         # Interaction button (RMB) was pressed
         elif pygame.mouse.get_pressed()[1]:
