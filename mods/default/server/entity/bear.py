@@ -17,32 +17,32 @@ class WalkAITask(AITask):
         self.pauseTicks = 0
         self.walkTicks = 0
 
-    def shouldStartExecute(self):
+    def shouldStartExecute(self, game):
         '''
         Return whether or not the ai task should start running on a given tick
         '''
         return START if self.pauseTicks > 60 else SKIP
 
-    def shouldContinueExecute(self):
+    def shouldContinueExecute(self, game):
         '''
         Return whether or not the ai task should continue running on a given tick
         '''
         return CONTINUE if self.walkTicks < 60 else END
 
-    def startExecution(self):
+    def startExecution(self, game):
         self.pauseTicks = 0
 
-    def continueExecution(self):
+    def continueExecution(self, game, deltaTime):
         '''
         Execute a continuous task for a tick
         '''
         self.entity.pos[0] += 0.5
         self.walkTicks += 1
 
-    def skipExecution(self):
+    def skipExecution(self, game, deltaTime):
         self.pauseTicks += 1
 
-    def endExecution(self):
+    def endExecution(self, game):
         '''
         Reset the walk ticks
         '''
