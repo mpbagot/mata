@@ -11,6 +11,8 @@ class Bear(Entity):
     def __init__(self):
         super().__init__()
         self.setRegistryName('Bear')
+        self.health = 30
+        self.health = 0.3
         self.aiHandler.registerAITask(AttackAITask(self), 0)
         self.setImage('entity_bear')
         self.pos = [randint(-5, 5), randint(-5, 5)]
