@@ -87,7 +87,6 @@ class Game:
             # Get the start time of the tick
             startTickTime = time.time()
 
-
             # Tick the world object
             for d in self.modLoader.gameRegistry.dimensions.keys():
                 world = self.getWorld(d)
