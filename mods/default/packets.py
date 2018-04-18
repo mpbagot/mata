@@ -2,6 +2,8 @@ from api.packets import Packet
 from api.item import Inventory, ItemStack
 from api.entity import Player, Pickup
 
+import util
+
 class FetchPickupItem(Packet):
     def __init__(self, uuid=0):
         self.uuid = uuid
@@ -65,7 +67,23 @@ class SendInventoryPacket(Packet):
     def onReceive(self, connection, side, game):
         # Decode and store the inventory in the client side player
         self.inventory = Inventory.fromBytes(game, self.inventory)
-        game.player.setInventory(self.inventory)
+        if side != util.SERVER:
+            game.player.setInventory(self.inventory)
+        else:
+            serverPlayer = game.getPlayer(connection.username)
+
+            # Hash and compare to server-side. If equal, replace server-side, otherwise, replace client
+            print('hashing client inv')
+            clientInvHash = self.inventory.hashInv()
+            print('hashing server inv')
+            serverInvHash = serverPlayer.inventory.hashInv()
+
+            # If the hash is a mismatch, reject the inventory
+            if clientInvHash != serverInvHash:
+                return SendInventoryPacket(serverPlayer.inventory)
+            # Otherwise, accept it
+            else:
+                serverPlayer.inventory = self.inventory
 
 class FetchPlayerImagePacket(Packet):
     def __init__(self, player=None):

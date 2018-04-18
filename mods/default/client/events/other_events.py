@@ -239,7 +239,7 @@ def onInvKeyPress(game, event):
     '''
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').inventoryGui:
         if event.key == pygame.K_ESCAPE:
-            game.restoreGui()
+            game.getGui()[1].buttons[0].onClick(game)
 
         # Give a sword to the player
         elif event.key == pygame.K_s:

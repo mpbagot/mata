@@ -59,6 +59,12 @@ class BackButton(Button):
     def onClick(self, game):
         game.restoreGui()
 
+class InvBackButton(BackButton):
+    def onClick(self, game):
+        # Send the inv to the server to record rearrangements etc
+        game.getModInstance('ClientMod').packetPipeline.sendToServer(SendInventoryPacket(game.player.inventory))
+        super().onClick(game)
+
 class ResumeButton(Button):
     def __init__(self, rect, label="Resume Game"):
         super().__init__(rect, label)
