@@ -74,7 +74,7 @@ class Player(EntityBase):
         super().__init__()
         self.exp = 0
         self.img = []
-        self.inventory = Inventory()
+        self.inventory = PlayerInventory()
 
         # Boolean for synchronisation status on client
         # Timestamp for last synchronisation on server

@@ -2,7 +2,7 @@ from api.entity import Player
 from api.vehicle import Vehicle
 from api.dimension import WorldMP
 from api.biome import TileMap
-from api.item import Weapon
+from api.item import Item
 
 import util
 
@@ -280,11 +280,11 @@ class AttackPacket(Packet):
       # Decode the player and weapon data
         self.player = game.getPlayer(self.player)
         gameRegistry = game.modLoader.gameRegistry
-        self.weapon = Weapon.fromBytes(gameRegistry.items.values(), gameRegistry.resources, self.weapon)
+        self.weapon = Item.fromBytes(gameRegistry.items.values(), gameRegistry.resources, self.weapon)
 
         # If the weapon isn't in their (correct) server-side inventory, just stop processing
-        if not self.player.inventory.checkWeapon(self.weapon):
-            return
+        # if not self.player.inventory.checkWeapon(self.weapon):
+        #     return
 
         # Calculate the direction the player is facing
         theta = util.calcDirection(self.player.pos, self.player.lastPos)

@@ -9,7 +9,7 @@ class Inventory:
         #Hotbar might be used in the future, but for now is useless
         self.items = {'left' : ItemStack(NullItem(), 0), 'right' : ItemStack(NullItem(), 0),
                       'armour' : ItemStack(NullItem(), 0), 'hotbar' : [], 'main' : []}
-        self.maxSize = 16
+        self.maxSize = 999
 
     def getEquipped(self):
         return [self.items['left'], self.items['right'], self.items['armour']]
@@ -29,14 +29,30 @@ class Inventory:
         invSize = int.from_bytes(bytes[:2], 'big')
         bytes = bytes[2:]
 
-        # Pull the different sections of the packet from the data
-        armour, left, right = [ItemStack.fromBytes(game, bytes[a:a+98]) for a in range(0, 294, 98)]
-        bytes = bytes[294:]
+        # Walk the bytestring and get the items
+        armourLen = int.from_bytes(bytes[:2], 'big')
+        armour = ItemStack.fromBytes(game, bytes[:armourLen+4])
+        bytes = bytes[armourLen+4:]
 
-        hotbar = [ItemStack.fromBytes(game, bytes[a*98:(a+1)*98]) for a in range(10)]
-        bytes = bytes[980:]
+        leftLen = int.from_bytes(bytes[:2], 'big')
+        left = ItemStack.fromBytes(game, bytes[:leftLen+4])
+        bytes = bytes[leftLen+4:]
 
-        main = [ItemStack.fromBytes(game, bytes[a:a+98]) for a in range(0, len(bytes), 98)]
+        rightLen = int.from_bytes(bytes[:2], 'big')
+        right = ItemStack.fromBytes(game, bytes[:rightLen+4])
+        bytes = bytes[rightLen+4:]
+
+        hotbar = []
+        for a in range(10):
+            itemLen = int.from_bytes(bytes[:2], 'big')
+            hotbar.append(ItemStack.fromBytes(game, bytes[:itemLen+4]))
+            bytes = bytes[itemLen+4:]
+
+        main = []
+        for a in range(invSize):
+            itemLen = int.from_bytes(bytes[:2], 'big')
+            main.append(ItemStack.fromBytes(game, bytes[:itemLen+4]))
+            bytes = bytes[itemLen+4:]
 
         # Instantiate the inventory
         i = Inventory()
@@ -196,6 +212,11 @@ class Inventory:
 
         return [sumInv, overflowInv]
 
+class PlayerInventory(Inventory):
+    def __init__(self):
+        super().__init__()
+        self.maxSize = 16
+
 class ItemStack:
     def __init__(self, item, size):
         self.stackSize = size
@@ -218,8 +239,8 @@ class ItemStack:
     def fromBytes(game, bytes):
         stack = ItemStack(None, 0)
         # Pull the stack size from the data
-        stack.stackSize = int.from_bytes(bytes[:2], 'big')
-        bytes = bytes[2:]
+        stack.stackSize = int.from_bytes(bytes[2:4], 'big')
+        bytes = bytes[4:]
 
         # Get the item from the data
         items = game.modLoader.gameRegistry.items.values()
@@ -229,7 +250,8 @@ class ItemStack:
         return stack
 
     def toBytes(self):
-        return self.stackSize.to_bytes(2, 'big')+self.item.toBytes()
+        itemBytes = self.item.toBytes()
+        return len(itemBytes).to_bytes(2, 'big')+self.stackSize.to_bytes(2, 'big')+itemBytes
 
     def getItem(self):
         return self.item
@@ -305,14 +327,30 @@ class Item:
         Get a byte representation of the item
         '''
         className = self.__class__.__name__
-        className = ' '*(32-len(className))+className
+        className = len(className).to_bytes(1, 'big')+className.encode()
         image = self.image if isinstance(self.image, str) else ''
-        image = ' '*(32-len(image))+image
-        itemName = ' '*(32-len(self.name))+self.name
-        return itemName.encode()+image.encode()+className.encode()
+        image = len(image).to_bytes(1, 'big')+image.encode()
+        itemName = len(self.name).to_bytes(1, 'big')+self.name.encode()
+        return itemName + image + className
 
     def fromBytes(itemClasses, resources, data):
-        itemName, image, className = [data[a:a+32].decode().strip() for a in range(0, len(data), 32)]
+        # Get the item name
+        itemNameLen = data[0]
+        itemName = data[1:1+itemNameLen].decode()
+        data = data[1+itemNameLen:]
+
+        # Get the item image
+        imageLen = data[0]
+        image = data[1:imageLen+1].decode()
+        data = data[1+imageLen:]
+
+        classLen = data[0]
+        className = data[1:1+classLen].decode()
+        data = data[1+classLen:]
+        if data:
+            # This is a weapon, decode accordingly
+            itemTuple = (itemName, image, className)
+            return Weapon.fromBytes(itemClasses, resources, data, itemTuple)
 
         # Iterate the possible classes and look for the matching item class
         for itemClass in itemClasses:
@@ -355,9 +393,8 @@ class Weapon(Item):
         itemData += self.knockback.to_bytes(2, 'big')
         return itemData
 
-    def fromBytes(itemClasses, resources, data):
-        itemName, image, className = [data[a:a+32].decode().strip() for a in range(0, 96, 32)]
-        data = data[96:]
+    def fromBytes(itemClasses, resources, data, itemTuple):
+        itemName, image, className = itemTuple
 
         attack = int.from_bytes(data[:3], 'big')
         attackRange = int.from_bytes(data[3:7], 'big')
