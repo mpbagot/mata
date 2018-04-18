@@ -100,6 +100,7 @@ class ClientMod(Mod):
         # Register the items
         self.gameRegistry.registerItem(Dirt)
         self.gameRegistry.registerItem(Sword)
+        self.gameRegistry.registerItem(Gold)
 
     def postLoad(self):
         # Open the main menu on startup

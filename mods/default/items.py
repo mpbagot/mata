@@ -17,6 +17,9 @@ class Gold(Item):
         self.setRegistryName('Gold')
         self.image = 'tile_sand'#'item_gold'
 
+    def getMaxStackSize(self):
+        return 900
+
 class Sword(Weapon):
     def __init__(self):
         super().__init__()
