@@ -39,21 +39,25 @@ class PlayerInventoryScreen(Gui):
         self.buttons = [BackButton([470, 620, 528, 80], 'Close Inventory')]
         self.addItem(PlayerImageBox([250, 450, 599, 120], game))
 
+        # Store the item being moved around the inventory
+        self.moveItem = None
+
         self.itemSlots = []
-        # Calculate the slotsize for generating the screen
-        slotSize = 90
         # Make the slotsize accessible in the middle and foreground methods
-        self.slotSize = slotSize
+        self.slotSize = 90
         # Loop the rows and columns and create an empty inventory grid
         for y in range(4):
             for x in range(4):
-                slotPos = [(x + 1) * (slotSize + 8), 120 + y * (slotSize + 8)]
-                slot = ItemSlot(game, self.inventory.getItem(y * 4 + x), slotPos, slotSize)
+                slotPos = [(x + 1) * (self.slotSize + 8), 120 + y * (self.slotSize + 8)]
+                slot = ItemSlot(game, self.inventory.getItem(y * 4 + x), slotPos, self.slotSize)
                 self.itemSlots.append(slot)
 
         for i, itemstack in enumerate(self.inventory.getEquipped()):
-            slotPos = [859, 120 + slotSize//4 + i * (slotSize + 40)]
-            self.itemSlots.append(ItemSlot(game, itemstack, slotPos, slotSize + 30))
+            slotPos = [859, 120 + self.slotSize//4 + i * (self.slotSize + 40)]
+            if i != 2:
+                self.itemSlots.append(ItemSlot(game, itemstack, slotPos, self.slotSize + 30))
+            else:
+                self.itemSlots.append(ArmourSlot(game, itemstack, slotPos, self.slotSize + 30))
 
         self.fetchInventory(game)
 
@@ -64,20 +68,21 @@ class PlayerInventoryScreen(Gui):
         self.inventory = inv
 
         self.itemSlots = []
-        # Calculate the slotsize for generating the screen
-        slotSize = 90
         # Make the slotsize accessible in the middle and foreground methods
-        self.slotSize = slotSize
+        self.slotSize = 90
         # Loop the rows and columns and create an empty inventory grid
         for y in range(4):
             for x in range(4):
-                slotPos = [(x + 1) * (slotSize + 8), 120 + y * (slotSize + 8)]
-                slot = ItemSlot(self.game, self.inventory.getItem(y * 4 + x), slotPos, slotSize)
+                slotPos = [(x + 1) * (self.slotSize + 8), 120 + y * (self.slotSize + 8)]
+                slot = ItemSlot(self.game, self.inventory.getItem(y * 4 + x), slotPos, self.slotSize)
                 self.itemSlots.append(slot)
 
         for i, itemstack in enumerate(self.inventory.getEquipped()):
-            slotPos = [859, 120 + slotSize//4 + i * (slotSize + 40)]
-            self.itemSlots.append(ItemSlot(self.game, itemstack, slotPos, slotSize + 30))
+            slotPos = [859, 120 + self.slotSize//4 + i * (self.slotSize + 40)]
+            if i != 2:
+                self.itemSlots.append(ItemSlot(self.game, itemstack, slotPos, self.slotSize + 30))
+            else:
+                self.itemSlots.append(ArmourSlot(self.game, itemstack, slotPos, self.slotSize + 30))
 
     def fetchInventory(self, game):
         '''
@@ -115,6 +120,23 @@ class PlayerInventoryScreen(Gui):
             pygame.draw.rect(self.screen, (236, 196, 145), [5, h//2 - int(text.get_height() * 1.25), w - 10, text.get_height() * 2])
             # Then the message
             self.screen.blit(text, [(w - text.get_width())//2, h//2 - (text.get_height() * 0.75)])
+
+        if self.moveItem:
+            slot = self.itemSlots[self.moveItem[1]]
+            stack = self.moveItem[2]
+            # Draw the item image
+            imageSize = [slot.button.rect[2]-5 for a in range(2)]
+            boxPos = [mousePos[a]-imageSize[a]//2 for a in (0, 1)]
+            itemImage = stack.getItem().getImage(self.resources)
+            imgRect = self.screen.blit(pygame.transform.scale(itemImage, imageSize), boxPos)
+
+            # Draw the stackSize label
+            font = pygame.font.Font('resources/font/main.ttf', imageSize[0]//3)
+            text = font.render(str(self.moveItem[2].stackSize), True, (0, 0, 0))
+            tagPos = list(boxPos)
+            tagPos[1] += imageSize[1]-text.get_height()
+            tagPos[0] += text.get_height()*1/10
+            self.screen.blit(text, tagPos)
 
 class PlayerDrawScreen(Gui):
     '''

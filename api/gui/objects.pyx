@@ -1,6 +1,7 @@
 import pygame
 
 from api.gui.gui import *
+from api.item import Armour, ItemStack, NullItem
 
 class Scrollbox:
     def __init__(self, rect):
@@ -60,6 +61,7 @@ class ItemSlot:
         self.defaultPos = [a+3 for a in pos]
         self.pos = self.defaultPos
         self.resources = game.modLoader.gameRegistry.resources
+        self.coverColour = (0, 0, 0)
         self.setItem(item)
         self.button = Button(pos+[size, size], '', True)
 
@@ -91,16 +93,31 @@ class ItemSlot:
             # Draw a semi transparent square over the itemslot
             square = pygame.Surface(imageSize)
             square.set_alpha(128)
-            square.fill((0, 0, 0))
+            square.fill(self.coverColour)
             screen.blit(square, self.pos)
             tagColour = (255, 255, 255)
 
+        # Draw the stackSize label
         font = pygame.font.Font('resources/font/main.ttf', imageSize[0]//3)
         text = font.render(str(self.item.stackSize), True, tagColour)
         tagPos = list(self.pos)
         tagPos[1] += imageSize[1]-text.get_height()
         tagPos[0] += text.get_height()*1/10
         screen.blit(text, tagPos)
+
+class ArmourSlot(ItemSlot):
+    def __init__(self, game, item, pos, size):
+        super().__init__(game, item, pos, size)
+        self.coverColour = (153, 0, 0)
+
+    def setItem(self, item):
+        self.itemImage = None
+        self.item = ItemStack(NullItem(), 0)
+
+        if not isinstance(item, Armour) and item.getRegistryName() != 'null_item':
+            print('[ERROR] Non-armour item cannot be placed in ArmourSlot')
+            return
+        super().setItem(item)
 
 class Slider:
     def __init__(self, rect, colour):
