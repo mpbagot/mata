@@ -266,7 +266,7 @@ class ItemStack:
         return [result, carryover]
 
 class Item:
-    def __init__(self, resources):
+    def __init__(self):
         self.name = ''
         self.image = None
 
@@ -296,7 +296,7 @@ class Item:
 
     def getImage(self, resources):
         try:
-            return resources.get(self.image)
+            return resources[self.image]
         except KeyError:
             raise KeyError('Image "{}" has not been registered in the Game Registry'.format(self.image))
 
@@ -318,7 +318,7 @@ class Item:
         for itemClass in itemClasses:
             if itemClass.__name__ == className:
                 # Fill in the values for the item, then return it
-                item = itemClass(resources)
+                item = itemClass()
                 item.name = itemName
                 item.image = image
                 return item
@@ -326,8 +326,8 @@ class Item:
         return NullItem()
 
 class Weapon(Item):
-    def __init__(self, resources):
-        super().__init__(resources)
+    def __init__(self):
+        super().__init__()
         self.attack = 0
         self.damageClass = combat.NORMAL
         self.range = combat.MELEE
@@ -368,7 +368,7 @@ class Weapon(Item):
         for itemClass in itemClasses:
             if itemClass.__name__ == className:
                 # Fill in the values for the item, then return it
-                item = itemClass(resources)
+                item = itemClass()
                 item.name = itemName
                 item.image = image
                 item.attack = attack

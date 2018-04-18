@@ -134,8 +134,8 @@ def onInvKeyPress(game, event):
         elif event.key == pygame.K_s:
             print('adding sword')
             resources = game.modLoader.gameRegistry.resources
-            game.player.inventory.items['left'] = ItemStack(Sword(resources), 1)
-            game.player.inventory.addItemstack(ItemStack(Dirt(resources), 1))
+            game.player.inventory.items['left'] = ItemStack(Sword(), 1)
+            game.player.inventory.addItemstack(ItemStack(Dirt(), 1))
 
 def onCommand(game, commandClass, username, args):
     '''

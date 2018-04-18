@@ -6,22 +6,22 @@ from api.item import *
 from api import combat
 
 class Dirt(Item):
-    def __init__(self, resources):
-        super().__init__(resources)
+    def __init__(self):
+        super().__init__()
         self.setRegistryName('Dirt')
         self.image = 'tile_dirt'
 
 class Gold(Item):
-    def __init__(self, resources):
-        super().__init__(resources)
+    def __init__(self):
+        super().__init__()
         self.setRegistryName('Gold')
-        self.image = 'item_gold'
+        self.image = 'tile_sand'#'item_gold'
 
 class Sword(Weapon):
-    def __init__(self, resources):
-        super().__init__(resources)
+    def __init__(self):
+        super().__init__()
         self.setRegistryName('Steel Sword')
-        self.image = 'weapon_steel_sword'
+        self.image = 'tile_water'#'weapon_steel_sword'
         self.attack = 10
         self.spread = combat.WIDE_ARC
         self.range = combat.MELEE
@@ -32,8 +32,8 @@ class Teeth(Weapon):
     '''
     An unobtainable weapon used for entity attack calculations
     '''
-    def __init__(self, resources):
-        super().__init__(resources)
+    def __init__(self):
+        super().__init__()
         self.setRegistryName('Teeth Weapon')
         self.attack = 5
         self.spread = combat.FULL_ARC

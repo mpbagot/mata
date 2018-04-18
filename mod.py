@@ -96,7 +96,7 @@ class GameRegistry:
         '''
         Register an item
         '''
-        tempItem = itemClass(self.resources)
+        tempItem = itemClass()
         if self.items.get(tempItem.getRegistryName()) is None:
             self.items[tempItem.getRegistryName()] = itemClass
             return
