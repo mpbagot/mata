@@ -24,6 +24,14 @@ def calcChecksum(data):
         checksum += data[a]
     return checksum.to_bytes(3, 'big')
 
+def calcDistance(ent1, ent2):
+    '''
+    Calculate the distance between two entities
+    '''
+    dimensionDelta = (ent1.dimension-ent2.dimension) * 1000
+    deltaPos = [ent1.pos[a]-ent2.pos[a] for a in (0, 1)]
+    return (deltaPos[0]**2 + deltaPos[1]**2)**0.5 + dimensionDelta
+
 def calcDirection(pos1, pos2):
     '''
     Calculate a direction between two positions
