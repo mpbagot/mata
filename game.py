@@ -139,21 +139,22 @@ class Game:
                             self.fireEvent('onKeyPress', event)
 
                         elif event.type == pygame.MOUSEBUTTONDOWN:
+                            pressed = pygame.mouse.get_pressed()
                             # Handle a mouse click on buttons
-                            if self.getGUIState():
+                            if self.getGUIState() and pressed[0]:
                                 for button in self.getGUIState().getButtons():
                                     if button.isHovered(pos):
                                         button.onClick(self)
 
                             # Then, handle a mouse click on a text box
-                            if self.getGui():
+                            if self.getGui() and pressed[0]:
                                 self.getGui()[1].currentTextBox = None
                                 for t, textbox in enumerate(self.getGui()[1].textboxes):
                                     if textbox.isHovered(pos):
                                         self.getGui()[1].currentTextBox = t
 
                             # Finally, trigger any registered event functions
-                            self.fireEvent('onMouseClick', pos, event)
+                            self.fireEvent('onMouseClick', pos, pressed, event)
 
             # Get the time that the tick took to run
             self.deltaTime = time.time()-startTickTime
