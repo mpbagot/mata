@@ -306,7 +306,7 @@ class AttackPacket(Packet):
             falloff = (1-(abs(theta-eTheta)/self.weapon.spread)**2)**(1/7)
 
             # Calculate and apply the knockback
-            knockback = random.randint(0, self.weapon.knockback) * falloff
+            knockback = random.randint(self.weapon.knockback//2, self.weapon.knockback) * falloff
             deltaX = knockback * math.sin(eTheta*math.pi)
             deltaY = knockback * math.cos(eTheta*math.pi)
 
