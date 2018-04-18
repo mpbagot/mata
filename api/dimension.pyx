@@ -259,7 +259,7 @@ class WorldMP:
         for vehicle in vehicles:
             game.fireEvent('onVehicleSync', vehicle, self.vehicles)
 
-    def addPlayer(self, player):
+    def addPlayer(self, game, player):
         '''
         Add a player to the world
         '''
@@ -268,4 +268,5 @@ class WorldMP:
                 return p
         player.pos = [0, 0]
         self.players.append(player)
+        game.fireEvent('onPlayerCreated', player)
         return player

@@ -63,6 +63,7 @@ class ServerMod(Mod):
         self.gameRegistry.registerEventHandler(onPlayerDeath, 'onPlayerDeath')
         self.gameRegistry.registerEventHandler(onEntityDeath, 'onEntityDeath')
         self.gameRegistry.registerEventHandler(onPlayerLogin, 'onPlayerLogin')
+        self.gameRegistry.registerEventHandler(onPlayerCreated, 'onPlayerCreated')
         self.gameRegistry.registerEventHandler(onPlayerMount, 'onPlayerMount')
         self.gameRegistry.registerEventHandler(onEntityDamage, 'onEntityDamage')
         self.gameRegistry.registerEventHandler(onEntityDamage, 'onPlayerDamage')
@@ -174,6 +175,18 @@ def onPlayerLogin(game, player):
     Print a little message when a player connects
     '''
     print(player.name + ' joined the server.')
+
+    # Sync the inventory to the player
+    pp = game.getModInstance('ServerMod').packetPipeline
+    pp.sendToPlayer(SendInventoryPacket(player.inventory), player.name)
+
+def onPlayerCreated(game, player):
+    '''
+    Event Hook: onPlayerCreated
+    Give some basic items to new players
+    '''
+    # Add a steel sword
+    player.inventory.items['left'] = ItemStack(Sword(), 1)
 
 def onDisconnect(game, username):
     '''

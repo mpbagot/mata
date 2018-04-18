@@ -53,7 +53,7 @@ class LoginPacket(Packet):
         connection.username = self.player.name
 
         # Add the player
-        self.player = game.getWorld(0).addPlayer(self.player)
+        self.player = game.getWorld(0).addPlayer(game, self.player)
 
         # Fire a login event
         game.fireEvent('onPlayerLogin', self.player)
