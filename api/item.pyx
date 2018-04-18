@@ -470,6 +470,9 @@ class Weapon(Item):
             elif isinstance(entity, Entity):
                 game.getEntity(entity.uuid).tickDamage = Damage(damage, source)
 
+class Armour(Item):
+    pass
+
 class NullItem(Item):
     '''
     A special item class used for empty itemslots
