@@ -150,7 +150,7 @@ class PickupAITask(AITask):
         self.lifeTime += deltaTime
 
         # Check for a player coming near, and respond accordingly
-        players = game.getWorld(self.entity.dimension).getPlayersNear(self.entity.pos, 2)
+        players = game.getWorld(self.entity.dimension).getPlayersNear(self.entity.pos, 1.5)
         if len(players) > 0:
             x, y = self.entity.pos
             distances = [((a.pos[0]-x)**2+(a.pos[1]-y)**2)**0.5 for a in players]
