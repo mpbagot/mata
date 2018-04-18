@@ -29,7 +29,8 @@ class ServerMod(Mod):
         # Register the valid packet classes
         packets = [
                     FetchPlayerImagePacket, SendInventoryPacket,
-                    FetchInventoryPacket, SendPlayerImagePacket
+                    FetchInventoryPacket, SendPlayerImagePacket,
+                    FetchPickupItem, SendPickupItem
                   ]
         for packet in packets:
             self.packetPipeline.registerPacket(packet)
@@ -128,6 +129,9 @@ def onEntityDeath(game, entity, tickDamage):
     Event Hook: onEntityDeath
     Drop gold and items
     '''
+    if isinstance(entity, Pickup):
+        return
+
     if tickDamage and isinstance(tickDamage.source, str):
         # Give experience points = 1.5 * 4**(entity.hp/player.hp)
         playerToGive = game.getPlayer(tickDamage.source)
@@ -137,7 +141,7 @@ def onEntityDeath(game, entity, tickDamage):
 
     world = game.getWorld(entity.dimension)
     resources = game.modLoader.gameRegistry.resources
-    goldAmount = random.randint(0, int(sum([abs(a) for a in entity.pos])**0.5))
+    goldAmount = random.randint(1, int(sum([abs(a) for a in entity.pos])**0.5)+1)
 
     # Split the gold into several pieces
     pieces = []
@@ -151,7 +155,8 @@ def onEntityDeath(game, entity, tickDamage):
     x, y = [int(a) for a in entity.pos]
     for p, piece in enumerate(pieceEntities):
         pieceEntities[p].setItemstack(pieces[p])
-        pieceEntities[p].pos = [random.randint(x-3, x+3), random.randint(y-3, y+3)]
+        decimal = round(random.random(), 2)
+        pieceEntities[p].pos = [random.randint(x-2, x+2)+decimal, random.randint(y-2, y+2)+decimal]
         pieceEntities[p].uuid = game.modLoader.getUUIDForEntity(piece)
         world.spawnEntityInWorld(pieceEntities[p])
 

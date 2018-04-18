@@ -1,6 +1,41 @@
 from api.packets import Packet
-from api.item import Inventory
-from api.entity import Player
+from api.item import Inventory, ItemStack
+from api.entity import Player, Pickup
+
+class FetchPickupItem(Packet):
+    def __init__(self, uuid=0):
+        self.uuid = uuid
+
+    def toBytes(self, buf):
+        buf.write(self.uuid.to_bytes(8, 'big'))
+
+    def fromBytes(self, data):
+        self.uuid = int.from_bytes(data, 'big')
+
+    def onReceive(self, connection, side, game):
+        entity = game.getEntity(self.uuid)
+        if not entity or not isinstance(entity, Pickup):
+            return
+        return SendPickupItem(self.uuid, entity.getItem())
+
+class SendPickupItem(Packet):
+    def __init__(self, uuid=0, stack=''):
+        self.stack = stack
+        self.uuid = uuid
+
+    def toBytes(self, buf):
+        buf.write(self.uuid.to_bytes(8, 'big'))
+        buf.write(self.stack.toBytes())
+
+    def fromBytes(self, data):
+        self.uuid = int.from_bytes(data[:8], 'big')
+        self.stack = data[8:]
+
+    def onReceive(self, connection, side, game):
+        entity = game.getEntity(self.uuid)
+        if entity:
+            self.stack = ItemStack.fromBytes(game, self.stack)
+            entity.setItemstack(self.stack)
 
 class FetchInventoryPacket(Packet):
     def __init__(self, playername=''):

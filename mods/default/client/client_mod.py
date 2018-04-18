@@ -70,7 +70,8 @@ class ClientMod(Mod):
         # Register the valid packet classes
         packets = [
                     FetchPlayerImagePacket, SendInventoryPacket,
-                    FetchInventoryPacket, SendPlayerImagePacket
+                    FetchInventoryPacket, SendPlayerImagePacket,
+                    FetchPickupItem, SendPickupItem
                   ]
         for packet in packets:
             self.packetPipeline.registerPacket(packet)
