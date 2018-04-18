@@ -1,4 +1,6 @@
 import random
+from copy import deepcopy
+import time
 
 from api.item import *
 from api.packets import *
@@ -6,7 +8,26 @@ from api.packets import *
 from mods.default.items import *
 from mods.default.packets import *
 
+def onTickUpdateTradeRequests(game, deltaTime, tick):
+    '''
+    Event Hook: onTick
+    Remove expired trade requests
+    '''
+    for dimensionId in self.modLoader.gameRegistry.dimensions:
+        for p, player in enumerate(game.getWorld(dimensionId).players):
+            props = player.getProperty('tradeState')
+            # Loop the requests
+            for item in list(props.requests.items()):
+                # If a request has existed for more than a minute, remove it
+                if time.time()-item[1] >= 60:
+                    props.requests.pop(item[0])
+            game.getWorld(dimensionId).players[p].setProperty('tradeState', props)
+
 def onTick(game, deltaTime, tick):
+    '''
+    Event Hook: onTick
+    Send out WorldUpdatePackets to players
+    '''
     if tick%(util.FPS//6) == 0:
         # Send server updates to all of the connected clients 6 times a second
         pp = game.packetPipeline
@@ -129,6 +150,10 @@ def onPlayerCreated(game, player):
     '''
     # Add a steel sword
     player.inventory.items['left'] = ItemStack(Sword(), 1)
+
+    # Give the player a tradestate to handle trading
+    props = deepcopy(game.getModInstance('ServerMod').tradeStateProperty)
+    player.setProperty('tradeState', props)
 
 def onDisconnect(game, username):
     '''
