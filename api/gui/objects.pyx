@@ -85,12 +85,22 @@ class ItemSlot:
         if self.itemImage:
             imgRect = screen.blit(pygame.transform.scale(self.itemImage, imageSize), self.pos)
 
+        tagColour = (0, 0, 0)
+
         if self.button.isHovered(mousePos):
             # Draw a semi transparent square over the itemslot
             square = pygame.Surface(imageSize)
             square.set_alpha(128)
             square.fill((0, 0, 0))
-            screen.blit(square, self.pos)#[a-3 for a in self.pos])
+            screen.blit(square, self.pos)
+            tagColour = (255, 255, 255)
+
+        font = pygame.font.Font('resources/font/main.ttf', imageSize[0]//3)
+        text = font.render(str(self.item.stackSize), True, tagColour)
+        tagPos = list(self.pos)
+        tagPos[1] += imageSize[1]-text.get_height()
+        tagPos[0] += text.get_height()*1/10
+        screen.blit(text, tagPos)
 
 class Slider:
     def __init__(self, rect, colour):
