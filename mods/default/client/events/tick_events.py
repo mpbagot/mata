@@ -44,16 +44,15 @@ def onTickHandleMovement(game, deltaTime, tick):
         speed = game.player.getSpeed(game)
 
         game.player.lastPos = list(game.player.pos)
-        deltaTicks = deltaTime*util.FPS
         # Update the player position
         if keys[pygame.K_UP]:
-            game.player.pos[1] -= speed*deltaTicks
+            game.player.pos[1] -= speed*deltaTime
         if keys[pygame.K_DOWN]:
-            game.player.pos[1] += speed*deltaTicks
+            game.player.pos[1] += speed*deltaTime
         if keys[pygame.K_LEFT]:
-            game.player.pos[0] -= speed*deltaTicks
+            game.player.pos[0] -= speed*deltaTime
         if keys[pygame.K_RIGHT]:
-            game.player.pos[0] += speed*deltaTicks
+            game.player.pos[0] += speed*deltaTime
 
         # Handle the update of the riders, passengers, vehicles and game player correctly
         # update all non-passengers

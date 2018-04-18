@@ -8,7 +8,7 @@ class Horse(Vehicle):
         self.setRegistryName('Horse')
         self.setImage('vehicle_horse')
         self.pos = [randint(-5, 5), randint(-5, 5)]
-        self.speed = 1
+        self.speed = 30
 
     def getMaxRiders(self):
         '''

@@ -11,7 +11,7 @@ class EntityBase:
         self.pos = [0, 0]
         self.lastPos = [0, 0]
 
-        self.speed = 0.2
+        self.speed = 6
 
         self.isDead = False
         self.tickDamage = None

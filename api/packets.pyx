@@ -137,16 +137,15 @@ class SyncPlayerPacket(Packet):
 
         # Get the deltaTime, and deltaTicks since last synchronisation
         if isinstance(serverPlayer.synced, datetime):
-            deltaTime = int((datetime.now()-serverPlayer.synced).total_seconds()*1000)
+            deltaTime = (datetime.now()-serverPlayer.synced).total_seconds()
         else:
-            deltaTime = 4000/util.FPS
-        deltaTicks = round(deltaTime*(util.FPS/1000))
+            deltaTime = 4
 
         # Write the new sync time (in case we need to reset)
         serverPlayer.synced = datetime.now()
 
         # Check if the player's motion is not greater than a certain threshold
-        threshold = serverPlayer.getSpeed(game)*(deltaTicks+2) + 0.0005 # <- Add this tiny extra bit to account for float imprecision
+        threshold = serverPlayer.getSpeed(game)*(deltaTime+0.1) + 0.0005 # <- Add this tiny extra bit to account for float imprecision
         if max([abs(self.player.pos[a]-serverPlayer.pos[a]) for a in (0, 1)]) > threshold:
             return ResetPlayerPacket(serverPlayer)
 

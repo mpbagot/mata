@@ -12,7 +12,7 @@ class Bear(Entity):
         super().__init__()
         self.setRegistryName('Bear')
         self.health = 30
-        self.speed = 0.3
+        self.speed = 9
         self.aiHandler.registerAITask(AttackAITask(self), 0)
         self.setImage('entity_bear')
         self.pos = [randint(-5, 5), randint(-5, 5)]
@@ -65,7 +65,7 @@ class AttackAITask(AITask):
 
         # TODO Implement a proper path finding algorithm
         # For now, just run in a straight line towards the player
-        velocity = self.entity.speed*util.FPS
+        velocity = self.entity.speed
         try:
             ratio = (velocity*deltaTime)/distance
         except ZeroDivisionError:
