@@ -178,8 +178,12 @@ def onDisconnect(game, message):
     Handle the opening of the disconnected screen when the client disconnects
     '''
     if message:
-        # Show the message
-        game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, message)
+        gui = game.getGui()
+        disconnectGuiID = game.getModInstance('ClientMod').disconnectMessageGui
+        mainGuiID = game.getModInstance('ClientMod').mainMenuGui
+        if message != 'Server Connection Reset' or (gui and gui[0] not in [disconnectGuiID, mainGuiID]):
+            # Show the message
+            game.openGui(game.getModInstance('ClientMod').disconnectMessageGui, message)
 
     game.player = Player()
     # Close the connection in the packetPipeline(s)

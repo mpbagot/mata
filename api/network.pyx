@@ -33,7 +33,11 @@ class PacketHandler:
 
         # Bind the socket if the PacketHandler is server-side
         if side == util.SERVER:
-            self.socket.bind(('0.0.0.0', self.port))
+            try:
+                self.socket.bind(('0.0.0.0', self.port))
+            except OSError:
+                print('[ERROR] Previous server instance still clearing data. Please wait about 30 seconds')
+                game.quit()
             connPoll = Thread(target=self.pollForConnections)
             connPoll.daemon = True
             connPoll.start()
@@ -187,6 +191,8 @@ class PacketHandler:
                 print(e)
                 continue
 
+            # print('Received packet:', dataDictionary['type'])
+
             # Handle the packet asynchronously
             t = Thread(target=self.handlePacket, args=(dataDictionary, connIndex))
             t.daemon = True
@@ -199,66 +205,70 @@ class PacketHandler:
         # Loop through the registered packets and handle the received data accordingly
         for packet in self.safePackets:
             if packet.__name__ == dataDictionary['type']:
-                # Fetch the current buffer for this packet type
-                parts = self.connections[connIndex].multipartBuffer.get(dataDictionary['type'], [])
-
-                packetNum, size = [int(a) for a in dataDictionary['part'].split('/')]
-
-                # If it's the first part, initialise the parts buffer for this packet type
-                if parts == []:
-                    parts = ['' for a in range(size)]
-
-                # Fill in the part in the buffer
                 try:
-                    parts[packetNum-1] = dataDictionary['data']
-                except IndexError:
-                    print(packetNum,'/',size)
+                    # Fetch the current buffer for this packet type
+                    parts = self.connections[connIndex].multipartBuffer.get(dataDictionary['type'], [])
 
-                # Update the connection object's buffer
-                self.connections[connIndex].multipartBuffer[dataDictionary['type']] = parts
+                    packetNum, size = [int(a) for a in dataDictionary['part'].split('/')]
 
-                # Check if the buffer is filled (all parts of the packet have been received)
-                bufferData = list(parts)
-                if all(bufferData):
-                    # Replace the data with the bufferData if required
-                    if bufferData:
-                        dataDictionary['data'] = b''.join(bufferData)
+                    # If it's the first part, initialise the parts buffer for this packet type
+                    if parts == []:
+                        parts = ['' for a in range(size)]
 
-                        # Clear the packet buffer
-                        del self.connections[connIndex].multipartBuffer[dataDictionary['type']]
-
-                    # Initialise the packet, and handle it accordingly
+                    # Fill in the part in the buffer
                     try:
-                        p = packet()
-                        p.fromBytes(dataDictionary['data'])
+                        parts[packetNum-1] = dataDictionary['data']
+                    except IndexError:
+                        print(packetNum,'/',size)
 
-                        # Pass the connection list in if a login packet
-                        if packet.__name__ in ['LoginPacket', 'SetupConnPacket']:
-                            # print('Logging in on packethandler:', self)
-                            # print('connections of that packethandler are:', self.connections)
-                            response = p.onReceive(self.connections[connIndex], self.side, self.game, self.connections)
-                        else:
-                            response = p.onReceive(self.connections[connIndex], self.side, self.game)
+                    # Update the connection object's buffer
+                    self.connections[connIndex].multipartBuffer[dataDictionary['type']] = parts
 
-                    except Exception as e:
-                        print('Packet unable to be handled correctly.')
-                        print('Error is:')
-                        raise e
-                        return
+                    # Check if the buffer is filled (all parts of the packet have been received)
+                    bufferData = list(parts)
+                    if all(bufferData):
+                        # Replace the data with the bufferData if required
+                        if bufferData:
+                            dataDictionary['data'] = b''.join(bufferData)
 
-                    self.game.fireEvent('onPacketReceived', p)
+                            # Clear the packet buffer
+                            del self.connections[connIndex].multipartBuffer[dataDictionary['type']]
 
-                    # Send packet(s) in response to the received packet
-                    if response:
-                        # Send any required response and reset the receive size
-                        if isinstance(response, list):
-                            for res in response:
-                                # print('sending packet {} in response to {}'.format(res.__class__.__name__, packet.__name__))
-                                self.connections[connIndex].sendPacket(res)
-                        else:
-                            # print('sending packet {} in response to {}'.format(response.__class__.__name__, packet.__name__))
-                            self.connections[connIndex].sendPacket(response)
-                break
+                        # Initialise the packet, and handle it accordingly
+                        try:
+                            p = packet()
+                            p.fromBytes(dataDictionary['data'])
+
+                            # Pass the connection list in if a login packet
+                            if packet.__name__ in ['LoginPacket', 'SetupConnPacket']:
+                                # print('Logging in on packethandler:', self)
+                                # print('connections of that packethandler are:', self.connections)
+                                response = p.onReceive(self.connections[connIndex], self.side, self.game, self.connections)
+                            else:
+                                response = p.onReceive(self.connections[connIndex], self.side, self.game)
+
+                        except Exception as e:
+                            print('Packet unable to be handled correctly.')
+                            print('Error is:')
+                            raise e
+                            return
+
+                        self.game.fireEvent('onPacketReceived', p)
+
+                        # Send packet(s) in response to the received packet
+                        if response:
+                            # Send any required response and reset the receive size
+                            if isinstance(response, list):
+                                for res in response:
+                                    # print('sending packet {} in response to {}'.format(res.__class__.__name__, packet.__name__))
+                                    self.connections[connIndex].sendPacket(res)
+                            else:
+                                # print('sending packet {} in response to {}'.format(response.__class__.__name__, packet.__name__))
+                                self.connections[connIndex].sendPacket(response)
+                    break
+                except KeyError:
+                    print(dataDictionary)
+                    return
 
     def closeConnection(self, username=''):
         '''
@@ -389,7 +399,11 @@ class PacketHandler:
         if self.checkServerPacket(packet):
             return
 
-        self.connections[1].sendPacket(packet)
+        try:
+            self.connections[1].sendPacket(packet)
+        except KeyError:
+            print(packet)
+            return
 
 class GamePacketHandler(PacketHandler):
     def __init__(self, game, side):
