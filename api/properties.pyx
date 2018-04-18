@@ -1,3 +1,4 @@
 class Property:
     def __init__(self, **kwargs):
-        self.props = kwargs
+        for val in kwargs.items():
+            self.__setattr__(*val)

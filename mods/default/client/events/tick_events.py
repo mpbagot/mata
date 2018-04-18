@@ -96,11 +96,11 @@ def onTickHandleMovement(game, deltaTime, tick):
                 continue
 
             # Get the number of ticks since the last sync to server
-            moduloTick = animTicks-(game.tick-props.props['updateTick'])%animTicks
+            moduloTick = animTicks-(game.tick-props.updateTick)%animTicks
 
             # Calculate the change in position
             pos = obj.pos
-            deltaPos = [props.props['newPos'][a]-pos[a] for a in (0, 1)]
+            deltaPos = [props.newPos[a]-pos[a] for a in (0, 1)]
             deltaPos = [deltaPos[0]/moduloTick, deltaPos[1]/moduloTick]
 
             # Apply the position transform to the player
@@ -128,11 +128,11 @@ def onTickHandleMovement(game, deltaTime, tick):
                     continue
 
                 # Get the number of ticks since the last sync to server
-                moduloTick = animTicks-(game.tick-props.props['updateTick'])%animTicks
+                moduloTick = animTicks-(game.tick-props.updateTick)%animTicks
 
                 # Calculate the change in position
                 pos = vehicle.pos
-                deltaPos = [props.props['newPos'][a]-pos[a] for a in (0, 1)]
+                deltaPos = [props.newPos[a]-pos[a] for a in (0, 1)]
                 deltaPos = [deltaPos[0]/moduloTick, deltaPos[1]/moduloTick]
 
                 # Apply the position transform to the player

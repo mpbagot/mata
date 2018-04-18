@@ -361,14 +361,14 @@ def onPlayerSync(game, player, oldPlayers):
             else:
                 # Update the modded properties
                 props = oldPlayers[p].getProperty('worldUpdate')
-                props.props['newPos'] = player.pos
-                props.props['updateTick'] = game.tick
+                props.newPos = player.pos
+                props.updateTick = game.tick
                 oldPlayers[p].setProperty('worldUpdate', props)
 
             return
 
     prop = deepcopy(game.getModInstance('ClientMod').worldUpdateProperty)
-    prop.props['newPos'] = player.pos
+    prop.newPos = player.pos
     player.setProperty('worldUpdate', prop)
     oldPlayers.append(player)
 
@@ -385,14 +385,14 @@ def onEntitySync(game, entity, entities):
 
             # Update the modded properties
             props = entities[e].getProperty('worldUpdate')
-            props.props['newPos'] = entity.pos
-            props.props['updateTick'] = game.tick
+            props.newPos = entity.pos
+            props.updateTick = game.tick
             entities[e].setProperty('worldUpdate', props)
 
             return
 
     prop = deepcopy(game.getModInstance('ClientMod').worldUpdateProperty)
-    prop.props['newPos'] = entity.pos
+    prop.newPos = entity.pos
     entity.setProperty('worldUpdate', prop)
     if isinstance(entity, Pickup):
         game.getModInstance('ClientMod').packetPipeline.sendToServer(FetchPickupItem(entity.uuid))
@@ -422,14 +422,14 @@ def onVehicleSync(game, vehicle, vehicles):
 
             # Update the modded properties
             props = vehicles[v].getProperty('worldUpdate')
-            props.props['newPos'] = vehicle.pos
-            props.props['updateTick'] = game.tick
+            props.newPos = vehicle.pos
+            props.updateTick = game.tick
             vehicles[v].setProperty('worldUpdate', props)
 
             return
 
     prop = deepcopy(game.getModInstance('ClientMod').worldUpdateProperty)
-    prop.props['newPos'] = vehicle.pos
+    prop.newPos = vehicle.pos
     vehicle.setProperty('worldUpdate', prop)
     vehicles.append(vehicle)
 
