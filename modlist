@@ -1,0 +1,13 @@
+# Mods with a - before them represent mods that are considered 'default',
+# or containing features critical to functionality of the game whereas mods without that
+# are considered addons, or non-critical to functionality.
+
+#Server side mods are placed in this section
+//Server
+-ServerMod
+//end
+
+#Client side mods are placed in this section
+//Client
+-ClientMod
+//end

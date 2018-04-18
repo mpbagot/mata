@@ -361,38 +361,42 @@ class Game:
         '''
         Process the command line arguments for the game
         '''
-        # TODO this is all wrong, it shouldn't import the default mods as they are supposed to be overrideable
-        import mods.default.server.server_mod as server
-        import mods.default.neural_net as nn
+        lines = [line.strip() for line in open('modlist') if line and line[0] != '#']
 
-        if argHandler.getRuntimeType() == util.SERVER:
-            # Schedule the Server side mods to be loaded here
-            self.modLoader.registerMod(server.ServerMod)
+        section = None
+        side = argHandler.getRuntimeType()
+        for line in lines:
+            # Switch section here
+            if line.startswith('//'):
+                line = line[2:]
+                if line == 'end':
+                    section = None
+                else:
+                    section = line
 
-        elif argHandler.getRuntimeType() in [util.CLIENT, util.COMBINED]:
-            import mods.default.client.client_mod as client
+            # Schedule the game critical mods to be loaded here
+            elif line.startswith('-'):
+                if section == 'Server' and side == util.SERVER:
+                    self.modLoader.registerModByName(line[1:])
+                elif section == 'Client' and side != util.SERVER:
+                    self.modLoader.registerModByName(line[1:])
 
-            if argHandler.getRuntimeType() == util.COMBINED:
-                # Fork a new Server process, then set to connect to it immediately
-                serverProcess = multiprocessing.Process(target=forkServer)
-                serverProcess.daemon = True
-                self.child = serverProcess
-                serverProcess.start()
-
-                argHandler.results['address'] = socket.getfqdn()
-
-            # Schedule the Client side mods to be loaded here
-            self.modLoader.registerMod(client.ClientMod)
-
-        if argHandler.getRunSpecialAI():
-            # Schedule the special Neural Network AI mod to be loaded
-            self.modLoader.registerMod(nn.NNetAIMod)
-
-        if argHandler.getShouldLoadCustomMods():
-            # Schedule the loading of the extra custom mods
+            # Schedule the loading of the extra custom mod
             # if they aren't disabled in the command line.
-            for modName in open('modlist'):
-                self.modLoader.registerModByName(modName)
+            elif argHandler.getShouldLoadCustomMods():
+                if section == 'Server' and side == util.SERVER:
+                    self.modLoader.registerModByName(line[1:])
+                elif section == 'Client' and side != util.SERVER:
+                    self.modLoader.registerModByName(line[1:])
+
+        if argHandler.getRuntimeType() == util.COMBINED:
+            # Fork a new Server process, then set to connect to it immediately
+            serverProcess = multiprocessing.Process(target=forkServer, args=(argHandler,))
+            serverProcess.daemon = True
+            self.child = serverProcess
+            serverProcess.start()
+
+            argHandler.results['address'] = socket.getfqdn()
 
         # Set the world generation seed
         self.modLoader.gameRegistry.seed = argHandler.getSeed()
@@ -403,9 +407,10 @@ class Game:
                                                  util.COMBINED : 'COMBINED'
                                                 }[argHandler.getRuntimeType()]))
 
-def forkServer():
+def forkServer(argHandler):
     '''
     Fork a new process to run the server in the background
     '''
-    serverRuntime = Game(util.ArgumentHandler(['--type', 'SERVER']))
+    argHandler.results['runtimeType'] = util.SERVER
+    serverRuntime = Game(argHandler)
     serverRuntime.run()

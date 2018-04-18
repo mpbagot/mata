@@ -4,6 +4,7 @@ Module containing the Mod loading and Mod API code for the game
 '''
 # Import the Python3 standard libraries
 import os
+import importlib
 
 from api.cmd import FailedCommand, MessageCommand
 from api.entity import Pickup
@@ -27,22 +28,35 @@ class ModLoader:
         # Hash and set the uuid
         return hash(entity.name+str(self.entityCounter)) & 0xffffffffffffffff
 
-    def registerModByName(self, name):
+    def registerModByName(self, name, subfolders=''):
         '''
-        Search the mod folder for a mod with the given mod name, and load it
+        Recursively traverse the mod folder for a mod with the given mod name, and load it
         '''
         # Traverse the python files in the mod folder
-        for filename in os.listdir('mods'):
+        for filename in os.listdir('mods'+subfolders):
             if filename.endswith('.py'):
-                exec('import mods.'+filename[:-3]+' as module')
+                module = importlib.import_module(('mods' + subfolders + '.').replace('/', '.') + filename[:-3])
                 # Check if the mod class is in the file
                 if name in dir(module):
-                    modClass = eval('module.'+name)
+                    modClass = module.__getattribute__(name)
                     # Register it normally if it is
                     self.registerMod(modClass)
-                    return
+                    return 'found'
+
+            # Check if its a directory, and recurse as required
+            elif '.' not in filename and '__' not in filename:
+                try:
+                    open('mods' + subfolders + '/' + filename).close()
+                except IsADirectoryError:
+                    try:
+                        result = self.registerModByName(name, subfolders+'/'+filename)
+                        return result
+                    except FileNotFoundError:
+                        pass
+                    except RuntimeError:
+                        pass
         # Error if the mod doesn't exist
-        raise FileNotFoundError('Mod File not Found in \'mods\' folder')
+        raise FileNotFoundError('Mod file not found in \'mods\' folder')
 
     def registerMod(self, modClass):
         '''
@@ -50,7 +64,7 @@ class ModLoader:
         '''
         # Error if the mod is not valid
         if not issubclass(modClass, Mod):
-            raise Exception('Illegal Class type of \'{}\'. Expected child of \'Mod\''.format(modClass.__name__))
+            raise Exception('Illegal class type of \'{}\'. Expected child of \'Mod\''.format(modClass.__name__))
         self.modsToLoad.append(modClass)
 
     def loadRegisteredMods(self):
