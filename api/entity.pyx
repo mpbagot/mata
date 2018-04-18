@@ -121,8 +121,8 @@ class Player(EntityBase):
         '''
         name = len(self.name).to_bytes(1, 'big')+self.name.encode()
         pos = str(self.getPos()).encode()
-        hp = self.health.to_bytes(4, 'big')
-        exp = self.exp.to_bytes(4, 'big')
+        hp = int(self.health).to_bytes(4, 'big')
+        exp = int(self.exp).to_bytes(4, 'big')
         dimension = self.dimension.to_bytes(2, 'big')
 
         damage = self.tickDamage.toBytes() if isinstance(self.tickDamage, Damage) else NullDamage().toBytes()
@@ -210,7 +210,7 @@ class Entity(EntityBase):
         name = len(self.name).to_bytes(1, 'big') + self.name.encode()
         uuid = self.uuid.to_bytes(8, 'big')
         pos = str(self.getPos()).encode()
-        hp = self.health.to_bytes(4, 'big')
+        hp = int(self.health).to_bytes(4, 'big')
         dimension = self.dimension.to_bytes(2, 'big')
 
         damage = self.tickDamage.toBytes() if isinstance(self.tickDamage, Damage) else NullDamage().toBytes()
