@@ -45,6 +45,7 @@ class ServerMod(Mod):
         # Register the items
         self.gameRegistry.registerItem(Dirt)
         self.gameRegistry.registerItem(Sword)
+        self.gameRegistry.registerItem(Teeth)
         self.gameRegistry.registerItem(Gold)
 
     def postLoad(self):

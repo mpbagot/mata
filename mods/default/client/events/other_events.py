@@ -33,11 +33,11 @@ def onGameMouseClick(game, mousePos, pressed, event):
             # Attack button (LMB) was pressed
             # Perform an attack
             weapons = [stack.getItem() for stack in game.player.inventory.getEquipped()[:2]]
+            pp = game.getModInstance('ClientMod').packetPipeline
             for weapon in weapons:
                 if isinstance(weapon, Weapon):
                     # Attack with this weapon
                     # Send AttackPacket so that server can run damage calculation
-                    pp = game.getModInstance('ClientMod').packetPipeline
                     pp.sendToServer(AttackPacket(game.player.name, weapon))
 
                     # TODO Run the animation
@@ -46,7 +46,7 @@ def onGameMouseClick(game, mousePos, pressed, event):
                 # Attempt to punch with a fist
                 elif isinstance(weapon, NullItem):
                     if random.randint(0, 5) == 3:
-                        pass
+                        pp.sendToServer(AttackPacket(game.player.name, Teeth()))
 
         # Interaction button (RMB) was pressed
         elif pressed[2]:
