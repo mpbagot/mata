@@ -104,24 +104,26 @@ def onInvMouseClick(game, mousePos, pressed, event):
                     # LMB click
                     # If carrying an itemstack
                     if gui[1].moveItem:
+                        stack1, stack2 = gui[1].moveItem[2].add(slot.item)
                         # Place the carried item into the clicked slot
                         section = 'main' if s < 16 else ['left', 'right', 'armour'][s-16]
                         if section == 'main':
-                            game.player.inventory.items['main'][s] = gui[1].moveItem[2]
+                            game.player.inventory.items['main'][s] = stack1
                         else:
                             # If the player is trying to place a non-armour item in the armour slot, dont let them
-                            if section == 'armour' and not isinstance(gui[1].moveItem[2].getItem(), Armour):
+                            if section == 'armour' and not isinstance(stack1.getItem(), Armour):
                                 continue
-                            game.player.inventory.items[section] = gui[1].moveItem[2]
-                        # If clicking on a filled slot, swap the moveItem with
+                            game.player.inventory.items[section] = stack1
+
+                        # If clicking on a filled slot, swap or add the moveItem with
                         # the stack in the slot
-                        if slot.item.getRegistryName() != 'null_item':
-                            gui[1].moveItem = [section, s, slot.item]
+                        if stack2 and stack2.getRegistryName() != 'null_item':
+                            gui[1].moveItem = [section, s, stack2]
                         else:
                             gui[1].moveItem = None
+
                     # If carrying nothing
                     else:
-                        print(slot.item.getRegistryName())
                         # If clicking on a filled spot, pickup the item
                         if slot.item.getRegistryName() != 'null_item':
                             section = 'main' if s < 16 else ['left', 'right', 'armour'][s-16]
@@ -131,11 +133,64 @@ def onInvMouseClick(game, mousePos, pressed, event):
                             else:
                                 game.player.inventory.items[section] = ItemStack(NullItem(), 0)
 
-
                 elif pressed[2]:
                     # RMB click
-                    pass
-        pass
+                    # If carrying an itemstack
+                    section = 'main' if s < 16 else ['left', 'right', 'armour'][s-16]
+                    if gui[1].moveItem:
+                        if gui[1].moveItem[2].stackSize == 1 and slot.item.getRegistryName() == 'null_item':
+                            # Place the carried item into the clicked slot
+                            if section == 'main':
+                                game.player.inventory.items['main'][s] = gui[1].moveItem[2]
+                            else:
+                                # If the player is trying to place a non-armour item in the armour slot, dont let them
+                                if section == 'armour' and not isinstance(stack1.getItem(), Armour):
+                                    continue
+                                game.player.inventory.items[section] = gui[1].moveItem[2]
+
+                            gui[1].moveItem = None
+                            continue
+
+                        gui[1].moveItem[2], one = gui[1].moveItem[2].getOne()
+                        if one == slot.item:
+                            stack1, stack2 = slot.item.add(one)
+                            if gui[1].moveItem[2].getRegistryName() != 'null_item':
+                                stack2 = gui[1].moveItem[2].add(stack2)[0]
+
+                            if stack2 and stack2.getRegistryName() != 'null_item':
+                                gui[1].moveItem = [section, s, stack2]
+                            else:
+                                gui[1].moveItem = None
+
+                        elif slot.item.getRegistryName() == 'null_item':
+                            stack1 = one
+
+                        else:
+                            continue
+
+                        # Place the carried item into the clicked slot
+                        if section == 'main':
+                            game.player.inventory.items['main'][s] = stack1
+                        else:
+                            # If the player is trying to place a non-armour item in the armour slot, dont let them
+                            if section == 'armour' and not isinstance(stack1.getItem(), Armour):
+                                gui[1].moveItem[2] = gui[1].moveItem[2].add(one)[0]
+                                continue
+                            game.player.inventory.items[section] = stack1
+
+                    elif slot.item.getRegistryName() != 'null_item' and slot.item.stackSize > 0:
+                        stack1, stack2 = slot.item.split()
+                        if section == 'main':
+                            game.player.inventory.items['main'][s] = stack1
+                        else:
+                            # If the player is trying to place a non-armour item in the armour slot, dont let them
+                            if section == 'armour' and not isinstance(stack1.getItem(), Armour):
+                                continue
+                            game.player.inventory.items[section] = stack1
+
+                        if stack2 and stack2.getRegistryName() != 'null_item':
+                            gui[1].moveItem = [section, s, stack2]
+
 
 def onGameKeyPress(game, event):
     '''

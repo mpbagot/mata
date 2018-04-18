@@ -234,21 +234,41 @@ class PlayerInventory(Inventory):
 
 class ItemStack:
     def __init__(self, item, size):
-        self.stackSize = size
+        self.stackSize = max(size, 0)
         self.item = item
+        if size <= 0:
+          self.item = NullItem()
 
     def __lt__(self, other):
         if other is None:
             return True
-        return self.item.getRegistryName() < other.item.getRegistryName()
+        return self.getRegistryName() < other.getRegistryName()
 
     def __gt__(self, other):
         if other is None:
             return False
-        return self.item.getRegistryName() > other.item.getRegistryName()
+        return self.getRegistryName() > other.getRegistryName()
+
+    def __eq__(self, other):
+        if not isinstance(other, ItemStack):
+            return False
+        return self.getRegistryName() == other.getRegistryName()
 
     def __str__(self):
         return 'ItemStack(item="{}", stackSize="{}")'.format(self.getRegistryName(), self.stackSize)
+
+    def getOne(self):
+        '''
+        Take one item from this stack and return it and the new stack
+        '''
+        return [ItemStack(self.getItem(), self.stackSize-1), ItemStack(self.getItem(), 1)]
+
+    def split(self):
+        '''
+        Split the itemstack in half
+        '''
+        stack1 = ItemStack(self.getItem(), self.stackSize//2)
+        return (stack1, ItemStack(self.getItem(), self.stackSize-stack1.stackSize))
 
     def toPickup(self, game, pos):
         '''
@@ -305,6 +325,9 @@ class ItemStack:
         '''
         Add one stack to another
         '''
+        if not other or self.getRegistryName() != other.getRegistryName():
+            return [self, other]
+
         # Add the stack sizes and assign carryover as required
         sumSize = self.stackSize + other.stackSize
         carrySize = 0
