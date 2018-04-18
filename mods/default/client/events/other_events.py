@@ -20,6 +20,13 @@ def onGameMouseClick(game, mousePos, event):
     Handle a mouse click on vehicles, players and entities
     '''
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
+        chatOverlay = game.getModInstance('ClientMod').chatOverlay
+        pauseOverlay = game.getModInstance('ClientMod').pauseOverlay
+
+        # Skip handling mouse clicks if 'paused' or in the chat window
+        if game.getGUIState().isOverlayOpen(chatOverlay) or game.getGUIState().isOverlayOpen(pauseOverlay):
+            return
+
         pressed = pygame.mouse.get_pressed()
         if pressed[0]:
             # Attack button (LMB) was pressed
