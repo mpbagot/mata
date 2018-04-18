@@ -2,6 +2,7 @@
 from mod import Mod
 from api import network, cmd, dimension, item, vehicle
 from api.packets import *
+from api.entity import *
 
 # Import the extra mod data
 from mods.default.packets import *
@@ -60,7 +61,7 @@ class ServerMod(Mod):
         # Register the events
         self.gameRegistry.registerEventHandler(onTick, 'onTick')
         self.gameRegistry.registerEventHandler(onPlayerDeath, 'onPlayerDeath')
-        self.gameRegistry.registerEventHandler(onPlayerDeath, 'onEntityDeath')
+        self.gameRegistry.registerEventHandler(onEntityDeath, 'onEntityDeath')
         self.gameRegistry.registerEventHandler(onPlayerLogin, 'onPlayerLogin')
         self.gameRegistry.registerEventHandler(onPlayerMount, 'onPlayerMount')
         self.gameRegistry.registerEventHandler(onEntityDamage, 'onEntityDamage')
@@ -107,7 +108,7 @@ def onPlayerDeath(game, player, tickDamage):
     '''
     # TODO Drop the player's inventory on the ground
 
-    if isinstance(tickDamage.source, str):
+    if tickDamage and isinstance(tickDamage.source, str):
         # Give experience points = enemy lvl**0.75 + 5. (lvl = exp**0.5)
         xpToGive = int((player.exp**0.5+1)**(3/4)+5)
         playerToGive = game.getPlayer(tickDamage.source)
@@ -126,7 +127,7 @@ def onEntityDeath(game, entity, tickDamage):
     Event Hook: onEntityDeath
     Drop gold and items
     '''
-    if isinstance(tickDamage.source, str):
+    if tickDamage and isinstance(tickDamage.source, str):
         # Give experience points = 1.5 * 4**(entity.hp/player.hp)
         playerToGive = game.getPlayer(tickDamage.source)
         if playerToGive:
@@ -135,23 +136,25 @@ def onEntityDeath(game, entity, tickDamage):
 
     world = game.getWorld(entity.dimension)
     resources = game.modLoader.gameRegistry.resources
-    goldAmount = random.randint(0, int(sum(entity.pos)**0.5))
+    goldAmount = random.randint(0, int(sum([abs(a) for a in entity.pos])**0.5))
 
     # Split the gold into several pieces
     pieces = []
     while goldAmount > 50:
-        pieces.append(ItemStack(Gold(resources), 50))
+        pieces.append(ItemStack(Gold(), 50))
         goldAmount -= 50
-    pieces.append(ItemStack(Gold(resources), goldAmount))
+    pieces.append(ItemStack(Gold(), goldAmount))
 
     # Turn the itemstacks into Pickups and spawn them in the world
     pieceEntities = [Pickup() for a in range(len(pieces))]
-    x, y = entity.pos
+    x, y = [int(a) for a in entity.pos]
     for p, piece in enumerate(pieceEntities):
         pieceEntities[p].setItemstack(pieces[p])
         pieceEntities[p].pos = [random.randint(x-3, x+3), random.randint(y-3, y+3)]
         pieceEntities[p].uuid = game.modLoader.getUUIDForEntity(piece)
         world.spawnEntityInWorld(pieceEntities[p])
+
+    print('Entity died')
 
 def onEntityDamage(game, entity, damage):
     '''
