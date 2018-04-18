@@ -26,14 +26,17 @@ class HUD(Overlay):
         equippedItems = self.game.player.inventory.getEquipped()
 
         self.itemSlots = [
-                            ItemSlot(game, equippedItems[0].getItem(), [664, 630], 60),
-                            ItemSlot(game, equippedItems[1].getItem(), [664, 700], 60)
+                            ItemSlot(game, equippedItems[0], [664, 630], 60),
+                            ItemSlot(game, equippedItems[1], [664, 700], 60)
                          ]
 
     def drawBackgroundLayer(self):
         # Update the bar percentages
         self.bars[0].percentage = self.game.player.health/100
         self.bars[1].percentage = (self.game.player.exp-int(self.game.player.exp**0.5)**2)/(2*int(self.game.player.exp**0.5)+1)
+
+        for a in (0, 1):
+            self.itemSlots[a].setItem(self.game.player.inventory.getEquipped()[a])
 
         # Draw the background rectangle
         pygame.draw.rect(self.screen, (173, 144, 106), scaleRect([654, 620, 400, 150], self.screen))
