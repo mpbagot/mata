@@ -9,7 +9,7 @@ from mods.default.packets import *
 from mods.default.biomes import *
 from mods.default.items import *
 from mods.default.dimension import DefaultChunkProvider
-from mods.default.server.entity import bear
+from mods.default.server.entity import bear, npc
 from mods.default.server.vehicle import horse
 
 import util
@@ -40,6 +40,7 @@ class ServerMod(Mod):
 
         # Register the entities
         self.gameRegistry.registerEntity(bear.Bear())
+        self.gameRegistry.registerEntity(npc.NPC())
         self.gameRegistry.registerVehicle(horse.Horse())
 
         # Register the items

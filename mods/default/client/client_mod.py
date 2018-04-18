@@ -11,7 +11,7 @@ from mods.default.client.gui.game_screens import *
 from mods.default.client.gui.game_overlays import *
 from mods.default.client.gui.messages import *
 from mods.default.client.events import tick_events, other_events
-from mods.default.server.entity import bear
+from mods.default.server.entity import bear, npc
 from mods.default.server.vehicle import horse
 
 import util
@@ -95,6 +95,7 @@ class ClientMod(Mod):
 
         # Register the entities
         self.gameRegistry.registerEntity(bear.Bear())
+        self.gameRegistry.registerEntity(npc.NPC())
         self.gameRegistry.registerVehicle(horse.Horse())
 
         # Register the items
