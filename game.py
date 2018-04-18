@@ -70,7 +70,8 @@ class Game:
                 # Drastic times call for drastic measures...
                 if sys.platform == 'linux':
                     os.system('kill -KILL {}'.format(self.child.pid))
-        pygame.quit()
+        if self.args.getRuntimeType() != util.SERVER:
+            pygame.quit()
         sys.exit()
 
     def run(self):
