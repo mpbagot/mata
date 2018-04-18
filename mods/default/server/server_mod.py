@@ -109,7 +109,13 @@ def onPlayerDeath(game, player, tickDamage):
     Event Hook: onPlayerDeath
     Close the connection to the client and drop the player's inventory
     '''
-    # TODO Drop the player's inventory on the ground
+    # Drop the player's inventory on the ground
+    world = game.getWorld(player.dimension)
+    # Turn the itemstacks into Pickups and spawn them in the world
+    items = player.inventory.toList()
+    pieceEntities = [a.toPickup(game, player.pos) for a in items]
+    for p, piece in enumerate(pieceEntities):
+        world.spawnEntityInWorld(piece)
 
     if tickDamage and isinstance(tickDamage.source, str):
         # Give experience points = enemy lvl**0.75 + 5. (lvl = exp**0.5)
@@ -152,14 +158,9 @@ def onEntityDeath(game, entity, tickDamage):
     pieces.append(ItemStack(Gold(), goldAmount))
 
     # Turn the itemstacks into Pickups and spawn them in the world
-    pieceEntities = [Pickup() for a in range(len(pieces))]
-    x, y = [int(a) for a in entity.pos]
+    pieceEntities = [a.toPickup(game, entity.pos) for a in pieces]
     for p, piece in enumerate(pieceEntities):
-        pieceEntities[p].setItemstack(pieces[p])
-        decimal = round(random.random(), 2)
-        pieceEntities[p].pos = [random.randint(x-2, x+2)+decimal, random.randint(y-2, y+2)+decimal]
-        pieceEntities[p].uuid = game.modLoader.getUUIDForEntity(piece)
-        world.spawnEntityInWorld(pieceEntities[p])
+        world.spawnEntityInWorld(piece)
 
     print('Entity died')
 
