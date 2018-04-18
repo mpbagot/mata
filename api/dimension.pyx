@@ -211,11 +211,7 @@ class WorldMP:
 
         p = 0
         while p < len(self.players):
-            toKeep = False
-            for player in players:
-                if self.players[p] == player:
-                    toKeep = True
-                    break
+            toKeep = self.players[p] in players
             if not toKeep:
                 self.players.pop(p)
             p += int(toKeep)
@@ -229,11 +225,7 @@ class WorldMP:
 
         e = 0
         while e < len(self.entities):
-            toKeep = False
-            for entity in entities:
-                if self.entities[e] == entity:
-                    toKeep = True
-                    break
+            toKeep = self.entities[e] in entities
             if not toKeep:
                 self.entities.pop(e)
             e += int(toKeep)
@@ -247,11 +239,7 @@ class WorldMP:
 
         v = 0
         while v < len(self.vehicles):
-            toKeep = False
-            for vehicle in vehicles:
-                if self.vehicles[v] == vehicle:
-                    toKeep = True
-                    break
+            toKeep = self.vehicles[v] in vehicles
             if not toKeep:
                 self.vehicles.pop(v)
             v += int(toKeep)
