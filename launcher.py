@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 from datetime import datetime
 from threading import Thread
 
@@ -9,6 +10,7 @@ def writeLog(message):
     global logFile
 
     logFile.write(message+'\n')
+    print(message)
 
 logFile = open('launcher.log', 'a')
 
@@ -204,19 +206,28 @@ def drawMain(mousePos):
     Draw the main graphics of the launcher
     '''
     global screen
-    global playButton
+    global playButtons
+    global backgroundImage
     global width
     global height
 
-    x = pygame.image.load('resources/textures/background.png').convert()
-    screen.blit(x, [0, 0])
+    font = pygame.font.Font('resources/font/main.ttf', height//7)
+    text = font.render('M.A.T.A Launcher', True, (0, 0, 0))
+    screen.blit(text, [(width-text.get_width())//2, height//10])
+
+    screen.blit(backgroundImage, [0, 0])
 
     font = pygame.font.Font('resources/font/main.ttf', 30)
 
     text = font.render('Extra Arguments:', True, (0, 0, 0))
     screen.blit(text, [width//5, height//2-40])
 
-    playButton.draw(screen, mousePos)
+    font = pygame.font.Font('resources/font/main.ttf', height//14)
+    text = font.render('Launch:', True, (0, 0, 0))
+    screen.blit(text, [(width-text.get_width())//2, (height*18)//28])
+
+    for button in playButtons:
+        button.draw(screen, mousePos)
     argBox.draw(screen, mousePos)
 
 def drawOverBox(surface):
@@ -283,7 +294,7 @@ def getInstallBox():
 
     return box
 
-def launchGame():
+def launchGame(label):
     '''
     Launch the game based on the config
     '''
@@ -293,13 +304,17 @@ def launchGame():
     writeLog('Launching Game.')
     writeLog('Exiting Launcher.')
 
-    pygame.quit()
-    os.system(pythonCommand + ' main.py {}'.format(argBox.text))
-    return
+    # pygame.quit()
+    # os.system(pythonCommand + ' main.py {}'.format(argBox.text))
+    # return
 
-    mode = 'COMBINED'
+    mode = {
+            'Singleplayer' : 'COMBINED',
+            'Client' : 'CLIENT',
+            'Server' : 'SERVER'
+           }.get(label, 'COMBINED')
     pygame.quit()
-    os.system(pythonCommand+' main.py --type {}'.format(mode))
+    os.system(pythonCommand+' main.py {} --type {}'.format(argBox.text, mode))
 
 # Install Pygame
 if shouldInstallPygame():
@@ -316,6 +331,8 @@ if shouldInstallPygame():
 
 import pygame
 
+writeLog('Module import complete. Opening launcher...')
+
 pygame.init()
 
 screen = pygame.display.set_mode((width, height))
@@ -326,9 +343,15 @@ overlay = None
 errorMessage = ''
 errorButton = None
 
+backgroundImage = pygame.image.load('resources/textures/background.png').convert()
+
 config = {}
 argBox = TextBox([width//5, height//2, 3*width//5, height//15], 'Extra Arguments')
-playButton = Button([width//4+width//24, 3*height//4, width//2-width//12, height//7.5], "Launch Game")
+playButtons = []
+w, h = width, height
+playButtons.append(Button([w//40, 3*h//4, (3*w)//10, h//7.5], "Client"))
+playButtons.append(Button([(7*w)//20, 3*h//4, (3*w)//10, h//7.5], "Singleplayer"))
+playButtons.append(Button([(w*27)//40, 3*h//4, (3*w)//10, h//7.5], "Server"))
 
 setupStep = ""
 if shouldSetup():
@@ -337,6 +360,8 @@ if shouldSetup():
     t = Thread(target=firstTimeSetup, args=())
     t.daemon = True
     t.start()
+
+lastTime = time.time()
 
 while True:
     pos = pygame.mouse.get_pos()
@@ -361,8 +386,9 @@ while True:
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             # Handle the presses on the main buttons and stuff
-            if playButton.isHovered(pos):
-                launchGame()
+            for button in playButtons:
+                if button.isHovered(pos):
+                    launchGame(button.label)
             try:
                 if errorButton.isHovered(errorPos):
                     overlay = None
@@ -384,5 +410,8 @@ while True:
         overlay = getInstallBox()
     elif errorMessage:
         overlay = getErrorBox(errorMessage, errorPos)
+
+    # print(1/(time.time()-lastTime))
+    lastTime = time.time()
 
     pygame.display.flip()
