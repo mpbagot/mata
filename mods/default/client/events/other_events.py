@@ -8,11 +8,12 @@ import time
 import util
 from api.item import *
 from api.packets import SendCommandPacket, MountPacket, AttackPacket
-from api.entity import Player
+from api.entity import Player, Pickup
 from api.vehicle import Vehicle
 
 from mods.default.client.events.tick_events import genWorld, handleProcess
 from mods.default.items import *
+from mods.default.packets import *
 
 def onGameMouseClick(game, mousePos, event):
     '''
@@ -290,6 +291,8 @@ def onEntitySync(game, entity, entities):
     prop = deepcopy(game.getModInstance('ClientMod').worldUpdateProperty)
     prop.props['newPos'] = entity.pos
     entity.setProperty('worldUpdate', prop)
+    if isinstance(entity, Pickup):
+        game.getModInstance('ClientMod').packetPipeline.sendToServer(FetchPickupItem(entity.uuid))
     entities.append(entity)
 
 def onVehicleSync(game, vehicle, vehicles):

@@ -237,7 +237,10 @@ class GameScreen(Gui):
             deltaPos = [ent.pos[a]-mainAbsPos[a] for a in range(2)]
 
             # Get the entity image size
-            entityImage = ent.getImage(self.game.modLoader.gameRegistry.resources)
+            try:
+                entityImage = ent.getImage(self.game.modLoader.gameRegistry.resources)
+            except KeyError:
+                continue
             size = entityImage.get_rect()
 
             # Adjust position accordingly, and draw to screen
