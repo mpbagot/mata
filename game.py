@@ -99,7 +99,7 @@ class Game:
                         world.tickUpdate(self)
 
             # Trigger all of the onTick events
-            self.fireEvent('onTick', self.tick)
+            self.fireEvent('onTick', self.deltaTime, self.tick)
 
             # If running a client side game then do some extra things
             if self.args.getRuntimeType() != util.SERVER:

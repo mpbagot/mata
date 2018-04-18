@@ -71,7 +71,7 @@ class ServerMod(Mod):
         self.gameRegistry.registerEventHandler(onEntityDamage, 'onPlayerDamage')
         self.gameRegistry.registerEventHandler(onDisconnect, 'onDisconnect')
 
-def onTick(game, tick):
+def onTick(game, deltaTime, tick):
     if tick%(util.FPS//6) == 0:
         # Send server updates to all of the connected clients 6 times a second
         pp = game.packetPipeline

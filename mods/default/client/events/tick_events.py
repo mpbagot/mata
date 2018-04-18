@@ -10,7 +10,7 @@ from copy import deepcopy
 
 import util
 
-def onTickGenerateWorld(game, tick):
+def onTickGenerateWorld(game, deltaTime, tick):
     '''
     Event Hook: onTick
     Handles the generation of the world when necessary
@@ -32,7 +32,7 @@ def onTickGenerateWorld(game, tick):
             p.start()
             t.start()
 
-def onTickHandleMovement(game, tick):
+def onTickHandleMovement(game, deltaTime, tick):
     '''
     Event Hook: onTick
     Handle the motion of other players and the main client player
@@ -44,15 +44,16 @@ def onTickHandleMovement(game, tick):
         speed = game.player.getSpeed(game)
 
         game.player.lastPos = list(game.player.pos)
+        deltaTicks = deltaTime*util.FPS
         # Update the player position
         if keys[pygame.K_UP]:
-            game.player.pos[1] -= speed
+            game.player.pos[1] -= speed*deltaTicks
         if keys[pygame.K_DOWN]:
-            game.player.pos[1] += speed
+            game.player.pos[1] += speed*deltaTicks
         if keys[pygame.K_LEFT]:
-            game.player.pos[0] -= speed
+            game.player.pos[0] -= speed*deltaTicks
         if keys[pygame.K_RIGHT]:
-            game.player.pos[0] += speed
+            game.player.pos[0] += speed*deltaTicks
 
         # Handle the update of the riders, passengers, vehicles and game player correctly
         # update all non-passengers
@@ -153,7 +154,7 @@ def onTickHandleMovement(game, tick):
         game.world.players = [a for a in everythingList if isinstance(a, Player)]
         game.world.entities = [a for a in everythingList if isinstance(a, Entity)]
 
-def onTickSyncPlayer(game, tick):
+def onTickSyncPlayer(game, deltaTime, tick):
     '''
     Event Hook: onTick
     Handle the synchronisation of the player information between the client and server
