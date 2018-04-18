@@ -29,7 +29,7 @@ class ClientMod(Mod):
         self.worldUpdateProperty = properties.Property(newPos=[0, 0], updateTick=0)
 
         # Initialise the display
-        pygame.display.set_mode((1024, 576), util.DISPLAY_FLAGS)
+        pygame.display.set_mode((1024, 768), util.DISPLAY_FLAGS)
         pygame.display.set_caption('M.A.T.A: Medieval Attack-Trade-Alliance')
         # pygame.display.set_icon(pygame.image.load('resources/textures/icon.png').convert_alpha())
 
@@ -127,6 +127,7 @@ class ClientMod(Mod):
         self.gameRegistry.registerEventHandler(other_events.onDisconnect, 'onDisconnect')
 
         self.gameRegistry.registerEventHandler(other_events.onGameMouseClick, 'onMouseClick')
+        self.gameRegistry.registerEventHandler(other_events.onInvMouseClick, 'onMouseClick')
 
         self.gameRegistry.registerEventHandler(other_events.onGameKeyPress, 'onKeyPress')
         self.gameRegistry.registerEventHandler(other_events.onInvKeyPress, 'onKeyPress')

@@ -10,12 +10,13 @@ from api.item import *
 from api.packets import SendCommandPacket, MountPacket, AttackPacket
 from api.entity import Player, Pickup
 from api.vehicle import Vehicle
+from api.gui.objects import ItemSlot, ArmourSlot
 
 from mods.default.client.events.tick_events import genWorld, handleProcess
 from mods.default.items import *
 from mods.default.packets import *
 
-def onGameMouseClick(game, mousePos, event):
+def onGameMouseClick(game, mousePos, pressed, event):
     '''
     Event Hook: onMouseClick
     Handle a mouse click on vehicles, players and entities
@@ -28,7 +29,6 @@ def onGameMouseClick(game, mousePos, event):
         if game.getGUIState().isOverlayOpen(chatOverlay) or game.getGUIState().isOverlayOpen(pauseOverlay):
             return
 
-        pressed = pygame.mouse.get_pressed()
         if pressed[0]:
             # Attack button (LMB) was pressed
             # Perform an attack
@@ -88,6 +88,54 @@ def onGameMouseClick(game, mousePos, event):
                         if not game.getGUIState().isOverlayOpen(chatOverlay):
                             game.openOverlay(chatOverlay, game, obj.name)
                     return
+
+def onInvMouseClick(game, mousePos, pressed, event):
+    '''
+    Event Hook: onMouseClick
+    Handle the movement of items between slots in the inventory screen
+    '''
+    gui = game.getGui()
+    if gui and gui[0] == game.getModInstance('ClientMod').inventoryGui:
+        # moveItem needs to store the section of inventory, index of inv.itemSlots it is from, and the itemstack itself
+        for s, slot in enumerate(gui[1].itemSlots):
+            if slot.button.isHovered(mousePos):
+                # If the player has clicked on a slot in the inventory
+                if pressed[0]:
+                    # LMB click
+                    # If carrying an itemstack
+                    if gui[1].moveItem:
+                        # Place the carried item into the clicked slot
+                        section = 'main' if s < 16 else ['left', 'right', 'armour'][s-16]
+                        if section == 'main':
+                            game.player.inventory.items['main'][s] = gui[1].moveItem[2]
+                        else:
+                            # If the player is trying to place a non-armour item in the armour slot, dont let them
+                            if section == 'armour' and not isinstance(gui[1].moveItem[2].getItem(), Armour):
+                                continue
+                            game.player.inventory.items[section] = gui[1].moveItem[2]
+                        # If clicking on a filled slot, swap the moveItem with
+                        # the stack in the slot
+                        if slot.item.getRegistryName() != 'null_item':
+                            gui[1].moveItem = [section, s, slot.item]
+                        else:
+                            gui[1].moveItem = None
+                    # If carrying nothing
+                    else:
+                        print(slot.item.getRegistryName())
+                        # If clicking on a filled spot, pickup the item
+                        if slot.item.getRegistryName() != 'null_item':
+                            section = 'main' if s < 16 else ['left', 'right', 'armour'][s-16]
+                            gui[1].moveItem = [section, s, slot.item]
+                            if section == 'main':
+                                game.player.inventory.items['main'][s] = ItemStack(NullItem(), 0)
+                            else:
+                                game.player.inventory.items[section] = ItemStack(NullItem(), 0)
+
+
+                elif pressed[2]:
+                    # RMB click
+                    pass
+        pass
 
 def onGameKeyPress(game, event):
     '''
