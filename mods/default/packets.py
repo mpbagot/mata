@@ -73,9 +73,7 @@ class SendInventoryPacket(Packet):
             serverPlayer = game.getPlayer(connection.username)
 
             # Hash and compare to server-side. If equal, replace server-side, otherwise, replace client
-            print('hashing client inv')
             clientInvHash = self.inventory.hashInv()
-            print('hashing server inv')
             serverInvHash = serverPlayer.inventory.hashInv()
 
             # If the hash is a mismatch, reject the inventory

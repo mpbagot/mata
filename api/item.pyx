@@ -3,6 +3,7 @@ item.pyx
 A module to hold all the api stuff related to items
 '''
 import random
+from copy import deepcopy
 
 from api import combat
 
@@ -109,17 +110,15 @@ class Inventory:
         newInv = self.duplicate()
 
         # Compress everything into a single list and sort
-        newInv.items['main'] += newInv.items['hotbar']
-        newInv.items['main'].append(newInv.items['left'])
-        newInv.items['main'].append(newInv.items['right'])
-        newInv.items['main'].append(newInv.items['armour'])
+        newInv.items['main'] = newInv.toList()
         newInv.sortGroup('main', compress=True)
 
         # Separate the list
         itemlist = newInv.items['main']
+        itemlist = ['{}|{}'.format(a.getRegistryName(), a.stackSize) for a in itemlist]
 
-        # TODO Hash the list
-        return str(itemlist)
+        # Hash the list
+        return hash(str(itemlist))
 
     def duplicate(self):
         '''
@@ -129,11 +128,11 @@ class Inventory:
         newInv = Inventory()
 
         # Copy the each group into a new inventory
-        newInv.items['main'] = list(self.items['main'])
-        newInv.items['hotbar'] = list(self.items['hotbar'])
-        newInv.items['left'] = self.items['left']
-        newInv.items['right'] = self.items['right']
-        newInv.items['armour'] = self.items['armour']
+        newInv.items['main'] = deepcopy(self.items['main'])
+        newInv.items['hotbar'] = deepcopy(self.items['hotbar'])
+        newInv.items['left'] = deepcopy(self.items['left'])
+        newInv.items['right'] = deepcopy(self.items['right'])
+        newInv.items['armour'] = deepcopy(self.items['armour'])
 
         return newInv
 
@@ -149,20 +148,25 @@ class Inventory:
         '''
         Collect and sort the given group in the inventory
         '''
+        # VVV This is essentially a dodgy version of insertion sort :) VVV
         newGroup = []
-        used = []
         # Iterate each item, find duplicate stacks and add them together
         for i, itemstack in enumerate(self.items[name]):
-            if i in used or itemstack is None:
-                continue
-            for j, item in enumerate(self.items[name]):
-                if item is not None and j != i and item.getRegistryName() == itemstack.getRegistryName():
-                    used.append(j)
-                    print(item, itemstack)
-                    # result, carryover = itemstack.add(item)
-                    newGroup += itemstack.add(item, compress)
-                    # self.items[name][i] = result
-                    # self.items[name][j] = carryover
+            # Iterate the newGroup and try to add the stack to it
+            for j, newStack in enumerate(newGroup):
+                # If they are the same item type
+                if newStack == itemstack:
+                    result, carry = itemstack.add(newStack, compress)
+                    newGroup[j] = result
+                    # Reduce the itemstack and keep trying to fit it in
+                    itemstack = carry
+                    # If the whole itemstack has been distributed into the new group, move on
+                    if not carry:
+                        break
+
+            # If the stack could not be merged into existing stacks, make a new stack with the remainder
+            if itemstack:
+                newGroup.append(itemstack)
 
         # Sort by item name
         self.items[name] = sorted([a for a in newGroup if a])
