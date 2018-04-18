@@ -199,7 +199,7 @@ class Entity(EntityBase):
 
     def getImage(self, resources):
         try:
-            return resources.get(self.image)
+            return resources[self.image]
         except KeyError:
             raise KeyError('Image "{}" has not been registered in the Game Registry'.format(self.image))
 
@@ -261,14 +261,14 @@ class Entity(EntityBase):
 
 class Pickup(Entity):
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
         self.health = 2**31
         self.setRegistryName('Pickup')
         self.aiHandler.registerAITask(PickupAITask(self), 0)
         self.stack = None
 
     def setItemstack(self, stack):
-        if not isinstance(item, ItemStack):
+        if not isinstance(stack, ItemStack):
             print('[WARNING] Invalid item being set for pickup')
         self.setImage(stack.getItem().image)
         self.stack = stack

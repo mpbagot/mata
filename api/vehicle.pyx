@@ -116,7 +116,7 @@ class Vehicle(EntityBase):
 
     def getImage(self, resources):
         try:
-            return resources.get(self.image)
+            return resources[self.image]
         except KeyError:
             raise KeyError('Image "{}" has not been registered in the Game Registry'.format(self.image))
 
