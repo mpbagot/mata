@@ -76,7 +76,7 @@ class AttackAITask(AITask):
 
         # If the entity is really close, ATTACK!
         if self.cooldown < 0 and distance <= 0.5:
-            Teeth({}).calcDamage(game, self.entity.uuid, [target])
+            Teeth().calcDamage(game, self.entity.uuid, [target])
             self.cooldown = 3
 
     def skipExecution(self, game, deltaTime):
