@@ -15,18 +15,17 @@ class ModLoader:
         self.game = game
         self.gameRegistry = GameRegistry()
 
+        self.entityCounter = 0
+
     def getUUIDForEntity(self, entity):
         '''
         Generate and assign a unique id for a new entity to place in the world
         '''
-        # Get the current number of entities and vehicles in all the dimensions
-        entity_length = 0
-        for dimension in self.gameRegistry.dimensions:
-            world = self.game.getWorld(dimension)
-            entity_length += len(world.entities)+len(world.vehicles)
+        # Iterate the entityCounter
+        self.entityCounter += 1
 
         # Hash and set the uuid
-        return hash(entity.name+str(entity_length)) & 0xffffffffffffffff
+        return hash(entity.name+str(self.entityCounter)) & 0xffffffffffffffff
 
     def registerModByName(self, name):
         '''
