@@ -2,6 +2,8 @@
 item.pyx
 A module to hold all the api stuff related to items
 '''
+import random
+
 from api import combat
 
 class Inventory:
@@ -19,6 +21,19 @@ class Inventory:
             return self.items['main'][index]
         except IndexError:
             return ItemStack(NullItem(), 0)
+
+    def toList(self):
+        '''
+        Return a list of every distinct itemstack in the inventory
+        '''
+        stacks = []
+        stacks += self.items['main']
+        stacks += self.items['hotbar']
+        stacks.append(self.items['left'])
+        stacks.append(self.items['right'])
+        stacks.append(self.items['armour'])
+
+        return stacks
 
     @staticmethod
     def fromBytes(game, bytes):
@@ -234,6 +249,24 @@ class ItemStack:
 
     def __str__(self):
         return 'ItemStack(item="{}", stackSize="{}")'.format(self.getRegistryName(), self.stackSize)
+
+    def toPickup(self, game, pos):
+        '''
+        Create a pickup entity corresponding to this ItemStack
+        '''
+        from api.entity import Pickup
+        # Set up the pickup
+        pickup = Pickup()
+        pickup.setItemstack(self)
+
+        # Generate a randomised position
+        x, y = [int(a) for a in pos]
+        decimal = round(random.random(), 2)
+        pickup.pos = [random.randint(x-2, x+2)+decimal, random.randint(y-2, y+2)+decimal]
+
+        # Assign it a UUID, and return it
+        pickup.uuid = game.modLoader.getUUIDForEntity(pickup)
+        return pickup
 
     @staticmethod
     def fromBytes(game, bytes):
