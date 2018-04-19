@@ -14,7 +14,7 @@ class StartGameButton(Button):
     def onClick(self, game):
         # Generate the image values array
         values = game.getGui()[1].valSliders
-        playerImg = [round(slider.value*360-180, 1) for slider in values]
+        playerImg = [[int(values[s].value * 5), round(values[s + 1].value * 360 - 180, 1)] for s in range(0, len(values), 2)]
 
         # Set it and sync it to the server
         game.player.img = playerImg
@@ -55,6 +55,11 @@ class PlayButton(Button):
             game.getGui()[1].error = error
             game.getGui()[1].textboxes[0].text = username
 
+class ChatTabButton(Button):
+    def onClick(self, game):
+        if game.getGUIState() and game.getGUIState().isOverlayOpen(game.getModInstance('ClientMod').chatOverlay):
+            game.getGui()[1].tab = self.label
+
 class BackButton(Button):
     def onClick(self, game):
         game.restoreGui()
@@ -62,7 +67,7 @@ class BackButton(Button):
 class InvBackButton(BackButton):
     def onClick(self, game):
         # Send the inv to the server to record rearrangements etc
-        game.getModInstance('ClientMod').packetPipeline.sendToServer(SendInventoryPacket(game.player.inventory))
+        game.getModInstance('ClientMod').packetPipeline.sendToServer(SendInventoryPacket(game.player.name, game.player.inventory))
         super().onClick(game)
 
 class ResumeButton(Button):
@@ -154,7 +159,7 @@ class PlayerImageBox:
 
         # Generate the image
         if self.colours != self.prevColours or self.img == None:
-            self.img = self.game.modLoader.gameRegistry.resources['tile_grass']
+            self.img = self.game.getModInstance('ClientMod').calculateAvatar(self.colours)
             # self.img = self.game.getModInstance('ClientMod').generateLargePlayerImage(self.colours)
 
         # Flip, rotate and draw the image

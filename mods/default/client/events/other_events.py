@@ -326,9 +326,7 @@ def onPlayerLogin(game, player):
                 break
 
     # Show the player customisation screen
-    # TODO Switch this back to the playerDrawGui once assets have been created
-    game.openGui(game.getModInstance('ClientMod').gameGui, game)
-    # game.openGui(game.getModInstance('ClientMod').playerDrawGui, game)
+    game.openGui(game.getModInstance('ClientMod').playerDrawGui, game)
 
 def onPlayerSync(game, player, oldPlayers):
     '''
