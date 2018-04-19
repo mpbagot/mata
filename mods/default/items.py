@@ -11,6 +11,9 @@ class Dirt(Item):
         self.setRegistryName('Dirt')
         self.image = 'tile_dirt'
 
+    def getValue(self):
+        return 0.1
+
 class Gold(Item):
     def __init__(self):
         super().__init__()
@@ -26,10 +29,10 @@ class Sword(Weapon):
         self.setRegistryName('Steel Sword')
         self.image = 'tile_water'#'weapon_steel_sword'
         self.attack = 10
-        self.spread = combat.WIDE_ARC
+        self.spread = combat.MID_ARC
         self.range = combat.MELEE
         self.damageClass = combat.NORMAL
-        self.knockback = combat.KNOCK_STRONG
+        self.knockback = combat.KNOCK_WEAK
 
 class Teeth(Weapon):
     '''

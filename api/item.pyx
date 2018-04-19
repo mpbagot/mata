@@ -310,6 +310,9 @@ class ItemStack:
         itemBytes = self.item.toBytes()
         return len(itemBytes).to_bytes(2, 'big')+self.stackSize.to_bytes(2, 'big')+itemBytes
 
+    def getValue(self):
+        return int(self.getItem().getValue()*self.stackSize)
+
     def getItem(self):
         return self.item
 
@@ -362,6 +365,9 @@ class Item:
 
     def getRegistryName(self):
         return self.name
+
+    def getValue(self):
+        return 1
 
     def getMaxStackSize(self):
         return 1
@@ -443,6 +449,12 @@ class Weapon(Item):
                           self.spread == other.spread
                          ]
         return super().__eq__(other) and all(varComparisons)
+
+    def getValue(self):
+        '''
+        Return the value of gold that this weapon is worth
+        '''
+        return 30*(16*self.spread**2 + self.knockback**2 + self.damageClass**2 + (self.attack**2)/100)
 
     def toBytes(self):
         # Get the default item bytes
