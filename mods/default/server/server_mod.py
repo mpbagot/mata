@@ -31,7 +31,8 @@ class ServerMod(Mod):
         packets = [
                     FetchPlayerImagePacket, SendInventoryPacket,
                     FetchInventoryPacket, SendPlayerImagePacket,
-                    FetchPickupItem, SendPickupItem
+                    FetchPickupItem, SendPickupItem,
+                    StartTradePacket
                   ]
         for packet in packets:
             self.packetPipeline.registerPacket(packet)
@@ -100,9 +101,14 @@ class TradeRequestCommand(cmd.Command):
 
         pp = self.game.getModInstance('ServerMod').packetPipeline
         # TODO Dummy packet
-        notifyPacket = SendCommandPacket('/message global Trade request sent.')
+        notifyRequesterPacket = SendCommandPacket('/message global Trade request sent.')
+        notifyPacket = SendCommandPacket('/message global Pending trade request from user '+username)
+
+        # Define all the possible error message packets
+        # TODO IS a global message really the best way to notify?
         tooFarPacket = SendCommandPacket('/message global Too far away to initiate trade.')
         inTradePacket = SendCommandPacket('/message global Player is already in a trade.')
+        youInTradePacket = SendCommandPacket('/message global You are already in a trade.')
         invalidEntityPacket = SendCommandPacket('/message global Invalid username. Unable to request trade.')
         invalidRequestPacket = SendCommandPacket('/message global Invalid username. Unable to accept trade.')
 
@@ -113,15 +119,23 @@ class TradeRequestCommand(cmd.Command):
                 tradeWith = None
                 if len(args) > 1:
                     tradeWith = args[1]
+
+                # Get the tradeState of the requesting player
                 props = requestingPlayer.getProperty('tradeState')
+
+                # This person is some jerk trying to trade with multple people...
+                if props.isTrading:
+                    pp.sendToPlayer(youInTradePacket, username)
+                    return
+
                 if tradeWith is None:
                     # Accept the latest trade request to this user
-                    requestItems = props.requests.items()
+                    requestValues = list(props.requests.values())
                     try:
                         # Get the index of latest time
-                        index = max([a[1] for a in requestItems])
+                        index = requestValues.index(max(requestValues))
                         # Using that index, find out which player to respond to
-                        tradeWith = requestItems[index][0]
+                        tradeWith = list(props.requests.keys())[index]
                     except ValueError:
                         tradeWith = None
 
@@ -137,6 +151,7 @@ class TradeRequestCommand(cmd.Command):
                     player = self.game.getPlayer(tradeWith)
                     if not player:
                         pp.sendToPlayer(invalidRequestPacket, username)
+                        return
 
                     # Adjust the accepting player
                     props.isTrading = True
@@ -149,9 +164,9 @@ class TradeRequestCommand(cmd.Command):
                     props.tradingWith = username
                     player.setProperty('tradeState', props)
 
-                    # TODO Tell both clients to open trade gui and initiate trade
-                    # pp.sendToPlayer(startTradePacket, username)
-                    # pp.sendToPlayer(startTradePacket, tradeWith)
+                    # Tell both clients to open trade gui and initiate trade
+                    pp.sendToPlayer(StartTradePacket(tradeWith, False), username)
+                    pp.sendToPlayer(StartTradePacket(username, True), tradeWith)
 
             else:
                 # Send trade request to chosen user
@@ -162,8 +177,26 @@ class TradeRequestCommand(cmd.Command):
                     if npc:
                         # Check that entity is an npc, is nearby and not currently in trade
                         if isinstance(npc, NPC) and util.calcDistance(requestingPlayer, npc) < 8:
-                            # TODO NPC Trade state???
-                            pass
+                            # Check the trade state of the npc and respond accordingly
+                            props = npc.getProperty('tradeState')
+                            if props.isTrading:
+                                pp.sendToPlayer(inTradePacket, username)
+                            else:
+                                # Start trading automatically
+                                # Adjust the npc
+                                props.isTrading = True
+                                props.tradingWith = username
+                                requestingPlayer.setProperty('tradeState', props)
+
+                                # Adjust the requester
+                                props = requestingPlayer.getProperty('tradeState')
+                                props.isTrading = True
+                                props.tradingWith = tradeWith
+                                player.setProperty('tradeState', props)
+
+                                # Tell requesting client to open trade gui and initiate trade
+                                pp.sendToPlayer(StartTradePacket(tradeWith, True), username)
+
                         # If the entity if a non-NPC entity (e.g, a Bear), error at the player
                         elif not isinstance(npc, NPC):
                             pp.sendToPlayer(invalidEntityPacket, username)
@@ -188,6 +221,7 @@ class TradeRequestCommand(cmd.Command):
 
                             # Notify the player
                             pp.sendToPlayer(notifyPacket, tradeWith)
+                            pp.sendToPlayer(notifyRequesterPacket, username)
                         else:
                             # Show player an error/warning
                             pp.sendToPlayer(tooFarPacket, username)
@@ -204,10 +238,13 @@ class TradeRequestCommand(cmd.Command):
                 if props.isTrading:
                     continue
 
+                # Store the request and notify the players
                 props.requests[username] = time.time()
                 player.setProperty('tradeState', props)
+                pp.sendToPlayer(notifyPacket, player.name)
 
-            pp.sendToNearby(notifyPacket, username, 12)
+            # Notify the requester that their request has been sent correctly
+            pp.sendToPlayer(notifyRequesterPacket, username)
 
 class SpawnEntityCommand(cmd.Command):
     def run(self, username, *args):

@@ -1,5 +1,6 @@
 from api.entity import *
 from api.ai import *
+from api.item import PlayerInventory
 
 from mods.default.items import Teeth
 
@@ -13,6 +14,9 @@ class NPC(Entity):
         self.setRegistryName('NPC')
         self.health = 30
         self.speed = 6
+        self.inventory = PlayerInventory()
+
+        # Set up the tasks
         self.aiHandler.registerAITask(EvadeAITask(self), 0)
         self.aiHandler.registerAITask(WanderAITask(self, 20), 3)
         self.aiHandler.registerAITask(GroupAITask(self), 6)

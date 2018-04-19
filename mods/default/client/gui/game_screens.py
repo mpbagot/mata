@@ -15,6 +15,36 @@ from api.item import *
 from mods.default.client.gui.extras import *
 from mods.default.client.gui.menus import *
 
+class TradeScreen(Gui):
+    '''
+    Trading screen
+    '''
+    def __init__(self, game, other, isInitiator):
+        super().__init__()
+        self.game = game
+        self.otherPlayer = other
+
+        self.inv1 = game.player.inventory
+        otherPlayer = game.getPlayer(other) or game.getEntity(other)
+        self.inv2 = otherPlayer.inventory
+
+        self.isInitiator = isInitiator
+
+        # Initialise Pygame assets
+        self.backImg = pygame.image.load('resources/textures/background.png').convert()
+
+    def drawBackgroundLayer(self):
+        w = self.screen.get_width()
+        h = self.screen.get_height()
+
+        self.screen.blit(pygame.transform.scale(self.backImg, [w, h]), [0, 0])
+
+    def drawMiddleLayer(self, mousePos):
+        pass
+
+    def drawForegroundLayer(self, mousePos):
+        pass
+
 class PlayerInventoryScreen(Gui):
     '''
     Player Inventory screen

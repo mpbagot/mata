@@ -4,6 +4,41 @@ from api.entity import Player, Pickup
 
 import util
 
+class ConfirmTradePacket(Packet):
+    # When the initiator is asking for confirmation
+    pass
+
+class RespondTradePacket(Packet):
+    # When the accepter responds to the confirmation
+    pass
+
+class StartTradePacket(Packet):
+    def __init__(self, other='', isInitiator=False):
+        self.other = other
+        self.isInitiator = isInitiator
+
+    def toBytes(self, buf):
+        buf.write(int(self.isInitiator).to_bytes(1, 'big'))
+        buf.write(self.other.encode())
+
+    def fromBytes(self, data):
+        self.isInitiator = bool(data[0])
+        self.other = data[1:].decode()
+
+    def onReceive(self, connection, side, game):
+        # Do one more check that the other player exists
+        other = game.getPlayer(self.other) or game.getEntity(self.other)
+        if not other:
+            return
+
+        # Open the trade gui here
+        game.openGui(game.getModInstance('ClientMod').tradeGui, game, self.other, self.isInitiator)
+        # Fetch the inventories
+        return [
+                FetchInventoryPacket(game.player.name),
+                FetchInventoryPacket(self.other)
+               ]
+
 class FetchPickupItem(Packet):
     def __init__(self, uuid=0):
         self.uuid = uuid
@@ -51,26 +86,50 @@ class FetchInventoryPacket(Packet):
 
     def onReceive(self, connection, side, game):
         # Fetch the inventory of the required player, and send it back
-        inventory = game.getPlayer(self.playername).getInventory()
-        return SendInventoryPacket(inventory)
+        player = game.getPlayer(self.playername)
+        if player:
+            inventory = player.getInventory()
+        # If the player doesn't exist, try searching the entities
+        elif self.playername.isnumeric():
+            npc = game.getEntity(int(self.playername))
+            inventory = npc.getInventory()
+
+        if inventory:
+            return SendInventoryPacket(self.playername, inventory)
 
 class SendInventoryPacket(Packet):
-    def __init__(self, inventory=None):
+    def __init__(self, playername='', inventory=None):
         self.inventory = inventory
+        self.playername = str(playername)
 
     def toBytes(self, buf):
+        buf.write(len(self.playername).to_bytes(1, 'big') + self.playername.encode())
         buf.write(self.inventory.toBytes())
 
     def fromBytes(self, data):
-        self.inventory = data
+        nameLen = data[0]
+        self.playername = data[1:1 + nameLen].decode()
+        self.inventory = data[1 + nameLen:]
 
     def onReceive(self, connection, side, game):
         # Decode and store the inventory in the client side player
         self.inventory = Inventory.fromBytes(game, self.inventory)
         if side != util.SERVER:
-            game.player.setInventory(self.inventory)
+            # If the player has requested their own inventory, just set it and let them use it from there
+            if game.player.name == self.playername:
+                game.player.setInventory(self.inventory)
+            # Otherwise, look up the correct player and store it in them
+            else:
+                player = game.getPlayer(self.playername)
+                if player:
+                    player.setInventory(self.inventory)
+                elif self.playername.isnumeric():
+                    # If the playername is actually a uuid, try to find the corresponding entity
+                    npc = game.getEntity(int(self.playername))
+                    if npc:
+                        npc.setInventory(self.inventory)
         else:
-            serverPlayer = game.getPlayer(connection.username)
+            serverPlayer = game.getPlayer(self.playername)
 
             # Hash and compare to server-side. If equal, replace server-side, otherwise, replace client
             clientInvHash = self.inventory.hashInv()
@@ -78,7 +137,7 @@ class SendInventoryPacket(Packet):
 
             # If the hash is a mismatch, reject the inventory
             if clientInvHash != serverInvHash:
-                return SendInventoryPacket(serverPlayer.inventory)
+                return SendInventoryPacket(self.playername, serverPlayer.inventory)
             # Otherwise, accept it
             else:
                 serverPlayer.inventory = self.inventory

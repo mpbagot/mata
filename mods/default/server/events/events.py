@@ -13,7 +13,7 @@ def onTickUpdateTradeRequests(game, deltaTime, tick):
     Event Hook: onTick
     Remove expired trade requests
     '''
-    for dimensionId in self.modLoader.gameRegistry.dimensions:
+    for dimensionId in game.modLoader.gameRegistry.dimensions:
         for p, player in enumerate(game.getWorld(dimensionId).players):
             props = player.getProperty('tradeState')
             # Loop the requests
@@ -141,7 +141,7 @@ def onPlayerLogin(game, player):
 
     # Sync the inventory to the player
     pp = game.getModInstance('ServerMod').packetPipeline
-    pp.sendToPlayer(SendInventoryPacket(player.inventory), player.name)
+    pp.sendToPlayer(SendInventoryPacket(player.name, player.inventory), player.name)
 
 def onPlayerCreated(game, player):
     '''
