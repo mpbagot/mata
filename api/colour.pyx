@@ -47,7 +47,7 @@ class HueShifter:
         rx = r * self.matrix[0][0] + g * self.matrix[0][1] + b * self.matrix[0][2]
         gx = r * self.matrix[1][0] + g * self.matrix[1][1] + b * self.matrix[1][2]
         bx = r * self.matrix[2][0] + g * self.matrix[2][1] + b * self.matrix[2][2]
-        return clamp(rx), clamp(gx), clamp(bx)
+        return [clamp(rx), clamp(gx), clamp(bx)]
 
 def hueShiftImage(imgValues, imageName, image, fullPath="resources/other/", attributes=7):
     '''
