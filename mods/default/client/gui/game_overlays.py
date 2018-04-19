@@ -93,6 +93,13 @@ class Chat(Overlay):
         self.scrollScreen = Scrollbox([804, 438, 110, 90])
         self.textarea = TextArea([100, 538, 618, 100], (255, 255, 255, 127))
 
+        latest = game.getModInstance('ClientMod').latestChatTabs
+        if self.tab not in ['local', 'global']+latest:
+            latest.insert(0, self.tab)
+            game.getModInstance('ClientMod').latestChatTabs = latest[:3]
+
+        self.buttons = [ChatTabButton([720, 540 + 32 * n, 202, 30], name) for n, name in enumerate(latest)]
+
     def drawForegroundLayer(self, mousePos):
         # Fetch the messages from the mod instance
         messages = self.game.getModInstance('ClientMod').chatMessages.get(self.tab, [])

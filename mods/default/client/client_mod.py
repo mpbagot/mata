@@ -25,6 +25,7 @@ class ClientMod(Mod):
         self.oldPlayerPos = [0, 0]
         self.genLock = False
         self.chatMessages = {"global" : [], "faction" : []}
+        self.latestChatTabs = []
 
         self.worldUpdateProperty = properties.Property(newPos=[0, 0], updateTick=0)
 
@@ -71,7 +72,8 @@ class ClientMod(Mod):
         packets = [
                     FetchPlayerImagePacket, SendInventoryPacket,
                     FetchInventoryPacket, SendPlayerImagePacket,
-                    FetchPickupItem, SendPickupItem
+                    FetchPickupItem, SendPickupItem,
+                    StartTradePacket
                   ]
         for packet in packets:
             self.packetPipeline.registerPacket(packet)
@@ -86,6 +88,7 @@ class ClientMod(Mod):
         self.enteringGui = self.gameRegistry.registerGUI(DimLoadingScreen)
         self.mainMenuGui = self.gameRegistry.registerGUI(MainMenu)
         self.inventoryGui = self.gameRegistry.registerGUI(PlayerInventoryScreen)
+        self.tradeGui = self.gameRegistry.registerGUI(TradeScreen)
         self.disconnectMessageGui = self.gameRegistry.registerGUI(DisconnectMessage)
 
         # Initialise the Overlays

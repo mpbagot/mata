@@ -57,8 +57,9 @@ class PlayButton(Button):
 
 class ChatTabButton(Button):
     def onClick(self, game):
-        if game.getGUIState() and game.getGUIState().isOverlayOpen(game.getModInstance('ClientMod').chatOverlay):
-            game.getGui()[1].tab = self.label
+        for o, overlay in enumerate(game.getOverlays()):
+            if overlay[0] == game.getModInstance('ClientMod').chatOverlay:
+                game.getOverlays()[o][1].tab = self.label
 
 class BackButton(Button):
     def onClick(self, game):
