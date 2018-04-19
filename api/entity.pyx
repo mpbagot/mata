@@ -66,6 +66,94 @@ class EntityBase:
         '''
         return False
 
+class Entity(EntityBase):
+    '''
+    A base class for new entities
+    '''
+    def __init__(self):
+        super().__init__()
+        self.aiHandler = AIHandler()
+        self.image = None
+
+    def __eq__(self, other):
+        return isinstance(other, Entity) and self.uuid == other.uuid
+
+    def __str__(self):
+        x = super().__repr__()
+        return x.split()[-1][:-1] + ' {} {}'.format(self.name, self.uuid)
+
+    def __repr__(self):
+        x = super().__repr__()
+        return x.split()[-1][:-1] + ' {} {} {}'.format(self.name, self.uuid, self.pos)
+
+    def setRegistryName(self, name):
+        self.name = name
+
+    def getRegistryName(self):
+        return self.name
+
+    def getImage(self, resources):
+        try:
+            return resources[self.image]
+        except KeyError:
+            raise KeyError('Image "{}" has not been registered in the Game Registry'.format(self.image))
+
+    def setImage(self, image):
+        self.image = image
+
+    def toBytes(self):
+        name = len(self.name).to_bytes(1, 'big') + self.name.encode()
+        uuid = self.uuid.to_bytes(8, 'big')
+        pos = str(self.getPos()).encode()
+        hp = max(0, int(self.health)).to_bytes(4, 'big')
+        dimension = self.dimension.to_bytes(2, 'big')
+
+        damage = self.tickDamage.toBytes() if isinstance(self.tickDamage, Damage) else NullDamage().toBytes()
+
+        return name + uuid + pos + hp + dimension + damage + self.__class__.__name__.encode()
+
+    @staticmethod
+    def fromBytes(data, entityClassList):
+        nameLength = data[0]
+        name = data[1:nameLength+1].decode().strip()
+        data = data[nameLength+1:]
+
+        uuid = int.from_bytes(data[:8], 'big')
+        data = data[8:]
+
+        # Walk the string to find the position value, because we can't just dump float data into the stream -_-
+        posBuf = ''
+        for character in data:
+            posBuf += chr(character)
+            if character == ord(']'):
+                break
+        # Eval it into an array
+        pos = eval(posBuf)
+        data = data[len(posBuf):]
+
+        health = int.from_bytes(data[:4], 'big')
+        dimension = int.from_bytes(data[4:6], 'big')
+        data = data[6:]
+
+        damAmount = data[:3]
+        damType = data[3]
+        damLength = data[4]
+        damSource = data[5:5+damLength]
+        data = data[5+damLength:]
+        damage = Damage.fromBytes(damType, damSource, damAmount)
+
+        entityClass = data.decode().strip()
+
+        # Create the entity and fill in its information
+        finalEntity = entityClassList.get(entityClass, Entity)()
+
+        finalEntity.setRegistryName(name)
+        finalEntity.uuid, finalEntity.pos = uuid, pos
+        finalEntity.health, finalEntity.dimension = health, dimension
+        finalEntity.tickDamage = damage
+
+        return finalEntity
+
 class Player(EntityBase):
     '''
     A base class for storing the player information
@@ -170,94 +258,6 @@ class Player(EntityBase):
         p.tickDamage = damage
 
         return p
-
-class Entity(EntityBase):
-    '''
-    A base class for new entities
-    '''
-    def __init__(self):
-        super().__init__()
-        self.aiHandler = AIHandler()
-        self.image = None
-
-    def __eq__(self, other):
-        return isinstance(other, Entity) and self.uuid == other.uuid
-
-    def __str__(self):
-        x = super().__repr__()
-        return x.split()[-1][:-1] + ' {} {}'.format(self.name, self.uuid)
-
-    def __repr__(self):
-        x = super().__repr__()
-        return x.split()[-1][:-1] + ' {} {} {}'.format(self.name, self.uuid, self.pos)
-
-    def setRegistryName(self, name):
-        self.name = name
-
-    def getRegistryName(self):
-        return self.name
-
-    def getImage(self, resources):
-        try:
-            return resources[self.image]
-        except KeyError:
-            raise KeyError('Image "{}" has not been registered in the Game Registry'.format(self.image))
-
-    def setImage(self, image):
-        self.image = image
-
-    def toBytes(self):
-        name = len(self.name).to_bytes(1, 'big') + self.name.encode()
-        uuid = self.uuid.to_bytes(8, 'big')
-        pos = str(self.getPos()).encode()
-        hp = max(0, int(self.health)).to_bytes(4, 'big')
-        dimension = self.dimension.to_bytes(2, 'big')
-
-        damage = self.tickDamage.toBytes() if isinstance(self.tickDamage, Damage) else NullDamage().toBytes()
-
-        return name + uuid + pos + hp + dimension + damage + self.__class__.__name__.encode()
-
-    @staticmethod
-    def fromBytes(data, entityClassList):
-        nameLength = data[0]
-        name = data[1:nameLength+1].decode().strip()
-        data = data[nameLength+1:]
-
-        uuid = int.from_bytes(data[:8], 'big')
-        data = data[8:]
-
-        # Walk the string to find the position value, because we can't just dump float data into the stream -_-
-        posBuf = ''
-        for character in data:
-            posBuf += chr(character)
-            if character == ord(']'):
-                break
-        # Eval it into an array
-        pos = eval(posBuf)
-        data = data[len(posBuf):]
-
-        health = int.from_bytes(data[:4], 'big')
-        dimension = int.from_bytes(data[4:6], 'big')
-        data = data[6:]
-
-        damAmount = data[:3]
-        damType = data[3]
-        damLength = data[4]
-        damSource = data[5:5+damLength]
-        data = data[5+damLength:]
-        damage = Damage.fromBytes(damType, damSource, damAmount)
-
-        entityClass = data.decode().strip()
-
-        # Create the entity and fill in its information
-        finalEntity = entityClassList.get(entityClass, Entity)()
-
-        finalEntity.setRegistryName(name)
-        finalEntity.uuid, finalEntity.pos = uuid, pos
-        finalEntity.health, finalEntity.dimension = health, dimension
-        finalEntity.tickDamage = damage
-
-        return finalEntity
 
 class Pickup(Entity):
     def __init__(self):
