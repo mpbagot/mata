@@ -38,6 +38,7 @@ class PlayerInventoryScreen(Gui):
         # Generate the gui objects (itemslots, buttons etc)
         self.buttons = [InvBackButton([470, 620, 528, 80], 'Close Inventory')]
         self.addItem(PlayerImageBox([250, 450, 599, 120], game))
+        self.extraItems[0].colours = game.player.img
 
         # Store the item being moved around the inventory
         self.moveItem = None
@@ -148,13 +149,16 @@ class PlayerDrawScreen(Gui):
         w = self.screen.get_width()
         h = self.screen.get_height()
 
-        self.backImg = pygame.transform.scale(pygame.image.load('resources/textures/background.png'), [w, h]).convert()
-        self.buttons = [StartGameButton(scaleRect([600, 580, 350, 120], self.screen))]
-        self.valSliders = [Slider(scaleRect([580, 180 + 50 * a, 390, 20], self.screen), (255, 0, 0)) for a in range(12)]
+        self.backImg = pygame.image.load('resources/textures/background.png').convert()
+        self.buttons = [StartGameButton([600, 580, 350, 120])]
+        self.valSliders = [Slider([450 + (a%2)*(250), 180 + 60 * (a//2), 210, 20], (255, 0, 0)) for a in range(12)]
         self.addItem(PlayerImageBox(scaleRect([300, 528, 30, 170], self.screen), game))
 
     def drawBackgroundLayer(self):
-        self.screen.blit(self.backImg, [0, 0])
+        w = self.screen.get_width()
+        h = self.screen.get_height()
+
+        self.screen.blit(pygame.transform.scale(self.backImg, [w, h]), [0, 0])
 
         values = self.valSliders
         self.extraItems[0].colours = [[int(values[s].value * 5), round(values[s + 1].value * 360 - 180, 1)] for s in range(0, len(values), 2)]
@@ -180,6 +184,14 @@ class PlayerDrawScreen(Gui):
         # Draw the title
         text = font.render('Customise your Character', True, (0, 0, 0))
         self.screen.blit(text, [w//2 - text.get_rect().width//2, (h * 5)//64])
+
+        font = pygame.font.Font('resources/font/main.ttf', 20)
+
+        text = font.render('Type:', True, (0, 0, 0))
+        self.screen.blit(text, [(w*5)//11, h//5])
+
+        text = font.render('Colour:', True, (0, 0, 0))
+        self.screen.blit(text, [(3.5*w)//5, h//5])
 
 class GameScreen(Gui):
     def __init__(self, game):
