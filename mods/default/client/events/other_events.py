@@ -357,6 +357,8 @@ def onPlayerSync(game, player, oldPlayers):
             if oldPlayers[p].ridingEntity:
                 oldPlayers[p].pos = game.getVehicle(oldPlayers[p].ridingEntity).pos
             else:
+                oldPlayers[p].lastPos = oldPlayers[p].pos
+
                 # Update the modded properties
                 props = oldPlayers[p].getProperty('worldUpdate')
                 props.newPos = player.pos
