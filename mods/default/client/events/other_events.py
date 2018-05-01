@@ -276,7 +276,7 @@ def onPacketReceived(game, packet):
     elif packet.__class__.__name__ == 'WorldUpdatePacket':
         # Fetch images of new players
         for p, player in enumerate(game.world.players):
-            if player.img == None:
+            if player.img == []:
                 game.getModInstance('ClientMod').packetPipeline.sendToServer(FetchPlayerImagePacket(player))
 
     elif packet.__class__.__name__ == 'SendInventoryPacket':

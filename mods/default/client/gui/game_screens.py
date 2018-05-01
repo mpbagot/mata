@@ -4,6 +4,8 @@ A module containing the GUI screens of the default client game
 '''
 # Import the Python Standard libraries
 from threading import Thread
+import math
+import time
 
 # Import the Modding API
 from api.gui.gui import *
@@ -15,10 +17,13 @@ from api.item import *
 from mods.default.client.gui.extras import *
 from mods.default.client.gui.menus import *
 
+import util
+
 class TradeScreen(Gui):
     '''
     Trading screen
     '''
+    # TODO Fill this screen in
     def __init__(self, game, other, isInitiator):
         super().__init__()
         self.game = game
@@ -276,8 +281,9 @@ class GameScreen(Gui):
                 if player.smallImg:
                     continue
             except:
-                print('rendering image')
-                self.game.world.players[p].smallImg = self.game.getModInstance('ClientMod').calculateAvatar(player.img)
+                if player.img:
+                    print('rendering image')
+                    self.game.world.players[p].smallImg = self.game.getModInstance('ClientMod').calculateAvatar(player.img)
 
         p = self.game.player
         mainAbsPos = p.pos
@@ -288,11 +294,19 @@ class GameScreen(Gui):
             deltaPos = [player.pos[a] - mainAbsPos[a] for a in range(2)]
 
             # Get the player image size
-            size = player.smallImg.get_rect()
+            if not player.img:
+                continue
+
+            size = player.smallImg.get_rect()    
 
             # Adjust position accordingly, and draw to screen
             pos = [w//2 + deltaPos[0] * 40 - size.width//2, h//2 + deltaPos[1] * 40 - size.height//2]
             if abs(max(pos)) < max(w, h):
+                # theta = util.calcDirection(player.pos, player.lastPos)
+                # direction = round(2*theta + 2) % 4
+                # frame = round(math.sin(12*math.pi*time.time()))
+                # img = player.smallImg[direction][frame]
+                # self.screen.blit(img, pos)
                 self.screen.blit(player.smallImg, pos)
 
         # Draw the entity images to screen
@@ -333,7 +347,17 @@ class GameScreen(Gui):
         '''
         super().drawForegroundLayer(mousePos)
 
+        # TODO Change this later
         size = self.playerImg.get_width()//2
+        # size = self.playerImg[0][0].get_width()//2
+
         w = self.screen.get_width()
         h = self.screen.get_height()
+
+        # Draw the player image to the screen
+        # theta = util.calcDirection(self.game.player.pos, self.game.player.lastPos)
+        # direction = round(2*theta + 2) % 4
+        # frame = round(math.sin(12*math.pi*time.time()))
+        # img = self.playerImg[direction][frame]
+        # self.screen.blit(img, [w//2 - size, h//2-size])
         self.screen.blit(self.playerImg, [w//2 - size, h//2 - size])

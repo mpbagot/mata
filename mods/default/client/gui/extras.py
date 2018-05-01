@@ -18,6 +18,7 @@ class StartGameButton(Button):
 
         # Set it and sync it to the server
         game.player.img = playerImg
+        game.player.smallImg = game.getModInstance('ClientMod').calculateAvatar(game.player.img)
         packetPipeline = game.getModInstance('ClientMod').packetPipeline
         packetPipeline.sendToServer(SendPlayerImagePacket(game.player))
 
