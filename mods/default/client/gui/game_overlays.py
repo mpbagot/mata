@@ -125,14 +125,37 @@ class Chat(Overlay):
         # Generate a smaller font object
         fontSmall = pygame.font.Font('resources/font/main.ttf', 12)
 
+        # Draw the title outline box
+        title = fontLarge.render(self.tab, True, (0, 0, 0))
+
+        # Calculate the leftmost position of the text
+        leftXPos = (self.screen.get_width() - title.get_width())//2
+        # Calculate all of the points for the box around the title
+        pointList = [scaleRect(a, self.screen) for a in [
+                     [leftXPos - 35, 80],
+                     [leftXPos + title.get_width() + 35, 80],
+                     [leftXPos + 5 + title.get_width(), 50],
+                     [leftXPos - 5, 50]
+                    ]]
+        # Fill in the title background shape, then draw the outline around it
+        pygame.draw.polygon(self.screen, (140, 140, 140), pointList)
+        pygame.draw.lines(self.screen, (40, 40, 40), True, pointList, 4)
+
+        # Lastly, draw the channel title at the top
+        titlePos = [(self.screen.get_width() - title.get_width())//2, scaleVal(52, self.screen)]
+        self.screen.blit(title, titlePos)
+
+        # Blank out the scrollbox
         self.scrollScreen.innerScreen.fill(pygame.Color(127, 127, 127, 0))
 
+        # Iterate and blit the messages into the scrollbox
         messages = [a for a in messages if '\x00' not in a]
         for m, message in enumerate(messages):
             text = fontSmall.render(message, True, (0, 0, 0))
 
             self.scrollScreen.blit(text, [0, 15*m])
 
+        # Then draw the scrollbox onto the main screen
         self.scrollScreen.draw(self.screen, mousePos)
 
         super().drawForegroundLayer(mousePos)
