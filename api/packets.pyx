@@ -24,7 +24,7 @@ class Packet:
         '''
         raise NotImplementedError('fromBytes method is empty in a packet class!')
 
-    def onReceive(self, packetHandler, connection):
+    def onReceive(self, connection, side, game):
         '''
         Run any required logic upon receiving the packet
         '''
