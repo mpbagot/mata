@@ -138,7 +138,7 @@ class RespondTradePacket(Packet):
 
                     # and send a message to each client (unknown error occurred)
                     players = [player, player2]
-                    packets = [SendCommandPacket('/message ' + players[1-a].name + ' Unknown error occurred') for a in range(len(players))]
+                    packets = [SendCommandPacket('/message ' + players[1-a].name + ' Error: Invalid inventories.') for a in range(len(players))]
                     for p, packet in enumerate(packets):
                         game.getModInstance('ServerMod').packetPipeline.sendToPlayer(packet, players[p].name)
 
