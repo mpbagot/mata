@@ -10,6 +10,7 @@ import time
 # Import the Modding API
 from api.gui.gui import *
 from api.gui.objects import *
+from api.packets import *
 from api.colour import *
 from api.item import *
 
@@ -31,24 +32,116 @@ class TradeScreen(Gui):
 
         self.inv1 = game.player.inventory
         otherPlayer = game.getPlayer(other) or game.getEntity(other)
-        self.inv2 = otherPlayer.inventory
+        if otherPlayer:
+            self.inv2 = otherPlayer.inventory
+
+        else:
+            # Bail out here
+            pass
 
         self.isInitiator = isInitiator
 
+        self.initialiseObjects()
+
+        self.offer = None
+        self.offerTime = time.time()
+
         # Initialise Pygame assets
         self.backImg = pygame.image.load('resources/textures/background.png').convert()
+
+    def initialiseObjects(self):
+        '''
+        Initialise the buttons and inv slots for the gui
+        '''
+        # Initialise the chat textbox
+        self.textarea = TextArea([768, 618, 256, 150], (255, 255, 255))
+
+        if self.isInitiator:
+            # Standard buttons, offer, cancel
+            self.buttons = [
+                                OfferTradeButton([100, 600, 200, 100], "Offer"),
+                                CancelTradeButton([400, 600, 200, 100], "Cancel Trade")
+                              ]
+
+        else:
+            self.offerButtons = [
+                                 AcceptTradeButton([100, 600, 200, 100], "Accept"),
+                                 DeclineTradeButton([400, 600, 200, 100], "Decline")
+                                ]
+            self.buttons = [CancelTradeButton([250, 600, 300, 100], "Cancel Trade")]
 
     def drawBackgroundLayer(self):
         w = self.screen.get_width()
         h = self.screen.get_height()
 
-        self.screen.blit(pygame.transform.scale(self.backImg, [w, h]), [0, 0])
+        self.screen.blit(pygame.transform.scale(self.backImg, [3*w//4+1, h]), [0, 0])
+        pygame.draw.rect(self.screen, (170, 170, 170), [3*w//4, 0, w//4+1, h])
+
+        if self.isInitiator:
+            self.buttons[0].enabled = not self.offer
 
     def drawMiddleLayer(self, mousePos):
-        pass
+        super().drawMiddleLayer(mousePos)
+
+        # If more than a certain amount of time has passed since the offer
+        # was sent (isInitiator=True) or was received (isInitiator=False),
+        # Cancel the trade
+        if time.time()-self.offerTime > 180:
+            pass
 
     def drawForegroundLayer(self, mousePos):
-        pass
+        super().drawForegroundLayer(mousePos)
+
+        w = self.screen.get_width()
+        h = self.screen.get_height()
+
+        font = pygame.font.Font('resources/font/main.ttf', 60)
+        fontSmall = pygame.font.Font('resources/font/main.ttf', 15)
+
+        # Draw the messages in the chat on the left of the screen
+        messages = self.game.getModInstance('ClientMod').chatMessages.get(self.otherPlayer, [])
+        messages = [a for a in messages if '\x00' not in a]
+        # Loop the messages from last to first, drawing from the bottom to top
+        textareaHeight = self.textarea.rect[-1]+20
+        for m, message in enumerate(messages[(h - textareaHeight)//15::-1]):
+            text = fontSmall.render(message, True, (0, 0, 0))
+
+            self.screen.blit(text, [3 * w//4 + 5, (h - textareaHeight) - 15 * m])
+
+        self.textarea.draw(self.screen, mousePos)
+
+        # Draw the notice strip if required
+        bools = [bool(self.isInitiator), bool(self.offer)]
+        if all(bools) or not any(bools):
+            if self.isInitiator:
+                text = font.render("Making Offer...", True, (0, 0, 0))
+            else:
+                text = font.render("Awaiting Offer...", True, (0, 0, 0))
+            # Draw the strip across the screen
+            pygame.draw.rect(self.screen, (236, 196, 145), [5, h//2 - int(text.get_height() * 1.25), (3 * w)//4 - 10, text.get_height() * 2])
+            # Then draw the text over it
+            self.screen.blit(text, [(w*0.75 - text.get_width())//2, h//2 - (text.get_height() * 0.75)])
+
+    def doKeyPress(self, event):
+        if event.key == pygame.K_RETURN:
+            # Adjust the message
+            message = self.textarea.text
+            # Skip blank messages
+            if not message:
+                return
+
+            # Format a non-command as required
+            if message[0] != '/':
+                message = '/message '+self.otherPlayer+' '+message
+
+            # Create the packet
+            # Send the message
+            packet = SendCommandPacket(message)
+            self.game.packetPipeline.sendToServer(packet)
+            self.textarea.text = ''
+        # Pass the button press to the textarea
+        self.textarea.doKeyPress(event)
+
 
 class PlayerInventoryScreen(Gui):
     '''

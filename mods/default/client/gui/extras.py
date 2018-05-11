@@ -62,6 +62,44 @@ class ChatTabButton(Button):
             if overlay[0] == game.getModInstance('ClientMod').chatOverlay:
                 game.getOverlays()[o][1].tab = self.label
 
+class CancelTradeButton(Button):
+    def onClick(self, game):
+        game.getModInstance('ClientMod').packetPipeline.sendToServer(EndTradePacket())
+        game.restoreGui()
+
+class AcceptTradeButton(Button):
+    def onClick(self, game):
+        gui = game.getGui()
+        if gui[0] == game.getModInstance('ClientMod').tradeGui:
+            packet = RespondTradePacket(True, gui[1].inv1, gui[1].inv2)
+            game.getModInstance('ClientMod').packetPipeline.sendToServer(packet)
+
+            gui[1].offer = None
+
+            gui[1].buttons, gui[1].offerButtons = gui[1].offerButtons, gui[1].buttons
+
+class DeclineTradeButton(Button):
+    def onClick(self, game):
+        gui = game.getGui()
+        if gui[0] == game.getModInstance('ClientMod').tradeGui:
+            packet = RespondTradePacket(False, gui[1].inv1, gui[1].inv2)
+            game.getModInstance('ClientMod').packetPipeline.sendToServer(packet)
+
+            gui[1].offer = None
+
+            gui[1].buttons, gui[1].offerButtons = gui[1].offerButtons, gui[1].buttons
+
+class OfferTradeButton(Button):
+    def onClick(self, game):
+        gui = game.getGui()
+        if gui[0] == game.getModInstance('ClientMod').tradeGui:
+            packet = ConfirmTradePacket(gui[1].inv1, gui[1].inv2)
+            game.getModInstance('ClientMod').packetPipeline.sendToServer(packet)
+
+            gui[1].offer = True
+
+            self.enabled = False
+
 class BackButton(Button):
     def onClick(self, game):
         game.restoreGui()
