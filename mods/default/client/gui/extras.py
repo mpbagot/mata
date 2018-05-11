@@ -151,7 +151,7 @@ class PlayerImageBox:
         self.defaultPos = rect[2:]
 
         # Current rotation amount
-        self.rot = [1, 1]
+        self.rot = [1, 0.75]
         # Current rotation velocity
         self.rotVel = [0, 0]
 
@@ -184,10 +184,10 @@ class PlayerImageBox:
             self.rotVel[1] -= (1 if self.rotVel[1] > 0 else -1)*0.01
 
         # Get the width,s height and flip booleans
-        width = int(abs(self.rect[0]*cos(self.rot[0])))
-        height = int(abs(self.rect[1]*cos(self.rot[1])))
-        flipX = self.rot[0] < 0
-        flipY = self.rot[1] < 0
+        width = int(abs((self.rect[0])*sin(self.rot[0]*pi/2)))
+        height = int(abs((self.rect[1])*sin(self.rot[1]*pi/2)))
+        flipX = sin(self.rot[0]*pi/2) < 0
+        flipY = sin(self.rot[1]*pi/2) < 0
 
         # Draw the rect underneath
         pygame.draw.rect(screen, (0, 0, 0), self.pos+self.rect)
