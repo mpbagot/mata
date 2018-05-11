@@ -143,7 +143,7 @@ class Game:
                             # Handle a mouse click on buttons
                             if self.getGUIState() and pressed[0]:
                                 for button in self.getGUIState().getButtons():
-                                    if button.isHovered(pos):
+                                    if button.isHovered(pos) and button.enabled:
                                         button.onClick(self)
 
                             # Then, handle a mouse click on a text box

@@ -248,11 +248,12 @@ class VertBar(HorizBar):
                 screen.blit(text, pos)
 
 class Button:
-    def __init__(self, rect, label, isSquare=False):
+    def __init__(self, rect, label, isSquare=False, enabled=True):
         self.defaultRect = rect
         self.rect = self.defaultRect
         self.label = label
         self.font = pygame.font.Font('resources/font/main.ttf', 30)
+        self.enabled = enabled
         self.isSquare = isSquare
 
     def draw(self, screen, mousePos):
@@ -264,7 +265,7 @@ class Button:
             self.rect = self.rect[:2]+[min(self.rect[2:])]*2
 
         colour1 = (65, 55, 40)
-        if self.isHovered(mousePos):
+        if self.isHovered(mousePos) or not self.enabled:
             colour2 = (138, 114, 84)
         else:
             colour2 = (173, 144, 106)
