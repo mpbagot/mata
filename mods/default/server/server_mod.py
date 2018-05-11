@@ -32,7 +32,8 @@ class ServerMod(Mod):
                     FetchPlayerImagePacket, SendInventoryPacket,
                     FetchInventoryPacket, SendPlayerImagePacket,
                     FetchPickupItem, SendPickupItem,
-                    StartTradePacket
+                    StartTradePacket, ConfirmTradePacket,
+                    EndTradePacket, RespondTradePacket
                   ]
         for packet in packets:
             self.packetPipeline.registerPacket(packet)
@@ -109,7 +110,6 @@ class TradeRequestCommand(cmd.Command):
         tooFarPacket = SendCommandPacket('/message global Too far away to initiate trade.')
         inTradePacket = SendCommandPacket('/message global Player is already in a trade.')
         youInTradePacket = SendCommandPacket('/message global You are already in a trade.')
-        invalidEntityPacket = SendCommandPacket('/message global Invalid username. Unable to request trade.')
         invalidRequestPacket = SendCommandPacket('/message global Invalid username. Unable to accept trade.')
 
         # Username is whoever sent the command, args is everything after '/trade'
@@ -123,7 +123,7 @@ class TradeRequestCommand(cmd.Command):
                 # Get the tradeState of the requesting player
                 props = requestingPlayer.getProperty('tradeState')
 
-                # This person is some jerk trying to trade with multple people...
+                # This person is some jerk trying to trade with multiple people...
                 if props.isTrading:
                     pp.sendToPlayer(youInTradePacket, username)
                     return
@@ -199,7 +199,7 @@ class TradeRequestCommand(cmd.Command):
 
                         # If the entity if a non-NPC entity (e.g, a Bear), error at the player
                         elif not isinstance(npc, NPC):
-                            pp.sendToPlayer(invalidEntityPacket, username)
+                            pp.sendToPlayer(invalidRequestPacket, username)
                         else:
                             pp.sendToPlayer(tooFarPacket, username)
 
@@ -227,7 +227,7 @@ class TradeRequestCommand(cmd.Command):
                             pp.sendToPlayer(tooFarPacket, username)
                     else:
                         # Show player an error/warning if username is invalid
-                        pp.sendToPlayer(invalidEntityPacket, username)
+                        pp.sendToPlayer(invalidRequestPacket, username)
 
         else:
             # Send out a local trade request to all nearby clients

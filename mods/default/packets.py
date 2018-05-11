@@ -1,16 +1,159 @@
-from api.packets import Packet
+from api.packets import Packet, SendCommandPacket
 from api.item import Inventory, ItemStack
 from api.entity import Player, Pickup
 
 import util
 
+from copy import deepcopy
+
 class ConfirmTradePacket(Packet):
-    # When the initiator is asking for confirmation
-    pass
+    # Sent when the initiator is asking for confirmation
+    def __init__(self, inv1=None, inv2=None):
+        self.inv1 = inv1
+        self.inv2 = inv2
+
+    def toBytes(self, buf):
+        buf.write(self.inv1.toBytes())
+        buf.write(b'|||')
+        buf.write(self.inv2.toBytes())
+
+    def fromBytes(self, data):
+        self.inv1, self.inv2 = data.split(b'|||')[:2]
+
+    def onReceive(self, connection, side, game):
+        self.inv1 = Inventory.fromBytes(game, self.inv1)
+        self.inv2 = Inventory.fromBytes(game, self.inv2)
+
+        if side == util.SERVER:
+            player = game.getPlayer(connection.username)
+            if not player:
+                return
+
+            # If received by the server, just redirect it through to the client
+            otherPlayername = player.getProperty('tradeState').tradingWith
+            game.getModInstance('ServerMod').packetPipeline.sendToPlayer(self, otherPlayername)
+
+        else:
+            if game.getGui()[0] == game.getModInstance('ClientMod').tradeGui:
+                # If received by a client, set the inventories and let the player respond
+                game.getGui()[1].inv1 = self.inv1
+                game.getGui()[1].inv2 = self.inv2
+                game.getGui()[1].offer = True
+
+                game.getGui()[1].buttons, game.getGui()[1].offerButtons = game.getGui()[1].offerButtons, game.getGui()[1].buttons
+
+class EndTradePacket(Packet):
+    def toBytes(self, buf):
+        buf.write(b'a')
+
+    def fromBytes(self, buf):
+        pass
+
+    def onReceive(self, connection, side, game):
+        if side != util.SERVER:
+            return
+
+        player = game.getPlayer(connection.username)
+        if not player:
+            return
+
+        cleanProps = deepcopy(game.getModInstance('ServerMod').tradeStateProperty)
+
+        # Clear out the main player (keeping pending trade requests)
+        props = player.getProperty('tradeState')
+        otherPlayername = props.tradingWith
+        newProps = deepcopy(cleanProps)
+        newProps.requests = props.requests
+        player.setProperty('tradeState', newProps)
+
+        # Then clear out the other trading player
+        player = game.getPlayer(otherPlayername)
+        if not player:
+            return
+
+        props = player.getProperty('tradeState')
+        newProps = deepcopy(cleanProps)
+        newProps.requests = props.requests
+        player.setProperty('tradeState', newProps)
 
 class RespondTradePacket(Packet):
-    # When the accepter responds to the confirmation
-    pass
+    # Sent when the acceptor responds to the confirmation
+    def __init__(self, accept=False, inv1=None, inv2=None):
+        self.response = bool(accept)
+        self.inv1 = inv1
+        self.inv2 = inv2
+
+    def toBytes(self, buf):
+        buf.write(self.response.to_bytes(1, 'big'))
+        buf.write(self.inv1.toBytes())
+        buf.write(b'|||')
+        buf.write(self.inv2.toBytes())
+
+    def fromBytes(self, data):
+        self.response = bool(data[0])
+        self.inv1, self.inv2 = data[1:].split(b'|||')[:2]
+
+    def onReceive(self, connection, side, game):
+        self.inv1 = Inventory.fromBytes(game, self.inv1)
+        self.inv2 = Inventory.fromBytes(game, self.inv2)
+
+        if side != util.SERVER:
+            # If the client is still in the tradeGui, close the "Making offer..."
+            # thing and set the inventories
+            if game.getGui()[0] == game.getModInstance('ClientMod').tradeGui:
+                game.getGui()[1].offer = None
+                # Set the inventories
+                game.getGui()[1].inv1 = self.inv1
+                game.getGui()[1].inv2 = self.inv2
+
+                game.getGui()[1].buttons[0].enabled = True
+
+        else:
+            # Get the accepting player's inventory
+            player = game.getPlayer(connection.username)
+            if not player:
+                return
+            serverInv1 = player.getInventory()
+            player2 = game.getPlayer(player.getProperty('tradeState').tradingWith)
+            serverInv2 = player2.getInventory()
+            # If they accepted the trade, verify the inventories, then send them to the client
+            if self.response:
+                # Hash and confirm the trading
+                givenInvsHash = Inventory.addInventory(self.inv1, self.inv2, True)[0].hashInv()
+                serverInvsHash = Inventory.addInventory(serverInv1, serverInv2, True)[0].hashInv()
+
+                if givenInvsHash == serverInvsHash:
+                    # Get the other player in the trade and send the following packet to them
+                    packet = RespondTradePacket(True, self.inv1, self.inv2)
+                    game.getModInstance('ServerMod').packetPipeline.sendToPlayer(packet, player2.name)
+
+                    # Send notice to primary trading player
+                    packet = SendCommandPacket('/message ' + player.name + ' Trade accepted.')
+                    game.getModInstance('ServerMod').packetPipeline.sendToPlayer(packet, player2.name)
+
+                    return SendCommandPacket('/message ' + player2.name + ' Trade accepted.')
+                else:
+                    # If the hashes differ, throw a Decline response
+                    self.response = False
+
+                    # and send a message to each client (unknown error occurred)
+                    players = [player, player2]
+                    packets = [SendCommandPacket('/message ' + players[1-a].name + ' Unknown error occurred') for a in range(len(players))]
+                    for p, packet in enumerate(packets):
+                        game.getModInstance('ServerMod').packetPipeline.sendToPlayer(packet, players[p].name)
+
+            # If the other player has denied the trade, reset the inventories
+            # on the primary trader's client
+            if not self.response:
+                # Get the other player in the trade and send the following packet to them
+                packet = RespondTradePacket(False, serverInv1, serverInv2)
+                game.getModInstance('ServerMod').packetPipeline.sendToPlayer(packet, player2.name)
+
+                # Send notice to primary trading player
+                packet = SendCommandPacket('/message ' + player.name + ' Trade declined.')
+                game.getModInstance('ServerMod').packetPipeline.sendToPlayer(packet, player2.name)
+
+                return SendCommandPacket('/message ' + player2.name + ' Trade declined.')
 
 class StartTradePacket(Packet):
     def __init__(self, other='', isInitiator=False):

@@ -73,7 +73,8 @@ class ClientMod(Mod):
                     FetchPlayerImagePacket, SendInventoryPacket,
                     FetchInventoryPacket, SendPlayerImagePacket,
                     FetchPickupItem, SendPickupItem,
-                    StartTradePacket
+                    StartTradePacket, ConfirmTradePacket,
+                    EndTradePacket, RespondTradePacket
                   ]
         for packet in packets:
             self.packetPipeline.registerPacket(packet)
