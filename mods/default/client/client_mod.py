@@ -133,6 +133,7 @@ class ClientMod(Mod):
 
         self.gameRegistry.registerEventHandler(other_events.onGameMouseClick, 'onMouseClick')
         self.gameRegistry.registerEventHandler(other_events.onInvMouseClick, 'onMouseClick')
+        self.gameRegistry.registerEventHandler(other_events.onTradeMouseClick, 'onMouseClick')
 
         self.gameRegistry.registerEventHandler(other_events.onGameKeyPress, 'onKeyPress')
         self.gameRegistry.registerEventHandler(other_events.onInvKeyPress, 'onKeyPress')

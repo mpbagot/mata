@@ -27,35 +27,52 @@ class TradeScreen(Gui):
     def __init__(self, game, other, isInitiator):
         super().__init__()
         self.game = game
-        self.otherPlayer = other
+        self.resources = self.game.modLoader.gameRegistry.resources
 
-        self.inv1 = game.player.inventory
+        self.otherPlayer = other
 
         # Fetch the other player's inventory
         game.getModInstance('ClientMod').packetPipeline.sendToServer(FetchInventoryPacket(other))
-
-        else:
-            # Bail out here
-            pass
+        game.getModInstance('ClientMod').packetPipeline.sendToServer(FetchInventoryPacket(game.player.name))
 
         self.isInitiator = isInitiator
 
-        self.initialiseObjects()
+        # Store the item being moved around the inventory
+        self.moveItem = None
 
         self.offer = None
-        self.offerTime = time.time()
 
         # Initialise Pygame assets
         self.backImg = pygame.image.load('resources/textures/background.png').convert()
 
         otherPlayer = game.getPlayer(other) or game.getEntity(other)
         if otherPlayer:
+            self.inv1 = game.player.inventory
             self.inv2 = otherPlayer.inventory
+
+        self.initialiseObjects()
+
+    def setupSlots(self):
+        '''
+        Setup the itemslots
+        '''
+        self.itemSlots = []
+        # Make the slotsize accessible in the middle and foreground methods
+        self.slotSize = 60
+        # Loop the rows and columns and create an empty inventory grid
+        invs = [self.inv1, self.inv2]
+        for y in range(4):
+            for x in range(8):
+                slotPos = [((x//2 + 1) * (self.slotSize + 8)) + (x%2 * self.slotSize*5), 160 + y * (self.slotSize + 8)]
+                slot = ItemSlot(self.game, invs[x%2].getItem(y * 4 + x//2), slotPos, self.slotSize)
+                self.itemSlots.append(slot)
 
     def initialiseObjects(self):
         '''
         Initialise the buttons and inv slots for the gui
         '''
+        self.setupSlots()
+
         # Initialise the chat textbox
         self.textarea = TextArea([768, 618, 256, 150], (255, 255, 255))
 
@@ -77,6 +94,8 @@ class TradeScreen(Gui):
         w = self.screen.get_width()
         h = self.screen.get_height()
 
+        self.setupSlots()
+
         self.screen.blit(pygame.transform.scale(self.backImg, [3*w//4+1, h]), [0, 0])
         pygame.draw.rect(self.screen, (170, 170, 170), [3*w//4, 0, w//4+1, h])
 
@@ -86,11 +105,22 @@ class TradeScreen(Gui):
     def drawMiddleLayer(self, mousePos):
         super().drawMiddleLayer(mousePos)
 
-        # If more than a certain amount of time has passed since the offer
-        # was sent (isInitiator=True) or was received (isInitiator=False),
-        # Cancel the trade
-        if time.time()-self.offerTime > 180:
-            pass
+        h = self.screen.get_height()
+
+        font = pygame.font.Font('resources/font/main.ttf', h//25)
+
+        player1Name = font.render(self.game.player.name + "'s Inventory", True, (0, 0, 0))
+        player2Name = font.render(self.otherPlayer + "'s Inventory", True, (0, 0, 0))
+
+        leftPos = scaleRect([368, 120], self.screen)
+        rightPos = scaleRect([68, 120], self.screen)
+
+        if self.isInitiator:
+            self.screen.blit(player1Name, leftPos)
+            self.screen.blit(player2Name, rightPos)
+        else:
+            self.screen.blit(player2Name, leftPos)
+            self.screen.blit(player1Name, rightPos)
 
     def drawForegroundLayer(self, mousePos):
         super().drawForegroundLayer(mousePos)
@@ -112,6 +142,23 @@ class TradeScreen(Gui):
             self.screen.blit(text, [3 * w//4 + 5, (h - textareaHeight) - 15 * m])
 
         self.textarea.draw(self.screen, mousePos)
+
+        if self.moveItem:
+            slot = self.itemSlots[self.moveItem[0]]
+            stack = self.moveItem[1]
+            # Draw the item image
+            imageSize = [slot.button.rect[2]-5 for a in range(2)]
+            boxPos = [mousePos[a]-imageSize[a]//2 for a in (0, 1)]
+            itemImage = stack.getItem().getImage(self.resources)
+            imgRect = self.screen.blit(pygame.transform.scale(itemImage, imageSize), boxPos)
+
+            # Draw the stackSize label
+            font = pygame.font.Font('resources/font/main.ttf', imageSize[0]//3)
+            text = font.render(str(self.moveItem[1].stackSize), True, (0, 0, 0))
+            tagPos = list(boxPos)
+            tagPos[1] += imageSize[1]-text.get_height()
+            tagPos[0] += text.get_height()*1/10
+            self.screen.blit(text, tagPos)
 
         # Draw the notice strip if required
         bools = [bool(self.isInitiator), bool(self.offer)]

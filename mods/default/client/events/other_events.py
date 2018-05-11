@@ -89,6 +89,82 @@ def onGameMouseClick(game, mousePos, pressed, event):
                             game.openOverlay(chatOverlay, game, obj.name)
                     return
 
+def onTradeMouseClick(game, mousePos, pressed, event):
+    '''
+    Event Hook: onMouseClick
+    Handle the movement of items between slots in the trade screen
+    '''
+    gui = game.getGui()
+    if gui and gui[0] == game.getModInstance('ClientMod').tradeGui:
+        # moveItem needs to store the section of inventory, index of inv.itemSlots it is from, and the itemstack itself
+        for s, slot in enumerate(gui[1].itemSlots):
+            if slot.button.isHovered(mousePos):
+                # If the player has clicked on a slot in the inventory
+                if pressed[0]:
+                    # LMB click
+                    # If carrying an itemstack
+                    if gui[1].moveItem:
+                        stack1, stack2 = gui[1].moveItem[1].add(slot.item)
+                        # Place the carried item into the clicked slot
+                        gui[1].__getattribute__('inv'+str(s%2 + 1)).items['main'][s//2] = stack1
+                        # game.player.inventory.items['main'][s] = stack1
+
+                        # If clicking on a filled slot, swap or add the moveItem with
+                        # the stack in the slot
+                        if stack2 and stack2.getRegistryName() != 'null_item':
+                            gui[1].moveItem = [s, stack2]
+                        else:
+                            gui[1].moveItem = None
+
+                    # If carrying nothing
+                    else:
+                        # If clicking on a filled spot, pickup the item
+                        if slot.item.getRegistryName() != 'null_item':
+                            gui[1].moveItem = [s, slot.item]
+                            gui[1].__getattribute__('inv'+str(s%2 + 1)).items['main'][s//2] = ItemStack(NullItem(), 0)
+                            # game.player.inventory.items['main'][s] = ItemStack(NullItem(), 0)
+
+                elif pressed[2]:
+                    # RMB click
+                    # If carrying an itemstack
+                    if gui[1].moveItem:
+                        if gui[1].moveItem[1].stackSize == 1 and slot.item.getRegistryName() == 'null_item':
+                            # Place the carried item into the clicked slot
+                            gui[1].__getattribute__('inv'+str(s%2 + 1)).items['main'][s//2] = gui[1].moveItem[1]
+                            # game.player.inventory.items['main'][s] = gui[1].moveItem[1]
+
+                            gui[1].moveItem = None
+                            continue
+
+                        gui[1].moveItem[1], one = gui[1].moveItem[1].getOne()
+                        if one == slot.item:
+                            stack1, stack2 = slot.item.add(one)
+                            if gui[1].moveItem[2].getRegistryName() != 'null_item':
+                                stack2 = gui[1].moveItem[1].add(stack2)[0]
+
+                            if stack2 and stack2.getRegistryName() != 'null_item':
+                                gui[1].moveItem = [s, stack2]
+                            else:
+                                gui[1].moveItem = None
+
+                        elif slot.item.getRegistryName() == 'null_item':
+                            stack1 = one
+
+                        else:
+                            continue
+
+                        # Place the carried item into the clicked slot
+                        gui[1].__getattribute__('inv'+str(s%2 + 1)).items['main'][s//2] = stack1
+                        # game.player.inventory.items['main'][s] = stack1
+
+                    elif slot.item.getRegistryName() != 'null_item' and slot.item.stackSize > 0:
+                        stack1, stack2 = slot.item.split()
+                        gui[1].__getattribute__('inv'+str(s%2 + 1)).items['main'][s//2] = stack1
+                        # game.player.inventory.items['main'][s] = stack1
+
+                        if stack2 and stack2.getRegistryName() != 'null_item':
+                            gui[1].moveItem = [s, stack2]
+
 def onInvMouseClick(game, mousePos, pressed, event):
     '''
     Event Hook: onMouseClick
