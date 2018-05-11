@@ -24,16 +24,15 @@ class TradeScreen(Gui):
     '''
     Trading screen
     '''
-    # TODO Fill this screen in
     def __init__(self, game, other, isInitiator):
         super().__init__()
         self.game = game
         self.otherPlayer = other
 
         self.inv1 = game.player.inventory
-        otherPlayer = game.getPlayer(other) or game.getEntity(other)
-        if otherPlayer:
-            self.inv2 = otherPlayer.inventory
+
+        # Fetch the other player's inventory
+        game.getModInstance('ClientMod').packetPipeline.sendToServer(FetchInventoryPacket(other))
 
         else:
             # Bail out here
@@ -48,6 +47,10 @@ class TradeScreen(Gui):
 
         # Initialise Pygame assets
         self.backImg = pygame.image.load('resources/textures/background.png').convert()
+
+        otherPlayer = game.getPlayer(other) or game.getEntity(other)
+        if otherPlayer:
+            self.inv2 = otherPlayer.inventory
 
     def initialiseObjects(self):
         '''
