@@ -127,6 +127,9 @@ class RespondTradePacket(Packet):
                     packet = RespondTradePacket(True, self.inv1, self.inv2)
                     game.getModInstance('ServerMod').packetPipeline.sendToPlayer(packet, player2.name)
 
+                    player.setInventory(self.inv1)
+                    player2.setInventory(self.inv2)
+
                     # Send notice to primary trading player
                     packet = SendCommandPacket('/message ' + player.name + ' Trade accepted.')
                     game.getModInstance('ServerMod').packetPipeline.sendToPlayer(packet, player2.name)
