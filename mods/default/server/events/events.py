@@ -169,6 +169,11 @@ def onDisconnect(game, username):
         if vehicle:
             vehicle.unmountRider(player)
         player.ridingEntity = None
+
+    # Give the player a tradestate to handle trading
+    props = deepcopy(game.getModInstance('ServerMod').tradeStateProperty)
+    player.setProperty('tradeState', props)
+
     # TODO Move the player out of danger. Somehow...
 
     game.packetPipeline.closeConnection(username)
