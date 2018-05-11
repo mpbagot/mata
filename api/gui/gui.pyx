@@ -133,12 +133,14 @@ class Gui:
         except AttributeError:
             return False
 
-class Overlay(Gui):
     def doKeyPress(self, event):
-        '''
-        Handle a key press event
-        '''
-        pass
+      '''
+      Handle a key press event
+      '''
+      pass
+
+class Overlay(Gui):
+    pass
 
 def scaleRect(rect, screen):
     '''
@@ -154,8 +156,12 @@ def scaleRect(rect, screen):
     y_coeff = h/768
 
     # Multiply the x and y positions by the respective coefficients
-    rect[0] *= x_coeff
-    rect[1] *= y_coeff
+    try:
+        rect[0] *= x_coeff
+        rect[1] *= y_coeff
+    except IndexError:
+        print('[WARNING] Not enough values passed to scaleRect. Things may look strange.')
+        return []
 
     # Attempt to multiply the width and height if the input rect is a full rect, not position
     try:

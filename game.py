@@ -131,6 +131,7 @@ class Game:
                             # Handle a keypress on the gui
                             if self.getGui()[1].currentTextBox is not None:
                                 self.getGui()[1].textboxes[self.getGui()[1].currentTextBox].doKeyPress(event)
+                            self.getGui()[1].doKeyPress(event)
                             # If the keypress is not applicable to the gui, revert to the overlays
                             for i, overlay in enumerate(self.getOverlays()):
                                 self.getOverlays()[i][1].doKeyPress(event)
