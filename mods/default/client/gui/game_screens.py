@@ -297,7 +297,7 @@ class GameScreen(Gui):
             if not player.img:
                 continue
 
-            size = player.smallImg.get_rect()    
+            size = player.smallImg.get_rect()
 
             # Adjust position accordingly, and draw to screen
             pos = [w//2 + deltaPos[0] * 40 - size.width//2, h//2 + deltaPos[1] * 40 - size.height//2]
@@ -309,8 +309,8 @@ class GameScreen(Gui):
                 # self.screen.blit(img, pos)
                 self.screen.blit(player.smallImg, pos)
 
-        # Draw the entity images to screen
-        for ent in self.game.world.entities:
+        # Draw the entity and the vehicle images to screen
+        for ent in self.game.world.entities + self.game.world.vehicles:
             # Get the difference in position
             deltaPos = [ent.pos[a]-mainAbsPos[a] for a in range(2)]
 
@@ -325,21 +325,6 @@ class GameScreen(Gui):
             pos = [w//2 + deltaPos[0] * 40 - size.width//2, h//2 + deltaPos[1] * 40 - size.height//2]
             if abs(max(pos)) < max(w, h):
                 self.screen.blit(entityImage, pos)
-
-        # Draw the vehicle images to screen
-        for vehicle in self.game.world.vehicles:
-            # Get the difference in position
-            deltaPos = [vehicle.pos[a] - mainAbsPos[a] for a in range(2)]
-
-            # Get the entity image size
-            vehicleImage = vehicle.getImage(self.game.modLoader.gameRegistry.resources)
-            size = vehicleImage.get_rect()
-
-            # Adjust position accordingly, and draw to screen
-            pos = [w//2 + deltaPos[0] * 40 - size.width//2, h//2 + deltaPos[1] * 40 - size.height//2]
-            if abs(max(pos)) < max(w, h):
-                self.screen.blit(vehicleImage, pos)
-
 
     def drawForegroundLayer(self, mousePos):
         '''
