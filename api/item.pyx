@@ -207,10 +207,12 @@ class Inventory:
         # Initialise the inventories
         sumInv = Inventory()
         overflowInv = Inventory()
-        sumInv.items = inv1.items
+        inv1 = inv1.duplicate()
+        inv2 = inv2.duplicate()
 
         # Fill the first inventory's main section
         # with all of the second inventory's contents
+        sumInv.items = inv1.items
         sumInv.items['main'] += inv2.items['hotbar']
         sumInv.items['main'] += inv2.items['main']
         sumInv.items['main'] += [inv2.items['left'], inv2.items['right'], inv2.items['armour']]
