@@ -34,6 +34,15 @@ class GUIState:
         # Return the main gui buttons first, then the overlay ones
         return self.gui[1].buttons+overlayButtons
 
+    def getOverlay(self, guiID):
+        '''
+        Get an overlay instance from this GUIState
+        '''
+        for id, overlay in self.overlays:
+            if id == guiID:
+                return overlay
+        return None
+
     def openGui(self, guiID, *args):
         '''
         Set the open GUI for this GUI state.
