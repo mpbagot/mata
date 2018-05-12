@@ -286,11 +286,11 @@ def onGameKeyPress(game, event):
             elif event.key == pygame.K_ESCAPE:
                 game.openOverlay(pauseOverlay, game)
 
-            # Open global chat if the t key is pressed
-            if event.key == pygame.K_t:
+            # Open global chat if the u key is pressed
+            if event.key == pygame.K_u:
                 game.openOverlay(chatOverlay, game)
-            # Open the local chat if the u key is pressed
-            elif event.key == pygame.K_u:
+            # Open the local chat if the t key is pressed (local will be more commonly used, realistically)
+            elif event.key == pygame.K_t:
                 game.openOverlay(chatOverlay, game, 'local')
             # Open the inventory
             elif event.key == pygame.K_e:
