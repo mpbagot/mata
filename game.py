@@ -53,6 +53,11 @@ class Game:
             self.dimensionId = 0
             self.player = Player()
 
+            # Store a blank texture resource
+            surf = pygame.Surface((40, 40)).convert_alpha()
+            surf.fill(pygame.Color(255, 255, 255, 0))
+            self.modLoader.gameRegistry.resources['tile_null_obj'] = surf
+
             # Fill in the address to connect to automatically
             self.getGui()[1].textboxes[-1].text = self.args.getConnectingAddress()
 
