@@ -101,9 +101,6 @@ class TradeRequestCommand(cmd.Command):
         requestingPlayer = self.game.getPlayer(username)
 
         pp = self.game.getModInstance('ServerMod').packetPipeline
-        # TODO Dummy packet
-        notifyRequesterPacket = SendCommandPacket('/message global Trade request sent.')
-        notifyPacket = SendCommandPacket('/message global Pending trade request from user '+username)
 
         # Define all the possible error message packets
         # TODO IS a global message really the best way to notify?
@@ -219,6 +216,10 @@ class TradeRequestCommand(cmd.Command):
                             props.requests[username] = time.time()
                             player.setProperty('tradeState', props)
 
+                            # Send the notifications on the P2P channel
+                            notifyPacket = SendCommandPacket('/message ' + username + ' Pending trade request from user '+username)
+                            notifyRequesterPacket = SendCommandPacket('/message ' + tradeWith + ' Trade request sent.')
+
                             # Notify the player
                             pp.sendToPlayer(notifyPacket, tradeWith)
                             pp.sendToPlayer(notifyRequesterPacket, username)
@@ -232,6 +233,11 @@ class TradeRequestCommand(cmd.Command):
         else:
             # Send out a local trade request to all nearby clients
             nearby = self.game.getWorld(requestingPlayer.dimension).getPlayersNear(requestingPlayer.pos, 12)
+
+            # Send the notifications on the local channel
+            notifyPacket = SendCommandPacket('/message local Pending trade request from user '+username)
+            notifyRequesterPacket = SendCommandPacket('/message local Trade request sent.')
+
             for player in nearby:
                 props = player.getProperty('tradeState')
                 # Skip players that are already in trade
@@ -242,6 +248,7 @@ class TradeRequestCommand(cmd.Command):
                 props.requests[username] = time.time()
                 player.setProperty('tradeState', props)
                 pp.sendToPlayer(notifyPacket, player.name)
+
 
             # Notify the requester that their request has been sent correctly
             pp.sendToPlayer(notifyRequesterPacket, username)
