@@ -18,6 +18,8 @@ class HUD(Overlay):
 
         h = self.screen.get_height()
 
+        self.buttons = [P2PNoticeButton(game, [944, 540, 60, 60])]
+
         self.game = game
         self.bars = [
                         HorizBar([744, 698, 260, 20], (255, 0, 0), self.game.player.health/100, 'Health'),
@@ -101,6 +103,13 @@ class Chat(Overlay):
         self.buttons = [ChatTabButton([720, 540 + 32 * n, 202, 30], name) for n, name in enumerate(latest)]
 
     def drawForegroundLayer(self, mousePos):
+        hud = self.game.getModInstance('ClientMod').hudOverlay
+        if self.game.getGUIState() and self.game.getGUIState().isOverlayOpen(hud):
+            try:
+                self.game.getGUIState().getOverlay(hud).notifications.delete(self.tab)
+            except:
+                pass
+
         # Fetch the messages from the mod instance
         messages = self.game.getModInstance('ClientMod').chatMessages.get(self.tab, [])
 

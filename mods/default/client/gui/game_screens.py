@@ -377,6 +377,9 @@ class GameScreen(Gui):
         self.game = game
         self.playerImg = self.game.getModInstance('ClientMod').calculateAvatar(self.game.player.img)
 
+        # Store the chat notifications in order of arrival (oldest to newest)
+        self.notifications = []
+
         # Open the HUD overlay
         game.openOverlay(game.getModInstance('ClientMod').hudOverlay, game)
 
@@ -393,8 +396,8 @@ class GameScreen(Gui):
 
         # Check if the world is loaded into memory
         if self.game.world and self.game.world.isWorldLoaded():
-            xPos1 = xPos-w if xPos >= w else 0
-            yPos1 = yPos-h if yPos >= h else 0
+            xPos1 = xPos - w if xPos >= w else 0
+            yPos1 = yPos - h if yPos >= h else 0
 
             # Pad the top of the map if applicable
             tileMap = [[0] for a in range(abs(yPos - h))] if yPos < h else []
@@ -407,7 +410,16 @@ class GameScreen(Gui):
             for r, row in enumerate(tileMap):
                 for t, tile in enumerate(row):
                     if tile:
-                        self.screen.blit(tile.tileTypes[tile.tileIndex].img, [round(40 * (t - 1 - x)), round(40 * (r - 1 - y))])
+                        tilePos = [round(40 * (t - 1 - x)), round(40 * (r - 1 - y))]
+                        self.screen.blit(tile.tileTypes[tile.tileIndex].img, tilePos)
+                        # if tile.plantIndex != -1:
+                        #     try:
+                        #         self.screen.blit(tile.plantTypes[tile.plantIndex].img, tilePos)
+                        #     except pygame.error:
+                        #         print(self.game.modLoader.gameRegistry.resources)
+                        #         print(tile.plantTypes[tile.plantIndex].getTileName())
+                        #         tile.resetTile(self.game.modLoader.gameRegistry.resources)
+                        #         self.screen.blit(tile.plantTypes[tile.plantIndex].img, tilePos)
 
     def drawMiddleLayer(self, mousePos):
         '''

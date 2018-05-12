@@ -1,11 +1,58 @@
 from math import cos, pi
 from threading import Thread
+import time
 
 from api.gui.gui import *
 from api.gui.objects import *
 from api.colour import *
 from api.packets import DisconnectPacket
 from mods.default.packets import *
+
+class P2PNoticeButton(Button):
+    def __init__(self, game, rect):
+        super().__init__(rect, '')
+        self.game = game
+        self.image = pygame.image.load('resources/textures/mods/notice_button.png').convert()
+
+    def draw(self, screen, mousePos):
+        '''
+        Draw the button to the given surface
+        '''
+        # If there are no notifications, dont draw the button
+        if self.game.getGui():
+            if self.game.getGui()[0] != self.game.getModInstance('ClientMod').gameGui or not self.game.getGui()[1].notifications:
+                self.enabled = False
+                return
+
+        self.enabled = True
+
+        self.rect = scaleRect(self.defaultRect, screen)
+
+        alpha = (cos(time.time() * 3)+1)/2 * 255
+
+        # Draw the button
+        button = pygame.transform.scale(self.image, [self.rect[3]]*2)
+        button.set_alpha(alpha)
+        button.set_colorkey((0, 0, 0))
+        screen.blit(button, self.rect[:2])
+
+    def onClick(self, game):
+        gui = game.getGui()
+        guiState = game.getGUIState()
+        chatOverlay = game.getModInstance('ClientMod').chatOverlay
+
+        if gui and gui[0] == game.getModInstance('ClientMod').gameGui:
+            tab = gui[1].notifications.pop(-1)
+            if guiState.isOverlayOpen(chatOverlay):
+                # If the chat overlay is open, switch tab
+                guiState.getOverlay(chatOverlay).tab = tab
+                # for o, overlay in enumerate(guiState.overlays):
+                #     if overlay[0] == chatOverlay:
+                #         guiState.overlays[o][1].tab = tab
+                #         return
+            else:
+                # Otherwise, open up the chat overlay to the appropriate tab
+                game.openOverlay(game.getModInstance('ClientMod').chatOverlay, game, tab)
 
 class StartGameButton(Button):
     def __init__(self, rect):

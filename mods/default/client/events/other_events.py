@@ -333,7 +333,17 @@ def onCommand(game, commandClass, username, args):
         message = ' '.join(args[1:])
         modInstance = game.getModInstance('ClientMod')
         modInstance.chatMessages[args[0]] = modInstance.chatMessages.get(args[0], []) + [message]
-        print(' '.join(args[1:]))
+
+        # If the message received is a P2P message, pop up the notification to the player
+        if args[0] not in ['global', 'local']:
+            gui = game.getGUIState()
+            chatOverlay = game.getModInstance('ClientMod').chatOverlay
+            if gui:
+                # If we are already in the right channel, dont bother showing the notice
+                if gui.isOverlayOpen(chatOverlay) and gui.getOverlay(chatOverlay).tab == args[0]:
+                    return
+                # Append the message to the notifications list
+                gui.gui[1].notifications.append(args[0])
 
 def onPacketReceived(game, packet):
     '''
@@ -347,7 +357,8 @@ def onPacketReceived(game, packet):
     elif packet.__class__.__name__ == 'InvalidLoginPacket':
         # Tell the player that their username is already taken
         game.openGui(game.getModInstance('ClientMod').mainMenuGui)
-        game.getGui()[1].error = 'That Username Is Already Taken.'
+        if game.getGui():
+            game.getGui()[1].error = 'That Username Is Already Taken.'
 
     elif packet.__class__.__name__ == 'WorldUpdatePacket':
         # Fetch images of new players
