@@ -29,6 +29,14 @@ class Tile:
         '''
         return 'resources/textures/mods/tiles/{}.png'.format(self.getTileName())
 
+class Plant(Tile):
+    pass
+
+class NullPlant(Plant):
+    def __init__(self, resources):
+        self.setTileName('null_obj')
+        super().__init__(resources)
+
 class Biome:
     def __init__(self):
         self.tileTypes = []
@@ -53,7 +61,9 @@ class Biome:
         Reset the Pygame surface for this tile
         '''
         if self.tileIndex >= 0:
-          self.tileTypes[self.tileIndex] = self.tileTypes[self.tileIndex].__class__(resources)
+            self.tileTypes[self.tileIndex] = self.tileTypes[self.tileIndex].__class__(resources)
+        if self.plantIndex >= 0:
+            self.plantTypes[self.plantIndex] = self.plantTypes[self.plantIndex].__class__(resources)
 
     def setTileType(self, tileNoise, detailNoise, resources):
         '''
@@ -61,7 +71,7 @@ class Biome:
         '''
         # Initialise the tile and set the type
         if self.tileTypes:
-            i = int(tileNoise*len(self.tileTypes))
+            i = int(tileNoise * len(self.tileTypes))
             self.tileIndex = i
             try:
                 self.tileTypes[i] = self.tileTypes[i](resources)
@@ -69,11 +79,14 @@ class Biome:
                 print(self.tileTypes[i])
 
         # Set a plant
-        if random.random() > 0.8 and self.plantTypes:
-            i = random.randint(0, len(self.plantTypes)-1)
+        # 0.5 is the minimum threshold for details
+        if self.plantTypes:
+            # Calculate the plant/detail index
+            i = int((2 * detailNoise - 1) * len(self.plantTypes))
+            # i = max(0, (20 * detailNoise - 11)//3)
             self.plantIndex = i
-            self.plantTypes[i] = self.plantTypes[i]()
-
+            # Then instantiate the detail object
+            self.plantTypes[i] = self.plantTypes[i](resources)
 
 class TileMap:
     def __init__(self, width, height):
