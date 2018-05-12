@@ -50,6 +50,9 @@ class LoginPacket(Packet):
                 print('existing connection found')
                 return InvalidLoginPacket()
 
+        if self.player.name in ['local', 'global']:
+            return InvalidLoginPacket()
+
         connection.username = self.player.name
 
         # Add the player
@@ -318,7 +321,7 @@ class AttackPacket(Packet):
 
 class InvalidLoginPacket(Packet):
     def toBytes(self, buf):
-        pass
+        buf.write(b'a')
 
     def fromBytes(self, data):
         pass
