@@ -400,26 +400,30 @@ class GameScreen(Gui):
             yPos1 = yPos - h if yPos >= h else 0
 
             # Pad the top of the map if applicable
-            tileMap = [[0] for a in range(abs(yPos - h))] if yPos < h else []
+            self.tileMap = [[0] for a in range(abs(yPos - h))] if yPos < h else []
             for row in self.game.world.getTileMap().map[yPos1:yPos + h]:
                 # Generate the cropped tilemap of the world
                 padding = [0 for a in range(abs(xPos - w))] if xPos < w else []
-                tileMap.append(padding + row[xPos1:xPos + w])
+                self.tileMap.append(padding + row[xPos1:xPos + w])
+
+            # Fetch the resource dictionary
+            resources = self.game.modLoader.gameRegistry.resources
 
             # Iterate and blit the tiles to screen
-            for r, row in enumerate(tileMap):
+            for r, row in enumerate(self.tileMap):
                 for t, tile in enumerate(row):
                     if tile:
                         tilePos = [round(40 * (t - 1 - x)), round(40 * (r - 1 - y))]
-                        self.screen.blit(tile.tileTypes[tile.tileIndex].img, tilePos)
-                        # if tile.plantIndex != -1:
-                        #     try:
-                        #         self.screen.blit(tile.plantTypes[tile.plantIndex].img, tilePos)
-                        #     except pygame.error:
-                        #         print(self.game.modLoader.gameRegistry.resources)
-                        #         print(tile.plantTypes[tile.plantIndex].getTileName())
-                        #         tile.resetTile(self.game.modLoader.gameRegistry.resources)
-                        #         self.screen.blit(tile.plantTypes[tile.plantIndex].img, tilePos)
+                        self.screen.blit(tile.tileTypes[tile.tileIndex].getImage(resources), tilePos)
+
+                        # Calculate the position for the plant and blit it to screen
+                        if tile.plantIndex != -1:
+                            tileImage = tile.plantTypes[tile.plantIndex].getImage(resources)
+                            tileRect = pygame.Rect([0, 0]+list(tileImage.get_size()))
+                            tileRect.centerx = round(40 * (t - 0.5 - x))
+                            tileRect.bottom = round(40 * (r - y))
+
+                            self.screen.blit(tileImage, tileRect)
 
     def drawMiddleLayer(self, mousePos):
         '''
@@ -499,5 +503,25 @@ class GameScreen(Gui):
         # direction = round(2*theta + 2) % 4
         # frame = round(math.sin(12*math.pi*time.time()))
         # img = self.playerImg[direction][frame]
-        # self.screen.blit(img, [w//2 - size, h//2-size])
-        self.screen.blit(self.playerImg, [w//2 - size, h//2 - size])
+        # playerRect = self.screen.blit(img, [w//2 - size, h//2-size])
+        playerRect = self.screen.blit(self.playerImg, [w//2 - size, h//2 - size])
+
+        x, y = [self.game.player.pos[a] - self.game.world.centrePos[a] for a in (0, 1)]
+        xPos = int(x) + 75
+        yPos = int(y) + 45
+        x -= int(x)
+        y -= int(y)
+
+        # Fetch the resource dictionary
+        resources = self.game.modLoader.gameRegistry.resources
+
+        # Draw the plants in front of the player
+        for r, row in enumerate(self.tileMap):
+            for t, tile in enumerate(row):
+                if tile:
+                    tileImage = tile.plantTypes[tile.plantIndex].getImage(resources)
+                    tileRect = pygame.Rect([0, 0]+list(tileImage.get_size()))
+                    tileRect.centerx = round(40 * (t - 0.5 - x))
+                    tileRect.bottom = round(40 * (r - y))
+                    if playerRect.bottom < tileRect.bottom and tile.plantIndex >= 0:
+                        self.screen.blit(tileImage, tileRect)
