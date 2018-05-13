@@ -52,6 +52,12 @@ class ClientMod(Mod):
             img = pygame.image.load('resources/textures/mods/entity/' + i + '.png').convert_alpha()
             self.gameRegistry.registerResource('vehicle_' + i, img)
 
+        img = pygame.image.load('resources/textures/mods/entity/horse.png').convert_alpha()
+        self.gameRegistry.registerResource('tile_horse', img)
+
+        img = pygame.image.load('resources/textures/mods/entity/bear.png').convert_alpha()
+        self.gameRegistry.registerResource('tile_bear', img)
+
         # Register weapon images
         images = []#'steel_sword']
         for i in images:
