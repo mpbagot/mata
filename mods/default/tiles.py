@@ -1,31 +1,35 @@
-from api.biome import Tile
+from api.biome import Tile, Plant
 
+# Tiles
 class Grass(Tile):
-    def __init__(self, resources):
+    def __init__(self):
         self.setTileName('grass')
-        super().__init__(resources)
 
 class Dirt(Tile):
-    def __init__(self, resources):
+    def __init__(self):
         self.setTileName('dirt')
-        super().__init__(resources)
 
 class Water(Tile):
-    def __init__(self, resources):
+    def __init__(self):
         self.setTileName('water')
-        super().__init__(resources)
 
 class Sand(Tile):
-    def __init__(self, resources):
+    def __init__(self):
         self.setTileName('sand')
-        super().__init__(resources)
 
 class Gravel(Tile):
-    def __init__(self, resources):
+    def __init__(self):
         self.setTileName('gravel')
-        super().__init__(resources)
 
 class Road(Tile):
-    def __init__(self, resources):
+    def __init__(self):
         self.setTileName('road')
-        super().__init__(resources)
+
+# Plants
+class GrassPlant(Plant):
+    def __init__(self):
+        self.setTileName('horse')
+
+class TreePlant(Plant):
+    def __init__(self):
+        self.setTileName('bear')

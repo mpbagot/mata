@@ -187,10 +187,6 @@ def handleProcess(game, queue):
             game.world.centrePos = data
         # If it's a tilemap, update that
         elif data != "end":
-            for y, row in enumerate(data.map):
-                for x, tile in enumerate(row):
-                    data.map[y][x].resetTile(game.modLoader.gameRegistry.resources)
-
             game.world.setTileMap(data)
 
         # Otherwise, end the thread
@@ -209,9 +205,10 @@ def genWorld(game, queue):
 
     # Generate the world
     dimension = game.getDimension(game.player.dimension)
-    dimension.generate(preGenPos, game.modLoader.gameRegistry)
-    # Fix the pygame surface breaking when sent through the Queue
-    queue.put(dimension.getWorldObj().getTileMap())
+    tileMap = dimension.chunkProvider.generate(preGenPos, game.modLoader.gameRegistry)
+    
+    # Push the tilemap through the process queue
+    queue.put(tileMap)
     print('world gen done')
     queue.put(preGenPos)
     queue.put('end')
