@@ -44,6 +44,7 @@ class TradeScreen(Gui):
 
         # Initialise Pygame assets
         self.backImg = pygame.image.load('resources/textures/background.png').convert()
+        self.scaleBackImg = self.backImg
 
         otherPlayer = game.getPlayer(other) or game.getEntity(other)
         if otherPlayer:
@@ -90,13 +91,18 @@ class TradeScreen(Gui):
                                 ]
             self.buttons = [CancelTradeButton([250, 600, 300, 100], "Cancel Trade")]
 
+    def onResize(self, screen):
+        w, h = screen.get_size()
+        super().onResize(screen)
+        self.scaleBackImg = pygame.transform.scale(self.backImg, [3*w//4+1, h])
+
     def drawBackgroundLayer(self):
         w = self.screen.get_width()
         h = self.screen.get_height()
 
         self.setupSlots()
 
-        self.screen.blit(pygame.transform.scale(self.backImg, [3*w//4+1, h]), [0, 0])
+        self.screen.blit(self.scaleBackImg, [0, 0])
         pygame.draw.rect(self.screen, (170, 170, 170), [3*w//4, 0, w//4+1, h])
 
         if self.isInitiator:
@@ -202,6 +208,7 @@ class PlayerInventoryScreen(Gui):
 
         # Initialise Pygame assets
         self.backImg = pygame.image.load('resources/textures/background.png').convert()
+        self.scaleBackImg = self.backImg
         font = pygame.font.Font('resources/font/main.ttf', 60)
         self.title = font.render('Inventory', True, (0, 0, 0))
 
@@ -246,22 +253,15 @@ class PlayerInventoryScreen(Gui):
         '''
         self.inventory = inv
 
-        self.itemSlots = []
         # Make the slotsize accessible in the middle and foreground methods
         self.slotSize = 90
         # Loop the rows and columns and create an empty inventory grid
         for y in range(4):
             for x in range(4):
-                slotPos = [(x + 1) * (self.slotSize + 8), 120 + y * (self.slotSize + 8)]
-                slot = ItemSlot(self.game, self.inventory.getItem(y * 4 + x), slotPos, self.slotSize)
-                self.itemSlots.append(slot)
+                self.itemSlots[y * 4 + x].setItem(self.inventory.getItem(y * 4 + x))
 
         for i, itemstack in enumerate(self.inventory.getEquipped()):
-            slotPos = [859, 120 + self.slotSize//4 + i * (self.slotSize + 40)]
-            if i != 2:
-                self.itemSlots.append(ItemSlot(self.game, itemstack, slotPos, self.slotSize + 30))
-            else:
-                self.itemSlots.append(ArmourSlot(self.game, itemstack, slotPos, self.slotSize + 30))
+            self.itemSlots[16 + i].setItem(itemstack)
 
     def fetchInventory(self, game):
         '''
@@ -270,12 +270,17 @@ class PlayerInventoryScreen(Gui):
         packetPipeline = game.getModInstance('ClientMod').packetPipeline
         packetPipeline.sendToServer(FetchInventoryPacket(game.player.name))
 
+    def onResize(self, screen):
+        w, h = screen.get_size()
+        super().onResize(screen)
+        self.scaleBackImg = pygame.transform.scale(self.backImg, [w, h])
+
     def drawBackgroundLayer(self):
         w = self.screen.get_width()
         h = self.screen.get_height()
 
         self.setInventory(self.game.player.inventory)
-        self.screen.blit(pygame.transform.scale(self.backImg, [w, h]), [0, 0])
+        self.screen.blit(self.scaleBackImg, [0, 0])
 
     def drawMiddleLayer(self, mousePos):
         super().drawMiddleLayer(mousePos)
@@ -328,15 +333,21 @@ class PlayerDrawScreen(Gui):
         h = self.screen.get_height()
 
         self.backImg = pygame.image.load('resources/textures/background.png').convert()
+        self.scaleBackImg = self.backImg
         self.buttons = [StartGameButton([600, 580, 350, 120])]
         self.valSliders = [Slider([450 + (a%2)*(250), 180 + 60 * (a//2), 210, 20], (255, 0, 0)) for a in range(12)]
         self.addItem(PlayerImageBox(scaleRect([300, 528, 30, 170], self.screen), game))
+
+    def onResize(self, screen):
+        super().onResize(screen)
+        self.scaleBackImg = pygame.transform.scale(self.backImg, screen.get_size())
 
     def drawBackgroundLayer(self):
         w = self.screen.get_width()
         h = self.screen.get_height()
 
-        self.screen.blit(pygame.transform.scale(self.backImg, [w, h]), [0, 0])
+        self.scaleBackImg.unlock()
+        self.screen.blit(self.scaleBackImg, [0, 0])
 
         values = self.valSliders
         self.extraItems[0].colours = [[int(values[s].value * 5), round(values[s + 1].value * 360 - 180, 1)] for s in range(0, len(values), 2)]
@@ -518,7 +529,7 @@ class GameScreen(Gui):
         # Draw the plants in front of the player
         for r, row in enumerate(self.tileMap):
             for t, tile in enumerate(row):
-                if tile:
+                if tile and tile.plantIndex >= 0:
                     tileImage = tile.plantTypes[tile.plantIndex].getImage(resources)
                     tileRect = pygame.Rect([0, 0]+list(tileImage.get_size()))
                     tileRect.centerx = round(40 * (t - 0.5 - x))

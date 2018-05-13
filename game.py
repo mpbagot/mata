@@ -131,6 +131,8 @@ class Game:
                             pygame.display.set_mode((event.w, event.h), util.DISPLAY_FLAGS)
                             pygame.display.get_surface().blit(oldSurface, [0, 0])
                             pygame.display.flip()
+                            # Fire an onResize call to rescale the gui
+                            self.currentGUIState.onResize(pygame.display.get_surface())
 
                         elif event.type == pygame.KEYDOWN:
                             # Handle a keypress on the gui

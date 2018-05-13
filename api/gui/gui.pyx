@@ -6,6 +6,23 @@ class GUIState:
         self.gui = None
         self.overlays = []
 
+    def onResize(self, screen):
+        '''
+        Resize the Gui and each overlay
+        '''
+        # Resize the gui
+        try:
+            if self.gui:
+                self.gui[1].onResize(screen)
+        except AttributeError:
+            pass
+        # Resize each overlay
+        for o, overlay in enumerate(self.overlays):
+            try:
+                self.overlays[o][1].onResize(screen)
+            except AttributeError:
+                pass
+
     def draw(self, mousePos):
         '''
         Draw the GUIState to the given screen
@@ -48,6 +65,7 @@ class GUIState:
         Set the open GUI for this GUI state.
         '''
         self.gui = [guiID, self.game.modLoader.gameRegistry.guis[guiID](*args)]
+        self.gui[1].onResize(pygame.display.get_surface())
 
     def openOverlay(self, guiID, *args):
         '''
@@ -55,6 +73,7 @@ class GUIState:
         '''
         if not self.isOverlayOpen(guiID):
             self.overlays.append([guiID, self.game.modLoader.gameRegistry.guis[guiID](*args)])
+            self.overlays[-1][1].onResize(pygame.display.get_surface())
 
     def isOverlayOpen(self, guiID):
         '''
@@ -86,6 +105,21 @@ class Gui:
         self.itemSlots = []
         self.extraItems = []
         self.currentTextBox = None
+
+    def onResize(self, screen):
+        '''
+        Resize each Gui Object in the Gui
+        '''
+        # Loop every field in the gui
+        for field in dir(self):
+            value = self.__getattribute__(field)
+            # If it is a list, try to resize each object in it.
+            if isinstance(value, list):
+                for o, obj in enumerate(value):
+                    try:
+                        value[o].onResize(screen)
+                    except AttributeError:
+                        pass
 
     def draw(self, mousePos):
         '''

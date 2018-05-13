@@ -17,13 +17,18 @@ class Scrollbox:
         sliderRect = [self.defaultPos[0]+int(rect[0]*0.97), self.defaultPos[1]+30, int(rect[0]*0.025), rect[1]-60]
         self.scrollSlider = Slider(sliderRect, (0, 0, 0))
 
+    def onResize(self, screen):
+        '''
+        Resize the scrollbox
+        '''
+        self.rect = scaleRect(self.defaultRect, screen)
+        self.pos = scaleRect(self.defaultPos, screen)
+        self.scrollSlider.onResize(screen)
+
     def draw(self, screen, mousePos):
         '''
         Draw the scrollbox to a given screen
         '''
-        self.rect = scaleRect(self.defaultRect, screen)
-        self.pos = scaleRect(self.defaultPos, screen)
-
         # Draw the innerscreen
         while self.objects:
             # Iterate the objects, and draw with scroll adjustment applied
@@ -63,7 +68,7 @@ class ItemSlot:
         self.resources = game.modLoader.gameRegistry.resources
         self.coverColour = (0, 0, 0)
         self.setItem(item)
-        self.button = Button(pos+[size, size], '', True)
+        self.button = Button(list(pos+[size, size]), '', True)
 
     def setItem(self, item):
         '''
@@ -72,12 +77,20 @@ class ItemSlot:
         self.item = item
         self.itemImage = self.item.getImage(self.resources)
 
+    def onResize(self, screen):
+        '''
+        Resize the itemslot
+        '''
+        self.button.onResize(screen)
+        self.pos = scaleRect(self.defaultPos, screen)
+        self.pos[1] += 1
+
     def draw(self, screen, mousePos):
         '''
         Draw the itemslot to a given screen
         '''
-        self.pos = scaleRect(self.defaultPos, screen)
-        self.pos[1] += 1
+        # self.pos = scaleRect(self.defaultPos, screen)
+        # self.pos[1] += 1
 
         # Draw the border of the itemslot
         self.button.draw(screen, [0, 0])
@@ -133,12 +146,17 @@ class Slider:
         else:
             self.bar = HorizBar(rect, colour)
 
+    def onResize(self, screen):
+        '''
+        Resize the slider
+        '''
+        self.rect = scaleRect(self.defaultRect, screen)
+        self.bar.onResize(screen)
 
     def draw(self, screen, mousePos):
         '''
         Draw the slider to a given screen
         '''
-        self.rect = scaleRect(self.defaultRect, screen)
         # Update the slider value if the mouse is dragging the circle
         if self.isHovered(mousePos) and pygame.mouse.get_pressed()[0]:
             if self.isVertical:
@@ -178,10 +196,14 @@ class HorizBar:
         self.colour = colour
         self.label = label
 
-    def draw(self, screen, mousePos):
+    def onResize(self, screen):
+        '''
+        Resize the HorizBar
+        '''
         self.pos = scaleRect(self.defaultPos, screen)
         self.width, self.height = scaleRect([self.defaultWidth, self.defaultHeight], screen)
 
+    def draw(self, screen, mousePos):
         lineLength = self.width-self.height
 
         # Get the left and right points of the bar's circles
@@ -214,8 +236,6 @@ class HorizBar:
 
 class VertBar(HorizBar):
     def draw(self, screen, mousePos):
-        self.pos = scaleRect(self.defaultPos, screen)
-        self.width, self.height = scaleRect([self.defaultWidth, self.defaultHeight], screen)
         lineLength = self.height-self.width
 
         # Get the top and bottom points of the bar's circles
@@ -256,14 +276,18 @@ class Button:
         self.enabled = enabled
         self.isSquare = isSquare
 
-    def draw(self, screen, mousePos):
+    def onResize(self, screen):
         '''
-        Draw the button to the given surface
+        Resize the Button
         '''
         self.rect = scaleRect(self.defaultRect, screen)
         if self.isSquare:
             self.rect = self.rect[:2]+[min(self.rect[2:])]*2
 
+    def draw(self, screen, mousePos):
+        '''
+        Draw the button to the given surface
+        '''
         colour1 = (65, 55, 40)
         if self.isHovered(mousePos) or not self.enabled:
             colour2 = (138, 114, 84)
@@ -368,8 +392,13 @@ class TextArea:
         self.text = ''
         self.font = pygame.font.Font('resources/font/main.ttf', 20)
 
-    def draw(self, screen, mousePos):
+    def onResize(self, screen):
+        '''
+        Resize the TextArea
+        '''
         self.rect = scaleRect(self.defaultRect, screen)
+
+    def draw(self, screen, mousePos):
         # Set up the background of the textarea
         background = pygame.Surface(self.rect[2:]).convert_alpha()
         background.fill(pygame.Color(*self.colour))
