@@ -118,7 +118,7 @@ class Inventory:
         itemlist = ['{}|{}'.format(a.getRegistryName(), a.stackSize) for a in itemlist]
 
         # Hash the list
-        return hash(str(itemlist))
+        return hash(str(itemlist) + str(self.maxSize))
 
     def duplicate(self):
         '''
