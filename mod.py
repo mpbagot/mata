@@ -46,7 +46,7 @@ class ModLoader:
             # Check if its a directory, and recurse as required
             elif '.' not in filename and '__' not in filename:
                 try:
-                    open('mods' + subfolders + '/' + filename).close()
+                    open('mods' + subfolders + '/' + filename, 'r').close()
                 except IsADirectoryError:
                     try:
                         result = self.registerModByName(name, subfolders+'/'+filename)
