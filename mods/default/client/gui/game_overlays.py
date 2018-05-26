@@ -140,12 +140,12 @@ class Chat(Overlay):
         # Calculate the leftmost position of the text
         leftXPos = (self.screen.get_width() - title.get_width())//2
         # Calculate all of the points for the box around the title
-        pointList = [scaleRect(a, self.screen) for a in [
+        pointList = [
                      [leftXPos - 35, 80],
                      [leftXPos + title.get_width() + 35, 80],
                      [leftXPos + 5 + title.get_width(), 50],
                      [leftXPos - 5, 50]
-                    ]]
+                    ]
         # Fill in the title background shape, then draw the outline around it
         pygame.draw.polygon(self.screen, (140, 140, 140), pointList)
         pygame.draw.lines(self.screen, (40, 40, 40), True, pointList, 4)
