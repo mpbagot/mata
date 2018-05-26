@@ -336,6 +336,7 @@ writeLog('Module import complete. Opening launcher...')
 pygame.init()
 
 screen = pygame.display.set_mode((width, height))
+pygame.display.set_caption('M.A.T.A Launcher')
 
 writeLog('Display mode set. Surface size is '+str((screen.get_width(), screen.get_height())))
 
