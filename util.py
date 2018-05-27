@@ -9,9 +9,20 @@ SERVER = 0
 CLIENT = 1
 COMBINED = 2
 
-DEFAULT_PORT = 6658
-MAX_PLAYERS = 100
-FPS = 60
+with open('config') as f:
+    try:
+        configuration = {line.strip().split('=')[0] : line.strip().split('=')[1] for line in f}
+        DEFAULT_PORT = int(configuration.get('defaultport', 6658))
+        MAX_PLAYERS = int(configuration.get('maxplayers', 100))
+        FPS = int(configuration.get('maxfps', 60))
+    except IndexError:
+        raise SyntaxError('[ERROR] Invalid config file. Configuration cannot be loaded.')
+    except ValueError:
+        raise ValueError('[ERROR] Invalid values for settings in config file.')
+
+#DEFAULT_PORT = 6658
+#MAX_PLAYERS = 100
+#FPS = 60
 
 DISPLAY_FLAGS = pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.RESIZABLE
 
