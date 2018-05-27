@@ -43,9 +43,9 @@ Then, just run the main.py file in the Python interpreter, optionally using the 
 Presently, there are only 3 command line arguments which can be used.
 These are:
 
-##### The _--type_ Argument:
+##### The _--mode_ Argument:
 
-The _--type_ argument is used to set which mode the game should run in.
+The _--mode_ argument is used to set which mode the game should run in.
 This argument requires a second keyword immediately following it. There are 3 possible keywords
  - COMBINED (Default. Starts a server in the background and launches a client game in the foreground.)
  - SERVER (Launch a dedicated server available over a local or remote connection.)

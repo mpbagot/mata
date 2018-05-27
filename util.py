@@ -63,7 +63,7 @@ class ArgumentHandler:
                 self.results['loadCustomMods'] = False
 
             # Handle the runtime type argument, defaulting to server if invalid
-            elif arg == '--type' and i != len(self.args)-1:
+            elif arg == '--mode' and i != len(self.args)-1:
                 self.results['runtimeType'] = {'SERVER' : SERVER,
                                                'CLIENT' : CLIENT,
                                                'COMBINED' : COMBINED
