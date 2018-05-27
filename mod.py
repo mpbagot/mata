@@ -4,10 +4,14 @@ Module containing the Mod loading and Mod API code for the game
 '''
 # Import the Python3 standard libraries
 import os
+import sys
 import importlib
 
 from api.cmd import FailedCommand, MessageCommand
 from api.entity import Pickup
+
+# Initialise the separator for directories
+dir_sep = '/' if sys.platform != 'win32' else '\\'
 
 class ModLoader:
     def __init__(self, game):
@@ -35,7 +39,7 @@ class ModLoader:
         # Traverse the python files in the mod folder
         for filename in os.listdir('mods'+subfolders):
             if filename.endswith('.py'):
-                module = importlib.import_module(('mods' + subfolders + '.').replace('/', '.') + filename[:-3])
+                module = importlib.import_module(('mods' + subfolders + '.').replace(dir_sep, '.') + filename[:-3])
                 # Check if the mod class is in the file
                 if name in dir(module):
                     modClass = module.__getattribute__(name)
@@ -46,10 +50,10 @@ class ModLoader:
             # Check if its a directory, and recurse as required
             elif '.' not in filename and '__' not in filename:
                 try:
-                    open('mods' + subfolders + '/' + filename, 'r').close()
-                except IsADirectoryError:
+                    open('mods' + subfolders + dir_sep + filename, 'r').close()
+                except:
                     try:
-                        result = self.registerModByName(name, subfolders+'/'+filename)
+                        result = self.registerModByName(name, subfolders+dir_sep+filename)
                         return result
                     except FileNotFoundError:
                         pass
