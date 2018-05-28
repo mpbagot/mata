@@ -96,7 +96,7 @@ def onEntityDeath(game, entity, tickDamage):
         return
 
     if tickDamage and isinstance(tickDamage.source, str):
-        # Give experience points = 1.5 * 4**(entity.hp/player.hp)
+        # Give experience points = 1.5 * 4**(entity.hp/player.hp) + entity.hp//20
         playerToGive = game.getPlayer(tickDamage.source)
         if playerToGive:
             xpToGive = int(1.5 * 4**(entity.health/playerToGive.health) + entity.health//20)
