@@ -334,8 +334,15 @@ class PlayerDrawScreen(Gui):
 
         self.backImg = pygame.image.load('resources/textures/background.png').convert()
         self.scaleBackImg = self.backImg
+
+        # Set up the Gui elements
         self.buttons = [StartGameButton([600, 580, 350, 120])]
         self.valSliders = [Slider([450 + (a%2)*(250), 180 + 60 * (a//2), 210, 20], (255, 0, 0)) for a in range(12)]
+        
+        # Initialise the hue sliders with 0.5 value, to nullify hue shift effect
+        for a in range(len(self.valSliders)):
+            self.valSliders[a].value = 0.5 if a%2 else 0
+
         self.addItem(PlayerImageBox(scaleRect([300, 528, 30, 170], self.screen), game))
 
     def onResize(self, screen):
