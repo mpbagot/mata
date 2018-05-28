@@ -128,7 +128,9 @@ class Game:
                     elif self.getGui():
                         if event.type == pygame.VIDEORESIZE:
                             oldSurface = pygame.display.get_surface().copy()
-                            pygame.display.set_mode((event.w, event.h), util.DISPLAY_FLAGS)
+                            width = min(max(400, event.w), 65535)
+                            height = min(max(300, event.h), 49151)
+                            pygame.display.set_mode((width, height), util.DISPLAY_FLAGS)
                             pygame.display.get_surface().blit(oldSurface, [0, 0])
                             pygame.display.flip()
                             # Fire an onResize call to rescale the gui
