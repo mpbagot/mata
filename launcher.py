@@ -314,7 +314,7 @@ def launchGame(label):
             'Server' : 'SERVER'
            }.get(label, 'COMBINED')
     pygame.quit()
-    os.system(pythonCommand+' main.py {} --type {}'.format(argBox.text, mode))
+    os.system(pythonCommand+' main.py {} --mode {}'.format(argBox.text, mode))
 
 # Install Pygame
 if shouldInstallPygame():
