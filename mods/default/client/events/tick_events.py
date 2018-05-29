@@ -166,7 +166,10 @@ def onTickSyncPlayer(game, deltaTime, tick):
             if game.player.pos != game.getModInstance('ClientMod').oldPlayerPos:
                 game.player.synced = False
                 # Duplicate the player and set the position
+                image = game.player.smallImg
+                game.player.smallImg = None
                 playerCopy = deepcopy(game.player)
+                game.player.smallImg = image
                 # Store the current relative position in the mod instance for later comparison
                 game.getModInstance('ClientMod').oldPlayerPos = list(game.player.pos)
                 # Send the copy of the player object in the packet
@@ -206,7 +209,7 @@ def genWorld(game, queue):
     # Generate the world
     dimension = game.getDimension(game.player.dimension)
     tileMap = dimension.chunkProvider.generate(preGenPos, game.modLoader.gameRegistry)
-    
+
     # Push the tilemap through the process queue
     queue.put(tileMap)
     print('world gen done')
