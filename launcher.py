@@ -32,9 +32,9 @@ class Button:
         self.font = pygame.font.Font('resources/font/main.ttf', 30)
 
     def draw(self, screen, mousePos):
-        '''
+        """
         Draw the button to the given surface
-        '''
+        """
         colour1 = (65, 55, 40)
         if self.isHovered(mousePos):
             colour2 = (138, 114, 84)
@@ -50,9 +50,9 @@ class Button:
         screen.blit(label, self.getLabelPos(label))
 
     def getLabelObject(self):
-        '''
+        """
         Return a cropped version of the label to fit into the button width
-        '''
+        """
         label = self.label
         text = self.font.render(label, True, (0, 0, 0))
         while text.get_rect().width+10 > self.rect[2]:
@@ -61,15 +61,15 @@ class Button:
         return text
 
     def getLabelPos(self, label):
-        '''
+        """
         Return the position to blit the button's label to
-        '''
+        """
         return [self.rect[0]+self.rect[2]//2-label.get_rect().width//2, self.rect[1]+self.rect[3]//2-20]
 
     def isHovered(self, mousePos):
-        '''
+        """
         Return if the given mousePos is above this button
-        '''
+        """
         x, y = mousePos
         if x > self.rect[0] and x < self.rect[0]+self.rect[2]:
             if y > self.rect[1] and y < self.rect[1]+self.rect[3]:
@@ -82,9 +82,9 @@ class TextBox(Button):
         self.text = ''
 
     def getLabelObject(self):
-        '''
+        """
         Return a cropped version of the label if no input text has been entered
-        '''
+        """
         if not self.text:
             label = self.label
         else:
@@ -96,9 +96,9 @@ class TextBox(Button):
         return text
 
     def getTextObject(self):
-        '''
+        """
         Return a cropped version of the current input text
-        '''
+        """
         label = self.text
         text = self.font.render(label, True, (0, 0, 0))
         while text.get_rect().width+10 > self.rect[2]:
@@ -107,9 +107,9 @@ class TextBox(Button):
         return text
 
     def draw(self, screen, mousePos):
-        '''
+        """
         Draw the button to the given surface
-        '''
+        """
         super().draw(screen, mousePos)
 
         # Draw the input text on the button
@@ -117,18 +117,18 @@ class TextBox(Button):
         screen.blit(label, self.getLabelPos(label))
 
     def doKeyPress(self, event):
-        '''
+        """
         Handle a key press event on this textbox
-        '''
+        """
         if event.key == pygame.K_BACKSPACE:
             self.text = self.text[:-1]
         elif event.key != pygame.K_RETURN:
             self.text += event.unicode
 
 def firstTimeSetup():
-    '''
+    """
     Perform first-time setup of game dependencies
-    '''
+    """
     global setupStep
     global overlay
     global errorMessage
@@ -165,9 +165,9 @@ def firstTimeSetup():
     writeLog("Setup completed successfully!")
 
 def shouldInstallPygame():
-    '''
+    """
     Return whether Pygame needs to be installed
-    '''
+    """
     try:
         import pygame
         return False
@@ -175,9 +175,9 @@ def shouldInstallPygame():
         return True
 
 def shouldInstallNoise():
-    '''
+    """
     Return whether the noise library needs to be installed
-    '''
+    """
     try:
         import noise
         return False
@@ -185,9 +185,9 @@ def shouldInstallNoise():
         return True
 
 def shouldSetupAPI():
-    '''
+    """
     Return whether the api needs to be compiled/pythonified
-    '''
+    """
     try:
         from api.colour import HueShifter
         from api.gui.gui import GUIState
@@ -196,15 +196,15 @@ def shouldSetupAPI():
         return True
 
 def shouldSetup():
-    '''
+    """
     Return whether the first time setup needs to be run
-    '''
+    """
     return shouldSetupAPI() or shouldInstallNoise() or shouldInstallPygame()
 
 def drawMain(mousePos):
-    '''
+    """
     Draw the main graphics of the launcher
-    '''
+    """
     global screen
     global playButtons
     global backgroundImage
@@ -231,9 +231,9 @@ def drawMain(mousePos):
     argBox.draw(screen, mousePos)
 
 def drawOverBox(surface):
-    '''
+    """
     Draw a surface as an overlaid box
-    '''
+    """
     global screen
     global width
     global height
@@ -248,9 +248,9 @@ def drawOverBox(surface):
     screen.blit(surface, pos)
 
 def getErrorBox(message, mousePos):
-    '''
+    """
     Generate an error message box
-    '''
+    """
     global errorButton
     global width
     global height
@@ -271,9 +271,9 @@ def getErrorBox(message, mousePos):
     return box
 
 def getInstallBox():
-    '''
+    """
     Generate a box with the installation information in it
-    '''
+    """
     global setupStep
     global width
     global height
@@ -295,9 +295,9 @@ def getInstallBox():
     return box
 
 def launchGame(label):
-    '''
+    """
     Launch the game based on the config
-    '''
+    """
     global config
     global logFile
 

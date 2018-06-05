@@ -17,10 +17,10 @@ from mods.default.items import *
 from mods.default.packets import *
 
 def onGameMouseClick(game, mousePos, pressed, event):
-    '''
+    """
     Event Hook: onMouseClick
     Handle a mouse click on vehicles, players and entities
-    '''
+    """
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
         chatOverlay = game.getModInstance('ClientMod').chatOverlay
         pauseOverlay = game.getModInstance('ClientMod').pauseOverlay
@@ -90,10 +90,10 @@ def onGameMouseClick(game, mousePos, pressed, event):
                     return
 
 def onTradeMouseClick(game, mousePos, pressed, event):
-    '''
+    """
     Event Hook: onMouseClick
     Handle the movement of items between slots in the trade screen
-    '''
+    """
     gui = game.getGui()
     if gui and gui[0] == game.getModInstance('ClientMod').tradeGui:
         # moveItem needs to store the section of inventory, index of inv.itemSlots it is from, and the itemstack itself
@@ -166,10 +166,10 @@ def onTradeMouseClick(game, mousePos, pressed, event):
                             gui[1].moveItem = [s, stack2]
 
 def onInvMouseClick(game, mousePos, pressed, event):
-    '''
+    """
     Event Hook: onMouseClick
     Handle the movement of items between slots in the inventory screen
-    '''
+    """
     gui = game.getGui()
     if gui and gui[0] == game.getModInstance('ClientMod').inventoryGui:
         # moveItem needs to store the section of inventory, index of inv.itemSlots it is from, and the itemstack itself
@@ -269,10 +269,10 @@ def onInvMouseClick(game, mousePos, pressed, event):
 
 
 def onGameKeyPress(game, event):
-    '''
+    """
     Event Hook: onKeyPress
     Handle the opening and closing of the messaging overlay
-    '''
+    """
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
         chatOverlay = game.getModInstance('ClientMod').chatOverlay
         pauseOverlay = game.getModInstance('ClientMod').pauseOverlay
@@ -309,10 +309,10 @@ def onGameKeyPress(game, event):
             game.packetPipeline.sendToServer(SendCommandPacket('/create Horse'))
 
 def onInvKeyPress(game, event):
-    '''
+    """
     Event Hook: onKeyPress
     Handle the key press events while in the inventory screen
-    '''
+    """
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').inventoryGui:
         if event.key == pygame.K_ESCAPE:
             game.getGui()[1].buttons[0].onClick(game)
@@ -325,10 +325,10 @@ def onInvKeyPress(game, event):
             game.player.inventory.addItemstack(ItemStack(Dirt(), 1))
 
 def onCommand(game, commandClass, username, args):
-    '''
+    """
     Event Hook: onCommand
     Extend the default behaviour for some commands
-    '''
+    """
     if commandClass.__name__ == 'MessageCommand':
         message = ' '.join(args[1:])
         modInstance = game.getModInstance('ClientMod')
@@ -346,10 +346,10 @@ def onCommand(game, commandClass, username, args):
                 gui.gui[1].notifications.append(args[0])
 
 def onPacketReceived(game, packet):
-    '''
+    """
     Event Hook: onPacketReceived
     Hook additional behaviour into the vanilla API packets
-    '''
+    """
     if packet.__class__.__name__ == 'ResetPlayerPacket':
         # Tell the game that the player is synced
         game.player.synced = True
@@ -371,10 +371,10 @@ def onPacketReceived(game, packet):
             game.getGui()[1].invSynced = True
 
 def onDisconnect(game, message):
-    '''
+    """
     Event Hook: onDisconnect
     Handle the opening of the disconnected screen when the client disconnects
-    '''
+    """
     if message:
         gui = game.getGui()
         disconnectGuiID = game.getModInstance('ClientMod').disconnectMessageGui
@@ -389,11 +389,11 @@ def onDisconnect(game, message):
     game.getModInstance('ClientMod').packetPipeline.closeConnection()
 
 def onPlayerLogin(game, player):
-    '''
+    """
     Event Hook: onPlayerLogin
     Run logic each time a client logs into a remote packetPipeline
     Open the player customisation screen when the client logs into the server
-    '''
+    """
     # Pregenerate the world
     if not game.getModInstance('ClientMod').genLock:
         queue = Queue()
@@ -416,10 +416,10 @@ def onPlayerLogin(game, player):
     game.openGui(game.getModInstance('ClientMod').playerDrawGui, game)
 
 def onPlayerSync(game, player, oldPlayers):
-    '''
+    """
     Event Hook: onPlayerSync
     Apply the updates to other player attributes from the server
-    '''
+    """
     # If the player being updated is the client player, handle it differently
     isRiding = False
     if game.player.ridingEntity:
@@ -460,10 +460,10 @@ def onPlayerSync(game, player, oldPlayers):
     oldPlayers.append(player)
 
 def onEntitySync(game, entity, entities):
-    '''
+    """
     Event Hook: onEntitySync
     Apply the updates to the entity from the server
-    '''
+    """
     # If the player being updated is the client player, skip it
     for e in range(len(entities)):
         if entities[e] == entity:
@@ -486,10 +486,10 @@ def onEntitySync(game, entity, entities):
     entities.append(entity)
 
 def onVehicleSync(game, vehicle, vehicles):
-    '''
+    """
     Event Hook: onVehicleSync
     Apply the updates to the given vehicle from the server
-    '''
+    """
     # Iterate and update the vehicles
     for v in range(len(vehicles)):
         if vehicles[v] == vehicle:
@@ -521,10 +521,10 @@ def onVehicleSync(game, vehicle, vehicles):
     vehicles.append(vehicle)
 
 def onDimensionChange(game, entity, oldDimension, newDimension):
-    '''
+    """
     Event Hook: onDimensionChange
     Run logic when an entity changes dimension
-    '''
+    """
     if isinstance(entity, Player) and entity.name == game.player.name:
         # Check if it's the client player switching dimension
         message = 'Entering '+game.getDimension(newDimension).getName()

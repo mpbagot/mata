@@ -1,7 +1,7 @@
-'''
+"""
 game_screens.py
 A module containing the GUI screens of the default client game
-'''
+"""
 # Import the Python Standard libraries
 from threading import Thread
 import math
@@ -21,9 +21,9 @@ from mods.default.client.gui.menus import *
 import util
 
 class TradeScreen(Gui):
-    '''
+    """
     Trading screen
-    '''
+    """
     def __init__(self, game, other, isInitiator):
         super().__init__()
         self.game = game
@@ -54,9 +54,9 @@ class TradeScreen(Gui):
         self.initialiseObjects()
 
     def setupSlots(self):
-        '''
+        """
         Setup the itemslots
-        '''
+        """
         self.itemSlots = []
         # Make the slotsize accessible in the middle and foreground methods
         self.slotSize = 60
@@ -69,9 +69,9 @@ class TradeScreen(Gui):
                 self.itemSlots.append(slot)
 
     def initialiseObjects(self):
-        '''
+        """
         Initialise the buttons and inv slots for the gui
-        '''
+        """
         self.setupSlots()
 
         # Initialise the chat textbox
@@ -200,9 +200,9 @@ class TradeScreen(Gui):
 
 
 class PlayerInventoryScreen(Gui):
-    '''
+    """
     Player Inventory screen
-    '''
+    """
     def __init__(self, game):
         super().__init__()
 
@@ -248,9 +248,9 @@ class PlayerInventoryScreen(Gui):
         self.fetchInventory(game)
 
     def setInventory(self, inv):
-        '''
+        """
         Set the inventory for this screen
-        '''
+        """
         self.inventory = inv
 
         # Make the slotsize accessible in the middle and foreground methods
@@ -264,9 +264,9 @@ class PlayerInventoryScreen(Gui):
             self.itemSlots[16 + i].setItem(itemstack)
 
     def fetchInventory(self, game):
-        '''
+        """
         Fetch the inventory from the server
-        '''
+        """
         packetPipeline = game.getModInstance('ClientMod').packetPipeline
         packetPipeline.sendToServer(FetchInventoryPacket(game.player.name))
 
@@ -323,9 +323,9 @@ class PlayerInventoryScreen(Gui):
             self.screen.blit(text, tagPos)
 
 class PlayerDrawScreen(Gui):
-    '''
+    """
     Player customisation screen
-    '''
+    """
     def __init__(self, game):
         super().__init__()
 
@@ -338,7 +338,7 @@ class PlayerDrawScreen(Gui):
         # Set up the Gui elements
         self.buttons = [StartGameButton([600, 580, 350, 120])]
         self.valSliders = [Slider([450 + (a%2)*(250), 180 + 60 * (a//2), 210, 20], (255, 0, 0)) for a in range(12)]
-        
+
         # Initialise the hue sliders with 0.5 value, to nullify hue shift effect
         for a in range(len(self.valSliders)):
             self.valSliders[a].value = 0.5 if a%2 else 0
@@ -444,9 +444,9 @@ class GameScreen(Gui):
                             self.screen.blit(tileImage, tileRect)
 
     def drawMiddleLayer(self, mousePos):
-        '''
+        """
         Draw the trees, entities, vehicles, dropped items, buildings
-        '''
+        """
         super().drawMiddleLayer(mousePos)
 
         w = self.screen.get_width()
@@ -504,9 +504,9 @@ class GameScreen(Gui):
                 self.screen.blit(entityImage, pos)
 
     def drawForegroundLayer(self, mousePos):
-        '''
+        """
         Draw the player
-        '''
+        """
         super().drawForegroundLayer(mousePos)
 
         # TODO Change this later

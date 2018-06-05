@@ -3,9 +3,9 @@ from api.gui.objects import *
 from mods.default.client.gui.extras import *
 
 class MainMenu(Gui):
-    '''
+    """
     Main Menu screen with a player login form
-    '''
+    """
     def __init__(self):
         super().__init__()
 

@@ -1,7 +1,7 @@
-'''
+"""
 items.py
 A module with definitions of all the default items for MATA
-'''
+"""
 from api.item import *
 from api import combat
 
@@ -35,9 +35,9 @@ class Sword(Weapon):
         self.knockback = combat.KNOCK_WEAK
 
 class Teeth(Weapon):
-    '''
+    """
     An unobtainable weapon used for entity attack calculations
-    '''
+    """
     def __init__(self):
         super().__init__()
         self.setRegistryName('Teeth Weapon')

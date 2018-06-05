@@ -1,7 +1,7 @@
-'''
+"""
 game_overlays.py
 A module containing the GUI overlays of the default client game
-'''
+"""
 # Import the Modding API
 from api.gui.gui import *
 from api.gui.objects import *

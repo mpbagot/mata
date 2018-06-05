@@ -3,9 +3,9 @@ from api import audio, network, biome, cmd, dimension, entity, gui, item, proper
 
 class NNetAIMod(Mod):
     def initialiseProperties(self):
-        '''
+        """
         Initialise the name of the mod
-        '''
+        """
         self.modName = 'NeuralNetAIMod'
 
     def preLoad(self):

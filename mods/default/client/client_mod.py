@@ -145,18 +145,18 @@ class ClientMod(Mod):
         self.gameRegistry.registerEventHandler(other_events.onInvKeyPress, 'onKeyPress')
 
     def generateLargePlayerImage(self, imgValues):
-        '''
+        """
         Generate the large player image using an array of hue shift values
-        '''
+        """
         # Initialise the surface and the image data
         image = pygame.Surface((75, 132)).convert_alpha()
         # Return a hueshifted version of the image
         return hueShiftImage(imgValues, 'player_img', image)
 
     def calculateAvatar(self, imgValues):
-        '''
+        """
         Generate the in-world player avatar using an array of hue shift values
-        '''
+        """
         image = pygame.Surface((40, 40)).convert_alpha()
         imageNames = ['player_avatar_{}'.format(a) for a in range(4)]
         # Generate 4 frames per player, 3 frames per direction

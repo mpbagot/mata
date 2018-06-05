@@ -1,7 +1,7 @@
-'''
+"""
 Util module
 This module contains miscellaneous classes and constants that are used by the game engine
-'''
+"""
 import pygame
 import math
 
@@ -27,44 +27,44 @@ with open('config') as f:
 DISPLAY_FLAGS = pygame.DOUBLEBUF | pygame.HWSURFACE | pygame.RESIZABLE
 
 def calcChecksum(data):
-    '''
+    """
     Calculate a checksum
-    '''
+    """
     checksum = 0
     for a in range(len(data)):
         checksum += data[a]
     return checksum.to_bytes(3, 'big')
 
 def calcDistance(ent1, ent2):
-    '''
+    """
     Calculate the distance between two entities
-    '''
+    """
     dimensionDelta = (ent1.dimension-ent2.dimension) * 1000
     deltaPos = [ent1.pos[a]-ent2.pos[a] for a in (0, 1)]
     return (deltaPos[0]**2 + deltaPos[1]**2)**0.5 + dimensionDelta
 
 def calcDirection(pos1, pos2):
-    '''
+    """
     Calculate a direction between two positions
     pos1 is current position
     pos2 is previous position
-    '''
+    """
     theta = math.atan2(pos1[0]-pos2[0], pos1[1]-pos2[1])/math.pi
     return theta
 
 class ArgumentHandler:
-    '''
+    """
     An object to store and handle the command line arguments passed into the game at runtime
-    '''
+    """
     def __init__(self, arguments):
         self.results = {}
         self.args = arguments
         self.handleArgs()
 
     def handleArgs(self):
-        '''
+        """
         Process the arguments passed in, and set the results dictionary accordingly
-        '''
+        """
         # Iterate the arguments and handle them
         i = 0
         while i < len(self.args):
@@ -104,31 +104,31 @@ class ArgumentHandler:
             del self.args[i]
 
     def getRuntimeType(self):
-        '''
+        """
         Return the type of game being run, either client, server, or combined
-        '''
+        """
         return self.results.get('runtimeType', COMBINED)
 
     def getRunSpecialAI(self):
-        '''
+        """
         Return whether or not to run the neural network ai, as opposed to the normal ai
-        '''
+        """
         return self.results.get('specialAI', False)
 
     def getShouldLoadCustomMods(self):
-        '''
+        """
         Return whether to load custom mods, beyond the default game
-        '''
+        """
         return self.results.get('loadCustomMods', True)
 
     def getSeed(self):
-        '''
+        """
         Return the world generation seed
-        '''
+        """
         return self.results.get('seed', 0)
 
     def getConnectingAddress(self):
-        '''
+        """
         Return the address that this client is going to connect to
-        '''
+        """
         return self.results.get('address', '')

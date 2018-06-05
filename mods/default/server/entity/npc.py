@@ -32,15 +32,15 @@ class WanderAITask(AITask):
         self.wanderTarget = entity.pos
 
     def shouldStartExecute(self, game):
-        '''
+        """
         Return whether or not the ai task should start running on a given tick
-        '''
+        """
         return START if self.idleTime <= 0 else SKIP
 
     def shouldContinueExecute(self, game):
-        '''
+        """
         Return whether or not the ai task should continue running on a given tick
-        '''
+        """
         return CONTINUE if self.walkTime >= 0 else END
 
     def getWanderTarget(self):
@@ -52,9 +52,9 @@ class WanderAITask(AITask):
         self.getWanderTarget()
 
     def continueExecution(self, game, deltaTime):
-        '''
+        """
         Execute a continuous task for a tick
-        '''
+        """
         self.walkTime -= deltaTime
 
         # Calculate the walking velocity and apply the displacement to the entity position
@@ -74,15 +74,15 @@ class GroupAITask(AITask):
         self.startThreshold = 30
 
     def shouldStartExecute(self, game):
-        '''
+        """
         Return whether or not the ai task should start running on a given tick
-        '''
+        """
         return START if random.randint(0, 100) == 70 else SKIP
 
     def shouldContinueExecute(self, game):
-        '''
+        """
         Return whether or not the ai task should continue running on a given tick
-        '''
+        """
         return CONTINUE if random.randint(0, 10) != 7 else END
 
     def getGroup(self, game):
@@ -90,9 +90,9 @@ class GroupAITask(AITask):
         return [a for a in nearEntities if isinstance(a, self.entity.__class__)]
 
     def getDistance(self, game, entity, vec=None):
-        '''
+        """
         Get the distance to the closest player and name of that player
-        '''
+        """
         # Calculate the distance
         if vec is None:
             x, y = self.getVector(game, entity)
@@ -101,9 +101,9 @@ class GroupAITask(AITask):
         return (x**2 + y**2)**0.5
 
     def getVector(self, game, entity):
-        '''
+        """
         Get the 2D vector from this entity to the given one
-        '''
+        """
         if isinstance(entity, int):
             # Evading an entity
             target = game.getEntity(entity)
@@ -122,9 +122,9 @@ class GroupAITask(AITask):
         return [(target.pos[0]-x), (target.pos[1]-y)]
 
     def getWeightVector(self, game, entity):
-        '''
+        """
         Get a weighting vector used to calculate the direction to move to evade enemies
-        '''
+        """
         # Get the actual vector to the target
         defaultVec = self.getVector(game, entity)
         # If the vector is out-of-bounds, nullify it so as not to skew results
@@ -137,9 +137,9 @@ class GroupAITask(AITask):
         return [a*multiplier for a in defaultVec]
 
     def continueExecution(self, game, deltaTime):
-        '''
+        """
         Execute a continuous task for a tick
-        '''
+        """
         self.time += deltaTime
 
         # Get the direction weights
@@ -169,21 +169,21 @@ class EvadeAITask(AITask):
         self.safeThreshold = 30
 
     def shouldStartExecute(self, game):
-        '''
+        """
         Return whether or not the ai task should start running on a given tick
-        '''
+        """
         return START if any([self.getDistance(game, a.uuid or a.name) < self.safeThreshold//1.5 for a in self.toEvade]) else SKIP
 
     def shouldContinueExecute(self, game):
-        '''
+        """
         Return whether or not the ai task should continue running on a given tick
-        '''
+        """
         return CONTINUE if any([self.getDistance(game, a.uuid or a.name) < self.safeThreshold for a in self.toEvade]) else END
 
     def getDistance(self, game, entity, vec=None):
-        '''
+        """
         Get the distance to an entity
-        '''
+        """
         # Calculate the distance
         if vec is None:
             x, y = self.getVector(game, entity)
@@ -192,9 +192,9 @@ class EvadeAITask(AITask):
         return (x**2 + y**2)**0.5
 
     def getVector(self, game, entity):
-        '''
+        """
         Get the 2D vector from this entity to the given one
-        '''
+        """
         if isinstance(entity, int):
             # Evading an entity
             target = game.getEntity(entity)
@@ -213,9 +213,9 @@ class EvadeAITask(AITask):
         return [(target.pos[0]-x), (target.pos[1]-y)]
 
     def getWeightVector(self, game, entity):
-        '''
+        """
         Get a weighting vector used to calculate the direction to move to evade enemies
-        '''
+        """
         # Get the actual vector to the target
         defaultVec = self.getVector(game, entity)
         # If the vector is out-of-bounds, nullify it so as not to skew results
@@ -228,9 +228,9 @@ class EvadeAITask(AITask):
         return [a*multiplier for a in defaultVec]
 
     def continueExecution(self, game, deltaTime):
-        '''
+        """
         Execute a continuous task for a tick
-        '''
+        """
         self.time += deltaTime
 
         # Add any entity that has attacked this entity to the evasion list

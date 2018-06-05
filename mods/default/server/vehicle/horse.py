@@ -11,7 +11,7 @@ class Horse(Vehicle):
         self.speed = 30
 
     def getMaxRiders(self):
-        '''
+        """
         Return the number of players that can ride a horse at one time
-        '''
+        """
         return 2

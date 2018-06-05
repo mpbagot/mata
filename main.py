@@ -1,9 +1,9 @@
-'''
+"""
 2D Game Engine
 - Mod Engine
 - Networking Engine
 - Integrated or Dedicated Server
-'''
+"""
 # Import the Python standard libraries
 import sys
 

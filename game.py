@@ -1,7 +1,7 @@
-'''
+"""
 game.py
 A module containing the main game object/class
-'''
+"""
 
 # Import the standard libraries
 import time
@@ -23,9 +23,9 @@ from api import network
 from api.packets import *
 
 class Game:
-    '''
+    """
     A class to hold all of the elements of the game together
-    '''
+    """
     def __init__(self, argHandler):
         # Initialise the child process value
         self.child = None
@@ -62,9 +62,9 @@ class Game:
             self.getGui()[1].textboxes[-1].text = self.args.getConnectingAddress()
 
     def quit(self):
-        '''
+        """
         Safely disconnect all players, unload the mods and quit the game
-        '''
+        """
         # Terminate the child server process if running a combined game
         if self.child:
             # Ask the process to die nicely...
@@ -80,9 +80,9 @@ class Game:
         sys.exit()
 
     def run(self):
-        '''
+        """
         Run the game after initialising all of the mods
-        '''
+        """
         self.fireEvent('onGameLaunch')
         self.tick = 0
         self.deltaTime = 0
@@ -174,9 +174,9 @@ class Game:
                 self.deltaTime = 1/util.FPS
 
     def drawClientGame(self, pos):
-        '''
+        """
         Draw the game to the pygame display
-        '''
+        """
         pygame.display.get_surface().fill((255, 255, 255))
 
         # Draw the GUIState to screen
@@ -187,22 +187,22 @@ class Game:
         pygame.display.flip()
 
     def getModInstance(self, modName):
-        '''
+        """
         Return an instance of a mod with the given name
-        '''
+        """
         return self.modLoader.mods.get(modName)
 
     def fireEvent(self, eventType, *args):
-        '''
+        """
         Fire an event on the event bus
-        '''
+        """
         for func in self.modLoader.gameRegistry.EVENT_BUS.get(eventType, []):
             func(self, *args)
 
     def fireCommand(self, text, username):
-        '''
+        """
         Fire a command on either side
-        '''
+        """
         # split the command and arguments
         command, *args = text.split()
         # Fetch the command class
@@ -216,38 +216,38 @@ class Game:
         commandClass.run(username, *args)
 
     def getGui(self):
-        '''
+        """
         Return the currently open gui
-        '''
+        """
         if self.currentGUIState:
             return self.currentGUIState.gui
         return None
 
     def getOverlays(self):
-        '''
+        """
         Return a list of the currently open overlays
-        '''
+        """
         if self.currentGUIState:
             return self.currentGUIState.overlays
         return []
 
     def getGUIState(self):
-        '''
+        """
         Return the current GUIState of the game
-        '''
+        """
         return self.currentGUIState
 
     def loadGUIState(self, guiState):
-        '''
+        """
         Load a given GUIState into the game
-        '''
+        """
         self.prevGUIState = self.currentGUIState
         self.currentGUIState = guiState
 
     def openGui(self, guiID, *args):
-        '''
+        """
         Open the GUI with the given id for this client
-        '''
+        """
         if self.currentGUIState:
             self.prevGUIState = self.currentGUIState
 
@@ -260,40 +260,40 @@ class Game:
             self.currentGUIState.openOverlay(guiID, *args)
 
     def restoreGui(self):
-        '''
+        """
         Restore the previous GUI state for the client
-        '''
+        """
         if self.prevGUIState:
             self.currentGUIState = self.prevGUIState
 
         self.prevGUIState = None
 
     def closeGui(self):
-        '''
+        """
         Close the currently open gui
-        '''
+        """
         self.prevGUIState = self.currentGUIState
         self.currentGUIState = None
 
     def getDimension(self, dimensionId):
-        '''
+        """
         Get the DimensionHandler for the given dimension id
-        '''
+        """
         return self.modLoader.gameRegistry.dimensions.get(dimensionId)
 
     def getWorld(self, dimensionId):
-        '''
+        """
         Get the world object corresponding to the given dimension id
-        '''
+        """
         dimension = self.getDimension(dimensionId)
         if dimension:
             return dimension.getWorldObj()
         return None
 
     def getEntity(self, uuid):
-        '''
+        """
         Get an entity object by its uuid
-        '''
+        """
         # Loop each dimension
         for dimensionId in self.modLoader.gameRegistry.dimensions:
             world = self.getWorld(dimensionId)
@@ -305,9 +305,9 @@ class Game:
         return None
 
     def getVehicle(self, uuid):
-        '''
+        """
         Get a vehicle object by its uuid
-        '''
+        """
         # Loop each dimension
         for dimensionId in self.modLoader.gameRegistry.dimensions:
             world = self.getWorld(dimensionId)
@@ -319,9 +319,9 @@ class Game:
         return None
 
     def getPlayer(self, username):
-        '''
+        """
         Get a given player in the world player list
-        '''
+        """
         # If a player object is accidentally passed in, run comparison with the username
         if isinstance(username, Player):
             username = username.name
@@ -339,9 +339,9 @@ class Game:
         return None
 
     def setPlayer(self, player):
-        '''
+        """
         Set the player on the server
-        '''
+        """
         # If the player does not exist, append them to the required dimension's player list
         if not self.getPlayer(player.name):
             self.getWorld(player.dimension).players.append(player)
@@ -355,22 +355,22 @@ class Game:
                 return
 
     def establishConnection(self, address):
-        '''
+        """
         Connect the default pipeline to the server
-        '''
+        """
         self.packetPipeline.connectToServer(address)
 
     def getOpenPort(self):
-        '''
+        """
         Return an available port for a custom PacketHandler to use
-        '''
+        """
         self.lastUsedPort += 1
         return self.lastUsedPort
 
     def processCmdArgs(self, argHandler):
-        '''
+        """
         Process the command line arguments for the game
-        '''
+        """
         lines = [line.strip() for line in open('modlist') if line and line[0] != '#']
 
         section = None
@@ -418,9 +418,9 @@ class Game:
                                                 }[argHandler.getRuntimeType()]))
 
 def forkServer(argHandler):
-    '''
+    """
     Fork a new process to run the server in the background
-    '''
+    """
     argHandler.results['runtimeType'] = util.SERVER
     serverRuntime = Game(argHandler)
     serverRuntime.run()

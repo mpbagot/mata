@@ -15,9 +15,9 @@ class P2PNoticeButton(Button):
         self.image = pygame.image.load('resources/textures/mods/notice_button.png').convert()
 
     def draw(self, screen, mousePos):
-        '''
+        """
         Draw the button to the given surface
-        '''
+        """
         # If there are no notifications, dont draw the button
         if self.game.getGui():
             if self.game.getGui()[0] != self.game.getModInstance('ClientMod').gameGui or not self.game.getGui()[1].notifications:
@@ -91,9 +91,9 @@ class PlayButton(Button):
         t.start()
 
     def asyncConnect(self, game, username, address):
-        '''
+        """
         Connect to the server, and handle errors as required in the background
-        '''
+        """
         game.establishConnection(address)
         error = game.getModInstance('ClientMod').packetPipeline.connectToServer(address)
 

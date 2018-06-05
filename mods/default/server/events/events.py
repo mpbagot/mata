@@ -9,10 +9,10 @@ from mods.default.items import *
 from mods.default.packets import *
 
 def onTickUpdateTradeRequests(game, deltaTime, tick):
-    '''
+    """
     Event Hook: onTick
     Remove expired trade requests
-    '''
+    """
     for dimensionId in game.modLoader.gameRegistry.dimensions:
         for p, player in enumerate(game.getWorld(dimensionId).players):
             props = player.getProperty('tradeState')
@@ -24,10 +24,10 @@ def onTickUpdateTradeRequests(game, deltaTime, tick):
             game.getWorld(dimensionId).players[p].setProperty('tradeState', props)
 
 def onTick(game, deltaTime, tick):
-    '''
+    """
     Event Hook: onTick
     Send out WorldUpdatePackets to players
-    '''
+    """
     if tick%(util.FPS//6) == 0:
         # Send server updates to all of the connected clients 6 times a second
         pp = game.packetPipeline
@@ -47,10 +47,10 @@ def onTick(game, deltaTime, tick):
                 pp.sendToPlayer(packet, conn.username)
 
 def onPlayerMount(game, player, entity, success, mode):
-    '''
+    """
     Event Hook: onPlayerMount
     Sync the new player position to the client when the player mounts an entity
-    '''
+    """
     # If the player is mounting an entity (as opposed to dismounting)
     if success and mode == 'mount':
         # Set the player position
@@ -61,10 +61,10 @@ def onPlayerMount(game, player, entity, success, mode):
         game.packetPipeline.sendToPlayer(packet, player.name)
 
 def onPlayerDeath(game, player, tickDamage):
-    '''
+    """
     Event Hook: onPlayerDeath
     Close the connection to the client and drop the player's inventory
-    '''
+    """
     # Drop the player's inventory on the ground
     world = game.getWorld(player.dimension)
     # Turn the itemstacks into Pickups and spawn them in the world
@@ -88,10 +88,10 @@ def onPlayerDeath(game, player, tickDamage):
     game.fireCommand('System', '/message global Player {} has died.'.format(player.name))
 
 def onEntityDeath(game, entity, tickDamage):
-    '''
+    """
     Event Hook: onEntityDeath
     Drop gold and items
-    '''
+    """
     if isinstance(entity, Pickup):
         return
 
@@ -121,10 +121,10 @@ def onEntityDeath(game, entity, tickDamage):
     print('Entity died')
 
 def onEntityDamage(game, entity, damage):
-    '''
+    """
     Event Hook: onEntityDamage & onPlayerDamage
     Subtract health from the entity according to the damage class
-    '''
+    """
     entity.health -= damage.amount
     if entity.health <= 0:
         entity.isDead = True
@@ -133,10 +133,10 @@ def onEntityDamage(game, entity, damage):
         game.packetPipeline.sendToPlayer(ResetPlayerPacket(entity, bits=3), entity.name)
 
 def onPlayerLogin(game, player):
-    '''
+    """
     Event Hook: onPlayerLogin
     Print a little message when a player connects
-    '''
+    """
     print(player.name + ' joined the server.')
 
     # Sync the inventory to the player
@@ -144,10 +144,10 @@ def onPlayerLogin(game, player):
     pp.sendToPlayer(SendInventoryPacket(player.name, player.inventory), player.name)
 
 def onPlayerCreated(game, player):
-    '''
+    """
     Event Hook: onPlayerCreated
     Give some basic items to new players
-    '''
+    """
     # Add a steel sword
     player.inventory.items['left'] = ItemStack(Sword(), 1)
 
@@ -156,10 +156,10 @@ def onPlayerCreated(game, player):
     player.setProperty('tradeState', props)
 
 def onDisconnect(game, username):
-    '''
+    """
     Event Hook: onDisconnect
     Print a little message in the server console
-    '''
+    """
     print('Client player "' + username + '" has disconnected')
 
     player = game.getPlayer(username)

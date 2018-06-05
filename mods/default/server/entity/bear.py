@@ -23,21 +23,21 @@ class AttackAITask(AITask):
         self.cooldown = 0
 
     def shouldStartExecute(self, game):
-        '''
+        """
         Return whether or not the ai task should start running on a given tick
-        '''
+        """
         return START if self.getDistance(game)[0] < 15 else SKIP
 
     def shouldContinueExecute(self, game):
-        '''
+        """
         Return whether or not the ai task should continue running on a given tick
-        '''
+        """
         return CONTINUE if self.getDistance(game)[0] < 15 else END
 
     def getDistance(self, game):
-        '''
+        """
         Get the distance to the closest player and name of that player
-        '''
+        """
         # Fetch all players that are somewhat close
         closePlayers = game.getWorld(self.entity.dimension).getPlayersNear(self.entity.pos, 20)
 
@@ -54,9 +54,9 @@ class AttackAITask(AITask):
         return closest
 
     def continueExecution(self, game, deltaTime):
-        '''
+        """
         Execute a continuous task for a tick
-        '''
+        """
         self.cooldown -= deltaTime
 
         target = self.getDistance(game)[1]

@@ -11,10 +11,10 @@ from copy import deepcopy
 import util
 
 def onTickGenerateWorld(game, deltaTime, tick):
-    '''
+    """
     Event Hook: onTick
     Handles the generation of the world when necessary
-    '''
+    """
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
         # If the player has moved more than a certain distance, generate the world
         deltaPos = [abs(game.player.pos[a] - game.world.centrePos[a]) for a in (0, 1)]
@@ -33,10 +33,10 @@ def onTickGenerateWorld(game, deltaTime, tick):
             t.start()
 
 def onTickHandleMovement(game, deltaTime, tick):
-    '''
+    """
     Event Hook: onTick
     Handle the motion of other players and the main client player
-    '''
+    """
     animTicks = util.FPS//6
     if game.getGui() and game.getGui()[0] == game.getModInstance('ClientMod').gameGui:
         # Handle player movement
@@ -154,10 +154,10 @@ def onTickHandleMovement(game, deltaTime, tick):
         game.world.entities = [a for a in everythingList if isinstance(a, Entity)]
 
 def onTickSyncPlayer(game, deltaTime, tick):
-    '''
+    """
     Event Hook: onTick
     Handle the synchronisation of the player information between the client and server
-    '''
+    """
     # Check if this client has connected to a server
     if game.getModInstance('ClientMod').packetPipeline.connections:
         # Sync player data back to the server periodically
@@ -178,9 +178,9 @@ def onTickSyncPlayer(game, deltaTime, tick):
                 game.player.synced = True
 
 def handleProcess(game, queue):
-    '''
+    """
     Handle the genWorld queue and link it back into the main thread
-    '''
+    """
     # Enable the world generation lock
     game.getModInstance('ClientMod').genLock = True
     while True:
@@ -199,9 +199,9 @@ def handleProcess(game, queue):
             return
 
 def genWorld(game, queue):
-    '''
+    """
     Generate the small area of the world
-    '''
+    """
     # Set the abs pos of the player
     preGenPos = game.player.pos
     print('genning world')
